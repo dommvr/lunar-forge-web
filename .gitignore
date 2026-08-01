@@ -10,3 +10,6 @@ next-env.d.ts
 npm-debug.log*
 
 .claude/
+AGENTS.md
+CLAUDE.md
+TODO.md
