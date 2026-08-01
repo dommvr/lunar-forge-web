@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#161719; font-family:'IBM Plex Sans',system-ui,sans-serif; }
+  a { color:#E8783A; text-decoration:none; }
+  a:hover { color:#F0925C; }
+  ::selection { background:#E8783A33; }
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;gap:64px;padding:56px;background:#161719;color:#E7E9EA;font-family:'IBM Plex Sans',system-ui,sans-serif">
+
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#E8783A">04 — Comparison route</div>
+    <div style="font-size:28px;font-weight:600;letter-spacing:-0.01em">LunarForge Web · <span style="color:#8E959B">/compare — one task, three agents</span></div>
+    <div style="font-size:15px;color:#8E959B;max-width:760px">Desktop 1440 and mobile 390. A single reproducible task run against LunarForge, Claude Code and Codex, with wall-clock time, token usage, cost, diff size and validation outcome recorded per run.</div>
+  </div>
+
+  <div style="display:flex;gap:56px;align-items:flex-start;flex-wrap:wrap">
+
+    <!-- ============ DESKTOP ============ -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">desktop · 1440 × auto</div>
+      <div data-screen-label="Compare — desktop" style="width:1440px;background:#0B0C0D;border:1px solid #24272B;border-radius:12px;overflow:hidden">
+
+        <!-- navbar -->
+        <div style="position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;height:64px;padding:0 32px;background:#0B0C0Dee;backdrop-filter:blur(12px);border-bottom:1px solid #24272B">
+          <div style="display:flex;align-items:center;gap:40px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:22px;height:22px;border-radius:6px;background:linear-gradient(160deg,#E8783A,#C9581F);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:#160D06">L</div>
+              <div style="font-size:16px;font-weight:600;letter-spacing:-0.01em">LunarForge</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <div style="padding:6px 12px;border-radius:6px;font-size:14px;color:#8E959B">Home</div>
+              <div style="padding:6px 12px;border-radius:6px;font-size:14px;color:#8E959B">Docs</div>
+              <div style="padding:6px 12px;border-radius:6px;font-size:14px;color:#8E959B">Sandbox</div>
+              <div style="padding:6px 12px;border-radius:6px;font-size:14px;color:#E7E9EA;background:#191B1E;box-shadow:inset 0 0 0 1px #2C3035">Compare</div>
+              <div style="padding:6px 12px;border-radius:6px;font-size:14px;color:#8E959B">GitHub</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #26292E;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">Search docs <span style="padding:1px 5px;border:1px solid #2C3035;border-radius:4px">⌘K</span></div>
+            <div style="padding:9px 16px;border-radius:6px;background:#E8783A;color:#180D05;font-size:14px;font-weight:600">Try the sandbox</div>
+          </div>
+        </div>
+
+        <!-- header -->
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:64px;padding:72px 64px 56px;border-bottom:1px solid #1D2023">
+          <div style="display:flex;flex-direction:column;gap:24px">
+            <div style="display:inline-flex;align-self:flex-start;align-items:center;gap:8px;padding:5px 10px;border:1px solid #2A2E33;border-radius:999px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#8E959B">Benchmark · run 2026-07-24</div>
+            <div style="font-size:52px;line-height:1.06;font-weight:600;letter-spacing:-0.025em;text-wrap:pretty">The same task,<br>three coding agents.</div>
+            <div style="font-size:17px;line-height:1.6;color:#A8AFB5;max-width:560px;text-wrap:pretty">One repository, one prompt, one validation command. We recorded wall-clock time, token usage, cost, the diff each agent produced and whether the test suite went green without human help. Everything below is reproducible from the run log.</div>
+            <div style="display:flex;gap:12px">
+              <div style="padding:11px 18px;border-radius:6px;background:#E8783A;color:#180D05;font-size:14px;font-weight:600">Read the methodology</div>
+              <div style="padding:11px 18px;border-radius:6px;border:1px solid #2C3035;color:#E7E9EA;font-size:14px;font-weight:500">Download run log (JSON)</div>
+            </div>
+          </div>
+
+          <!-- task card -->
+          <div style="display:flex;flex-direction:column;background:#111214;border:1px solid #24272B;border-radius:10px;overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #1D2023;background:#0E0F11">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#6E767C">The task</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5E9B72">identical prompt</div>
+            </div>
+            <div style="padding:18px 16px;border-bottom:1px solid #1D2023;font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.7;color:#C9CFD4">
+              <div>Add cursor-based pagination to</div>
+              <div><span style="color:#E8783A">GET /api/threads</span>, keep the existing</div>
+              <div>offset param working, and cover both</div>
+              <div>paths with tests.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#1D2023">
+              <div style="padding:14px 16px;background:#111214">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#6E767C">Repository</div>
+                <div style="margin-top:4px;font-size:13px;color:#E7E9EA">threadwell/api · 41k LOC</div>
+              </div>
+              <div style="padding:14px 16px;background:#111214">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#6E767C">Stack</div>
+                <div style="margin-top:4px;font-size:13px;color:#E7E9EA">FastAPI · SQLAlchemy · pytest</div>
+              </div>
+              <div style="padding:14px 16px;background:#111214">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#6E767C">Model</div>
+                <div style="margin-top:4px;font-size:13px;color:#E7E9EA">Same frontier model, all runs</div>
+              </div>
+              <div style="padding:14px 16px;background:#111214">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#6E767C">Pass criterion</div>
+                <div style="margin-top:4px;font-size:13px;color:#E7E9EA">pytest -q green, no edits by hand</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- scoreboard -->
+        <div style="padding:64px;border-bottom:1px solid #1D2023">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:32px">
+            <div style="font-size:28px;font-weight:600;letter-spacing:-0.02em">Results at a glance</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">3 runs · 1 attempt each · no retries</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px">
+
+            <!-- LunarForge -->
+            <div style="display:flex;flex-direction:column;background:#111214;border:1px solid #3A2A1C;border-radius:10px;overflow:hidden;box-shadow:0 0 0 1px #E8783A22,0 12px 32px -20px #000">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #1D2023;background:#14100C">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <div style="width:20px;height:20px;border-radius:5px;background:linear-gradient(160deg,#E8783A,#C9581F);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:#160D06">L</div>
+                  <div style="font-size:16px;font-weight:600">LunarForge</div>
+                </div>
+                <div style="padding:3px 8px;border-radius:4px;background:#2A2114;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#E5A33B">this project</div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#1D2023">
+                <div style="padding:18px 20px;background:#111214">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#6E767C">Wall clock</div>
+                  <div style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;letter-spacing:-0.02em">6:12</div>
+                </div>
+                <div style="padding:18px 20px;background:#111214">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#6E767C">Cost</div>
+                  <div style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;letter-spacing:-0.02em">$0.71</div>
+                </div>
+                <div style="padding:18px 20px;background:#111214">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#6E767C">Tokens</div>
+                  <div style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:18px;color:#C9CFD4">128k <span style="color:#6E767C">in</span> · 9.4k <span style="color:#6E767C">out</span></div>
+                </div>
+                <div style="padding:18px 20px;background:#111214">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#6E767C">Tests</div>
+                  <div style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:18px;color:#5E9B72">18 / 18 green</div>
+                </div>
+              </div>
+              <div style="padding:16px 20px;font-size:13px;line-height:1.6;color:#8E959B;border-top:1px solid #1D2023">Ran in Docker. Five approval gates, all answered in-session; no edits by hand, no scope creep outside the two touched modules.</div>
+            </div>
+
+            <!-- Claude Code -->
+            <div style="display:flex;flex-direction:column;background:#111214;border:1px solid #24272B;border-radius:10px;overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #1D2023;background:#0E0F11">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <div style="width:20px;height:20px;border-radius:5px;background:#2C3035;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:#A8AFB5">C</div>
+                  <div style="font-size:16px;font-weight:600">Claude Code</div>
+                </div>
+                <div style="padding:3px 8px;border-radius:4px;background:#1C2A20;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#5E9B72">fastest</div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#1D2023">
+                <div style="padding:18px 20px;background:#111214">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#6E767C">Wall clock</div>
+                  <div style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;letter-spacing:-0.02em">4:48</div>
+                </div>
+                <div style="padding:18px 20px;background:#111214">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#6E767C">Cost</div>
+                  <div style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;letter-spacing:-0.02em">$0.83</div>
+                </div>
+                <div style="padding:18px 20px;background:#111214">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#6E767C">Tokens</div>
+                  <div style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:18px;color:#C9CFD4">141k <span style="color:#6E767C">in</span> · 11.2k <span style="color:#6E767C">out</span></div>
+                </div>
+                <div style="padding:18px 20px;background:#111214">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#6E767C">Tests</div>
+                  <div style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:18px;color:#5E9B72">18 / 18 green</div>
+                </div>
+              </div>
+              <div style="padding:16px 20px;font-size:13px;line-height:1.6;color:#8E959B;border-top:1px solid #1D2023">Ran on the host with an allowlist. Quickest to a green suite; one intervention when it started refactoring an unrelated serializer.</div>
+            </div>
+
+            <!-- Codex -->
+            <div style="display:flex;flex-direction:column;background:#111214;border:1px solid #24272B;border-radius:10px;overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #1D2023;background:#0E0F11">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <div style="width:20px;height:20px;border-radius:5px;background:#2C3035;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:#A8AFB5">X</div>
+                  <div style="font-size:16px;font-weight:600">Codex</div>
+                </div>
+                <div style="padding:3px 8px;border-radius:4px;background:#1C2A20;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#5E9B72">cheapest</div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#1D2023">
+                <div style="padding:18px 20px;background:#111214">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#6E767C">Wall clock</div>
+                  <div style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;letter-spacing:-0.02em">7:35</div>
+                </div>
+                <div style="padding:18px 20px;background:#111214">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#6E767C">Cost</div>
+                  <div style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;letter-spacing:-0.02em">$0.44</div>
+                </div>
+                <div style="padding:18px 20px;background:#111214">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#6E767C">Tokens</div>
+                  <div style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:18px;color:#C9CFD4">96k <span style="color:#6E767C">in</span> · 8.1k <span style="color:#6E767C">out</span></div>
+                </div>
+                <div style="padding:18px 20px;background:#111214">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#6E767C">Tests</div>
+                  <div style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:18px;color:#E5A33B">16 / 18</div>
+                </div>
+              </div>
+              <div style="padding:16px 20px;font-size:13px;line-height:1.6;color:#8E959B;border-top:1px solid #1D2023">Ran in its own container. Smallest diff and lowest spend, but stopped with two failing cases on the legacy offset path.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- time breakdown -->
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:64px;padding:64px;border-bottom:1px solid #1D2023">
+          <div style="display:flex;flex-direction:column;gap:28px">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:24px;font-weight:600;letter-spacing:-0.02em">Where the time went</div>
+              <div style="font-size:15px;color:#8E959B">Wall clock split by phase, measured from the event stream. Approval waits are excluded — they depend on how fast a human answers.</div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:20px">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;align-items:baseline;justify-content:space-between"><div style="font-size:14px;font-weight:500">LunarForge</div><div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#8E959B">6m 12s</div></div>
+                <div style="display:flex;height:28px;width:82%;border-radius:5px;overflow:hidden">
+                  <div style="flex:48;background:#3A4046"></div><div style="flex:35;background:#4E565D"></div><div style="flex:121;background:#E8783A"></div><div style="flex:96;background:#5E9B72"></div><div style="flex:72;background:#8E5A4E"></div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;align-items:baseline;justify-content:space-between"><div style="font-size:14px;font-weight:500">Claude Code</div><div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#8E959B">4m 48s</div></div>
+                <div style="display:flex;height:28px;width:63%;border-radius:5px;overflow:hidden">
+                  <div style="flex:32;background:#3A4046"></div><div style="flex:22;background:#4E565D"></div><div style="flex:104;background:#E8783A"></div><div style="flex:84;background:#5E9B72"></div><div style="flex:46;background:#8E5A4E"></div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;align-items:baseline;justify-content:space-between"><div style="font-size:14px;font-weight:500">Codex</div><div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#8E959B">7m 35s</div></div>
+                <div style="display:flex;height:28px;width:100%;border-radius:5px;overflow:hidden">
+                  <div style="flex:61;background:#3A4046"></div><div style="flex:40;background:#4E565D"></div><div style="flex:138;background:#E8783A"></div><div style="flex:110;background:#5E9B72"></div><div style="flex:106;background:#8E5A4E"></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-wrap:wrap;gap:20px;padding-top:4px">
+              <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:3px;background:#3A4046"></div><div style="font-size:13px;color:#8E959B">Inspect</div></div>
+              <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:3px;background:#4E565D"></div><div style="font-size:13px;color:#8E959B">Plan</div></div>
+              <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:3px;background:#E8783A"></div><div style="font-size:13px;color:#8E959B">Edit</div></div>
+              <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:3px;background:#5E9B72"></div><div style="font-size:13px;color:#8E959B">Validate</div></div>
+              <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:3px;background:#8E5A4E"></div><div style="font-size:13px;color:#8E959B">Repair</div></div>
+            </div>
+          </div>
+
+          <!-- token usage -->
+          <div style="display:flex;flex-direction:column;gap:20px;padding:24px;background:#111214;border:1px solid #24272B;border-radius:10px">
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="font-size:16px;font-weight:600">Token usage</div>
+              <div style="font-size:13px;color:#8E959B">Input tokens dominate; context strategy is most of the cost difference.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:12px"><span style="color:#C9CFD4">LunarForge</span><span style="color:#8E959B">137.4k</span></div>
+                <div style="display:flex;height:10px;width:91%;border-radius:3px;overflow:hidden"><div style="flex:128;background:#E8783A"></div><div style="flex:9.4;background:#8A4A22"></div></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:12px"><span style="color:#C9CFD4">Claude Code</span><span style="color:#8E959B">152.2k</span></div>
+                <div style="display:flex;height:10px;width:100%;border-radius:3px;overflow:hidden"><div style="flex:141;background:#5A6169"></div><div style="flex:11.2;background:#3A4046"></div></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:12px"><span style="color:#C9CFD4">Codex</span><span style="color:#8E959B">104.1k</span></div>
+                <div style="display:flex;height:10px;width:68%;border-radius:3px;overflow:hidden"><div style="flex:96;background:#5A6169"></div><div style="flex:8.1;background:#3A4046"></div></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:16px;padding-top:4px;border-top:1px solid #1D2023">
+              <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:3px;background:#5A6169"></div><div style="font-size:12px;color:#8E959B">Input</div></div>
+              <div style="display:flex;align-items:center;gap:8px"><div style="width:10px;height:10px;border-radius:3px;background:#3A4046"></div><div style="font-size:12px;color:#8E959B">Output</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- full metric table -->
+        <div style="padding:64px;border-bottom:1px solid #1D2023">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:28px">
+            <div style="font-size:24px;font-weight:600;letter-spacing:-0.02em">Full run record</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">every field taken from the event log</div>
+          </div>
+          <div style="border:1px solid #24272B;border-radius:10px;overflow:hidden">
+            <div style="display:grid;grid-template-columns:260px repeat(3,minmax(0,1fr)) 150px;background:#141618;border-bottom:1px solid #24272B">
+              <div style="padding:12px 20px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#6E767C">Metric</div>
+              <div style="padding:12px 20px;font-size:13px;font-weight:600;color:#E8783A">LunarForge</div>
+              <div style="padding:12px 20px;font-size:13px;font-weight:600;color:#C9CFD4">Claude Code</div>
+              <div style="padding:12px 20px;font-size:13px;font-weight:600;color:#C9CFD4">Codex</div>
+              <div style="padding:12px 20px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#6E767C">Best</div>
+            </div>
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="12">
+              <div style="display:grid;grid-template-columns:260px repeat(3,minmax(0,1fr)) 150px;border-bottom:1px solid #1A1D20;background:#0F1012">
+                <div style="padding:14px 20px;font-size:13px;color:#8E959B">{{ r.k }}</div>
+                <div style="padding:14px 20px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#E7E9EA">{{ r.a }}</div>
+                <div style="padding:14px 20px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#C9CFD4">{{ r.b }}</div>
+                <div style="padding:14px 20px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#C9CFD4">{{ r.c }}</div>
+                <div style="padding:14px 20px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5E9B72">{{ r.w }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top:16px;font-size:13px;color:#6E767C">“Best” is the better value for that row only. Rows where the difference is a design choice rather than a score are marked <span style="font-family:'IBM Plex Mono',monospace;color:#8E959B">—</span>.</div>
+        </div>
+
+        <!-- what each produced -->
+        <div style="padding:64px;border-bottom:1px solid #1D2023">
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:32px">
+            <div style="font-size:24px;font-weight:600;letter-spacing:-0.02em">What each agent actually produced</div>
+            <div style="font-size:15px;color:#8E959B;max-width:640px">The numbers only go so far — the diff matters. Reviewed by the same engineer, blind to which agent wrote which patch.</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px">
+            <sc-for list="{{ diffs }}" as="d" hint-placeholder-count="3">
+              <div style="display:flex;flex-direction:column;background:#111214;border:1px solid #24272B;border-radius:10px;overflow:hidden">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #1D2023;background:#0E0F11">
+                  <div style="font-size:14px;font-weight:600">{{ d.t }}</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5E9B72">{{ d.stat }}</div>
+                </div>
+                <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+                  <sc-for list="{{ d.files }}" as="f" hint-placeholder-count="4">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;font-family:'IBM Plex Mono',monospace;font-size:12px">
+                      <div style="color:#C9CFD4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ f.p }}</div>
+                      <div style="color:#6E767C;flex-shrink:0">{{ f.d }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="padding:14px 18px;border-top:1px solid #1D2023;font-size:13px;line-height:1.6;color:#8E959B">{{ d.note }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- differences that are not numbers -->
+        <div style="padding:64px;border-bottom:1px solid #1D2023">
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:32px">
+            <div style="font-size:24px;font-weight:600;letter-spacing:-0.02em">Differences the stopwatch doesn’t catch</div>
+            <div style="font-size:15px;color:#8E959B;max-width:640px">Where the three tools genuinely diverge is not speed — it’s what they let happen without asking.</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px">
+            <sc-for list="{{ qual }}" as="q" hint-placeholder-count="4">
+              <div style="display:flex;gap:16px;padding:22px;background:#111214;border:1px solid #24272B;border-radius:10px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#E8783A;padding-top:2px">{{ q.n }}</div>
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <div style="font-size:16px;font-weight:600">{{ q.t }}</div>
+                  <div style="font-size:14px;line-height:1.65;color:#8E959B">{{ q.d }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- methodology -->
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;padding:64px;border-bottom:1px solid #1D2023;background:#0E0F11">
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <div style="font-size:22px;font-weight:600;letter-spacing:-0.02em">Methodology</div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <sc-for list="{{ method }}" as="m" hint-placeholder-count="5">
+                <div style="display:flex;gap:12px;font-size:14px;line-height:1.65;color:#A8AFB5">
+                  <div style="color:#5E9B72;flex-shrink:0">✓</div>
+                  <div>{{ m }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <div style="font-size:22px;font-weight:600;letter-spacing:-0.02em">What this does not prove</div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <sc-for list="{{ caveats }}" as="c" hint-placeholder-count="4">
+                <div style="display:flex;gap:12px;font-size:14px;line-height:1.65;color:#A8AFB5">
+                  <div style="color:#E5A33B;flex-shrink:0">!</div>
+                  <div>{{ c }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:4px;padding:16px 18px;border:1px solid #2A2E33;border-radius:8px;font-size:13px;line-height:1.65;color:#8E959B">One task is an anecdote, not a benchmark. The run log and the harness are in the repo — run it on your own repository before you believe any of it.</div>
+          </div>
+        </div>
+
+        <!-- cta -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:48px;padding:56px 64px;border-bottom:1px solid #1D2023">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:26px;font-weight:600;letter-spacing:-0.02em">Run it against your own repo</div>
+            <div style="font-size:15px;color:#8E959B">The harness takes a prompt, a validation command and a Docker image, and writes the same table you just read.</div>
+          </div>
+          <div style="display:flex;gap:12px;flex-shrink:0">
+            <div style="padding:11px 18px;border-radius:6px;background:#E8783A;color:#180D05;font-size:14px;font-weight:600">Try the sandbox</div>
+            <div style="padding:11px 18px;border-radius:6px;border:1px solid #2C3035;color:#E7E9EA;font-size:14px;font-weight:500">Read the harness docs</div>
+          </div>
+        </div>
+
+        <!-- footer -->
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:48px;padding:36px 64px 44px">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4E555B">v0.8.2 · milestone 3</div>
+            <div style="font-size:12px;color:#6E767C">Benchmark run 2026-07-24 · single attempt per agent · logs published unedited.</div>
+          </div>
+          <div style="display:flex;gap:24px">
+            <div style="font-size:13px;color:#8E959B">Home</div>
+            <div style="font-size:13px;color:#8E959B">Docs</div>
+            <div style="font-size:13px;color:#8E959B">Sandbox</div>
+            <div style="font-size:13px;color:#8E959B">GitHub</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ MOBILE ============ -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">mobile · 390 × auto</div>
+      <div data-screen-label="Compare — mobile" style="width:390px;background:#0B0C0D;border:1px solid #24272B;border-radius:12px;overflow:hidden">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 16px;border-bottom:1px solid #24272B;background:#0B0C0D">
+          <div style="display:flex;align-items:center;gap:9px">
+            <div style="width:20px;height:20px;border-radius:5px;background:linear-gradient(160deg,#E8783A,#C9581F);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:#160D06">L</div>
+            <div style="font-size:15px;font-weight:600">LunarForge</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;width:44px;height:44px;align-items:flex-end;justify-content:center">
+            <div style="width:18px;height:1.5px;background:#8E959B"></div>
+            <div style="width:18px;height:1.5px;background:#8E959B"></div>
+          </div>
+        </div>
+
+        <div style="padding:36px 20px 32px;border-bottom:1px solid #1D2023;display:flex;flex-direction:column;gap:18px">
+          <div style="align-self:flex-start;padding:5px 10px;border:1px solid #2A2E33;border-radius:999px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#8E959B">Benchmark · 2026-07-24</div>
+          <div style="font-size:34px;line-height:1.1;font-weight:600;letter-spacing:-0.02em">The same task, three coding agents.</div>
+          <div style="font-size:15px;line-height:1.6;color:#A8AFB5">One repo, one prompt, one validation command. Time, tokens, cost and whether the suite went green on its own.</div>
+          <div style="padding:12px 16px;border-radius:6px;background:#E8783A;color:#180D05;font-size:15px;font-weight:600;text-align:center">Read the methodology</div>
+        </div>
+
+        <div style="padding:20px;border-bottom:1px solid #1D2023;background:#0E0F11">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#6E767C;margin-bottom:10px">The task</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.7;color:#C9CFD4">
+            <div>Add cursor-based pagination to</div>
+            <div><span style="color:#E8783A">GET /api/threads</span>, keep offset</div>
+            <div>working, cover both with tests.</div>
+          </div>
+        </div>
+
+        <div style="padding:28px 20px;border-bottom:1px solid #1D2023;display:flex;flex-direction:column;gap:14px">
+          <div style="font-size:20px;font-weight:600;letter-spacing:-0.015em">Results</div>
+          <sc-for list="{{ mobileCards }}" as="m" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;background:#111214;border:1px solid #24272B;border-radius:10px;overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #1D2023;background:#0E0F11">
+                <div style="font-size:15px;font-weight:600">{{ m.t }}</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#8E959B">{{ m.badge }}</div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:#1D2023">
+                <div style="padding:14px 12px;background:#111214;text-align:center">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.06em;text-transform:uppercase;color:#6E767C">Time</div>
+                  <div style="margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600">{{ m.time }}</div>
+                </div>
+                <div style="padding:14px 12px;background:#111214;text-align:center">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.06em;text-transform:uppercase;color:#6E767C">Cost</div>
+                  <div style="margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600">{{ m.cost }}</div>
+                </div>
+                <div style="padding:14px 12px;background:#111214;text-align:center">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.06em;text-transform:uppercase;color:#6E767C">Tokens</div>
+                  <div style="margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600">{{ m.tok }}</div>
+                </div>
+              </div>
+              <div style="padding:12px 16px;border-top:1px solid #1D2023;display:flex;align-items:center;justify-content:space-between">
+                <div style="font-size:13px;color:#8E959B">Tests</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#C9CFD4">{{ m.tests }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="padding:28px 20px;border-bottom:1px solid #1D2023;display:flex;flex-direction:column;gap:16px">
+          <div style="font-size:20px;font-weight:600;letter-spacing:-0.015em">Key differences</div>
+          <sc-for list="{{ mobileRows }}" as="r" hint-placeholder-count="6">
+            <div style="display:flex;flex-direction:column;gap:8px;padding-bottom:14px;border-bottom:1px solid #1A1D20">
+              <div style="font-size:13px;color:#8E959B">{{ r.k }}</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:12px">
+                <div style="color:#E8783A">{{ r.a }}</div>
+                <div style="color:#C9CFD4">{{ r.b }}</div>
+                <div style="color:#C9CFD4">{{ r.c }}</div>
+              </div>
+            </div>
+          </sc-for>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#6E767C">
+            <div>LunarForge</div><div>Claude Code</div><div>Codex</div>
+          </div>
+        </div>
+
+        <div style="padding:28px 20px;display:flex;flex-direction:column;gap:12px">
+          <div style="font-size:18px;font-weight:600;letter-spacing:-0.015em">One task is an anecdote</div>
+          <div style="font-size:14px;line-height:1.65;color:#8E959B">The harness and the raw logs are in the repo. Run it on your own repository before you believe any of it.</div>
+          <div style="margin-top:4px;padding:12px 16px;border:1px solid #2C3035;border-radius:6px;font-size:14px;font-weight:500;text-align:center;color:#E7E9EA">Download run log (JSON)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:2000,&quot;height&quot;:1400}}">
+class Component extends DCLogic {
+  renderVals() {
+    const rows = [
+      ["Wall clock", "6m 12s", "4m 48s", "7m 35s", "Claude Code"],
+      ["Input tokens", "128.0k", "141.0k", "96.0k", "Codex"],
+      ["Output tokens", "9.4k", "11.2k", "8.1k", "Codex"],
+      ["Cost (same model pricing)", "$0.71", "$0.83", "$0.44", "Codex"],
+      ["Tool calls", "34", "41", "28", "Codex"],
+      ["Files changed", "4", "5", "3", "—"],
+      ["Diff size", "+186 / −22", "+214 / −31", "+142 / −18", "—"],
+      ["Tests after run", "18 / 18", "18 / 18", "16 / 18", "tie · LF, CC"],
+      ["Human interventions", "0", "1", "2", "LunarForge"],
+      ["Commands run unapproved", "0", "9 (allowlist)", "0", "tie · LF, CX"],
+      ["Execution isolation", "Docker", "host", "container", "—"],
+      ["Files touched outside scope", "0", "1", "0", "tie · LF, CX"],
+      ["Resumable after restart", "yes", "partial", "no", "LunarForge"],
+      ["Machine-readable run log", "JSON events", "transcript", "transcript", "LunarForge"],
+    ].map(([k, a, b, c, w]) => ({ k, a, b, c, w }));
+
+    const diffs = [
+      { t: "LunarForge", stat: "+186 / −22", note: "Kept the offset path intact behind a deprecation note, added an opaque cursor helper and tests for both paths. Reviewer had no comments.",
+        files: [ {p:"api/routes/threads.py",d:"+64 −11"}, {p:"api/pagination.py",d:"+58 −0"}, {p:"tests/test_threads.py",d:"+51 −8"}, {p:"docs/api.md",d:"+13 −3"} ] },
+      { t: "Claude Code", stat: "+214 / −31", note: "Correct and complete, but also rewrote an unrelated serializer for tidiness — reverted by hand before review.",
+        files: [ {p:"api/routes/threads.py",d:"+71 −14"}, {p:"api/pagination.py",d:"+62 −0"}, {p:"api/serializers.py",d:"+22 −9"}, {p:"tests/test_threads.py",d:"+47 −5"}, {p:"docs/api.md",d:"+12 −3"} ] },
+      { t: "Codex", stat: "+142 / −18", note: "Tightest patch of the three, but the cursor decoder rejected legacy offset requests, leaving two red tests it stopped short of fixing.",
+        files: [ {p:"api/routes/threads.py",d:"+58 −13"}, {p:"api/pagination.py",d:"+49 −0"}, {p:"tests/test_threads.py",d:"+35 −5"} ] },
+    ];
+
+    const qual = [
+      ["01", "Approval boundaries", "LunarForge and Codex paused before every command. Claude Code ran nine commands under an allowlist — faster in practice, and the reason its wall clock is lowest."],
+      ["02", "Where the code runs", "Only LunarForge and Codex executed inside a container. On the host run, a bad command has nothing between it and your machine."],
+      ["03", "Staying inside scope", "One run edited a module the prompt never mentioned. It was a good change, but it was not the change that was asked for."],
+      ["04", "What you can replay", "A JSON event stream can be diffed, logged and replayed in CI. A chat transcript cannot, which is why this page has numbers at all."],
+    ].map(([n, t, d]) => ({ n, t, d }));
+
+    return {
+      rows, diffs, qual,
+      method: [
+        "Same repository at the same commit, restored from a clean checkout before each run.",
+        "Identical prompt, pasted verbatim; no follow-up steering except where an intervention is recorded.",
+        "Same frontier model and pricing applied to all three token counts.",
+        "Wall clock measured from first tool call to last, approval wait time excluded.",
+        "Pass criterion fixed in advance: pytest -q green with no hand edits.",
+      ],
+      caveats: [
+        "One task on one codebase. Results move with repo size, language and prompt style.",
+        "Approval settings are configurable in all three tools — the defaults were used, not the fastest possible setup.",
+        "Cost is modelled from token counts at list pricing, not billed usage.",
+        "This page is published by the LunarForge project. Read it as a claim to check, not a verdict.",
+      ],
+      mobileCards: [
+        { t: "LunarForge", badge: "this project", time: "6:12", cost: "$0.71", tok: "137k", tests: "18 / 18 green" },
+        { t: "Claude Code", badge: "fastest", time: "4:48", cost: "$0.83", tok: "152k", tests: "18 / 18 green" },
+        { t: "Codex", badge: "cheapest", time: "7:35", cost: "$0.44", tok: "104k", tests: "16 / 18" },
+      ],
+      mobileRows: [
+        ["Human interventions", "0", "1", "2"],
+        ["Unapproved commands", "0", "9", "0"],
+        ["Isolation", "Docker", "host", "container"],
+        ["Diff size", "+186", "+214", "+142"],
+        ["Out-of-scope edits", "0", "1", "0"],
+        ["Machine-readable log", "yes", "no", "no"],
+      ].map(([k, a, b, c]) => ({ k, a, b, c })),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#161719; font-family:'IBM Plex Sans',system-ui,sans-serif; }
+  a { color:#E8783A; text-decoration:none; }
+  a:hover { color:#F0925C; }
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;gap:64px;padding:56px;background:#161719;color:#E7E9EA;font-family:'IBM Plex Sans',system-ui,sans-serif">
+
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#E8783A">03 — Sandbox route</div>
+    <div style="font-size:28px;font-weight:600;letter-spacing:-0.01em">LunarForge Web · <span style="color:#8E959B">/sandbox</span></div>
+    <div style="font-size:15px;color:#8E959B;max-width:760px">Chat is the primary surface; files and events are supporting panels. Ready state with first-run onboarding, active task with an approval gate, mobile layout, and the full state matrix.</div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:56px">
+
+    <!-- ============ READY STATE ============ -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">ready · first run · desktop 1440 × 900</div>
+      <div data-screen-label="Sandbox ready — desktop" style="width:1440px;height:900px;display:flex;flex-direction:column;background:#0B0C0D;border:1px solid #24272B;border-radius:12px;overflow:hidden">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;height:52px;padding:0 16px 0 20px;border-bottom:1px solid #24272B;background:#0E1012;flex:none">
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="display:flex;align-items:center;gap:9px">
+              <div style="width:18px;height:18px;border-radius:5px;background:linear-gradient(160deg,#E8783A,#C9581F)"></div>
+              <div style="font-size:14px;font-weight:600">LunarForge</div>
+            </div>
+            <div style="width:1px;height:20px;background:#24272B"></div>
+            <div style="display:flex;align-items:center;gap:7px;padding:4px 9px;border-radius:999px;background:#0F1412;box-shadow:inset 0 0 0 1px #1C2A20">
+              <span style="width:6px;height:6px;border-radius:999px;background:#5E9B72"></span>
+              <span style="font-size:12px;color:#7FB894">Ready</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11.5px">
+            <sc-for list="{{ headerMeta }}" as="m" hint-placeholder-count="6">
+              <div style="display:flex;gap:6px;padding:4px 9px;border-radius:5px;background:#131518;box-shadow:inset 0 0 0 1px #24272B">
+                <span style="color:#5E656B">{{ m.k }}</span><span style="color:#C9CFD4">{{ m.v }}</span>
+              </div>
+            </sc-for>
+            <div style="padding:6px 11px;border-radius:6px;box-shadow:inset 0 0 0 1px #2C3035;color:#C9CFD4;font-family:'IBM Plex Sans',sans-serif;font-size:13px">Reset sandbox</div>
+          </div>
+        </div>
+
+        <div style="flex:1;display:grid;grid-template-columns:248px minmax(0,1fr) 300px;min-height:0">
+
+          <!-- files -->
+          <div style="border-right:1px solid #1D2023;background:#0D0F10;display:flex;flex-direction:column;min-height:0">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #1D2023">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#5E656B">Project</div>
+              <div style="display:flex;gap:6px;font-size:12px;color:#6E767C"><span>↻</span><span>⟨⟩</span></div>
+            </div>
+            <div style="padding:8px 6px;display:flex;flex-direction:column;gap:1px;overflow:auto">
+              <sc-for list="{{ tree }}" as="f" hint-placeholder-count="12">
+                <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;background:{{ f.bg }};font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:{{ f.c }};padding-left:{{ f.pad }}">
+                  <span style="color:#4E555B;flex:none">{{ f.icon }}</span>
+                  <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ f.n }}</span>
+                  <span style="margin-left:auto;font-size:10.5px;color:{{ f.tagC }}">{{ f.tag }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:auto;border-top:1px solid #1D2023;padding:12px 14px;display:flex;flex-direction:column;gap:6px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5E656B">read-only · sandbox copy</div>
+              <div style="font-size:12px;color:#6E767C;line-height:1.5">Edits apply to the ephemeral sandbox project only.</div>
+            </div>
+          </div>
+
+          <!-- chat -->
+          <div style="display:flex;flex-direction:column;min-height:0;background:#0B0C0D">
+            <div style="flex:1;padding:32px 40px;display:flex;flex-direction:column;gap:24px;overflow:auto">
+              <div style="border:1px solid #24272B;border-radius:10px;background:#0F1113;padding:24px;display:flex;flex-direction:column;gap:18px">
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <div style="font-size:18px;font-weight:600;letter-spacing:-0.01em">A disposable session, ready to go</div>
+                  <div style="font-size:14px;line-height:1.6;color:#8E959B;max-width:520px">A small Next.js sample project is loaded. Commands run inside the sandbox container and still pause for your approval. Nothing touches your machine.</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#5E656B">Try one of these</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <sc-for list="{{ prompts }}" as="p" hint-placeholder-count="4">
+                      <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid #24272B;border-radius:8px;background:#131518;font-size:14px;color:#C9CFD4">
+                        <span style="color:#E8783A;font-family:'IBM Plex Mono',monospace;font-size:12px">→</span>{{ p }}
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:8px;padding:16px 0">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">LunarForge:</div>
+                <div style="font-size:15px;line-height:1.7;color:#B3B9BE;max-width:640px">Sandbox provisioned in 3.1s. The project is at <span style="font-family:'IBM Plex Mono',monospace;font-size:13.5px;padding:1px 5px;border-radius:4px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035">/workspace/sample-app</span>. Ask me to explain it, change it, or run its checks — I will show you each command before it runs.</div>
+              </div>
+            </div>
+
+            <div style="flex:none;border-top:1px solid #1D2023;padding:16px 40px 20px;background:#0D0F10">
+              <div style="border:1px solid #2C3035;border-radius:10px;background:#131518;padding:14px 16px;display:flex;flex-direction:column;gap:14px">
+                <div style="font-size:15px;color:#5E656B">Ask LunarForge to do something in this project…</div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="display:flex;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11.5px">
+                    <span style="padding:4px 8px;border-radius:5px;box-shadow:inset 0 0 0 1px #2C3035;color:#8E959B">Compact context</span>
+                    <span style="padding:4px 8px;border-radius:5px;box-shadow:inset 0 0 0 1px #2C3035;color:#8E959B">effort: medium</span>
+                  </div>
+                  <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#5E656B">⏎ send · ⇧⏎ newline</span>
+                    <div style="padding:8px 16px;border-radius:6px;background:#E8783A;color:#180D05;font-size:13.5px;font-weight:600">Send</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- details -->
+          <div style="border-left:1px solid #1D2023;background:#0D0F10;display:flex;flex-direction:column;min-height:0">
+            <div style="padding:10px;border-bottom:1px solid #1D2023">
+              <div style="display:flex;gap:2px;padding:3px;border-radius:7px;background:#131518;box-shadow:inset 0 0 0 1px #1F2225">
+                <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+                  <div style="flex:1;text-align:center;padding:6px 4px;border-radius:5px;font-size:12.5px;background:{{ t.bg }};color:{{ t.c }};box-shadow:{{ t.ring }}">{{ t.t }}</div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="padding:14px;display:flex;flex-direction:column;gap:10px;overflow:auto">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#5E656B">Activity</div>
+              <sc-for list="{{ activity }}" as="a" hint-placeholder-count="5">
+                <div style="display:flex;gap:10px;padding:9px 0;border-top:1px solid #1D2023">
+                  <div style="flex:none;width:6px;height:6px;border-radius:999px;background:{{ a.c }};margin-top:6px"></div>
+                  <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#C9CFD4">{{ a.t }}</div>
+                    <div style="font-size:12px;color:#6E767C;line-height:1.45">{{ a.d }}</div>
+                  </div>
+                  <div style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4E555B">{{ a.time }}</div>
+                </div>
+              </sc-for>
+              <div style="margin-top:8px;padding:12px;border:1px dashed #24272B;border-radius:8px;text-align:center;font-size:12.5px;color:#5E656B;line-height:1.5">No validation runs yet.<br>Artifacts appear here after a task.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ACTIVE + APPROVAL ============ -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">agent working · waiting for approval · desktop 1440 × 900</div>
+      <div data-screen-label="Sandbox approval — desktop" style="width:1440px;height:900px;display:flex;flex-direction:column;background:#0B0C0D;border:1px solid #24272B;border-radius:12px;overflow:hidden">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;height:52px;padding:0 16px 0 20px;border-bottom:1px solid #24272B;background:#0E1012;flex:none">
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="display:flex;align-items:center;gap:9px">
+              <div style="width:18px;height:18px;border-radius:5px;background:linear-gradient(160deg,#E8783A,#C9581F)"></div>
+              <div style="font-size:14px;font-weight:600">LunarForge</div>
+            </div>
+            <div style="width:1px;height:20px;background:#24272B"></div>
+            <div style="display:flex;align-items:center;gap:7px;padding:4px 9px;border-radius:999px;background:#141210;box-shadow:inset 0 0 0 1px #3A2C1C">
+              <span style="width:6px;height:6px;border-radius:999px;background:#E5A33B"></span>
+              <span style="font-size:12px;color:#E5A33B">Waiting for approval</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11.5px">
+            <sc-for list="{{ headerMetaActive }}" as="m" hint-placeholder-count="6">
+              <div style="display:flex;gap:6px;padding:4px 9px;border-radius:5px;background:#131518;box-shadow:inset 0 0 0 1px #24272B">
+                <span style="color:#5E656B">{{ m.k }}</span><span style="color:{{ m.c }}">{{ m.v }}</span>
+              </div>
+            </sc-for>
+            <div style="padding:6px 11px;border-radius:6px;box-shadow:inset 0 0 0 1px #2C3035;color:#C9CFD4;font-family:'IBM Plex Sans',sans-serif;font-size:13px">Reset sandbox</div>
+          </div>
+        </div>
+
+        <div style="flex:1;display:grid;grid-template-columns:248px minmax(0,1fr) 300px;min-height:0">
+          <div style="border-right:1px solid #1D2023;background:#0D0F10;display:flex;flex-direction:column;min-height:0">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #1D2023">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#5E656B">Project</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#E5A33B">3 changed</div>
+            </div>
+            <div style="padding:8px 6px;display:flex;flex-direction:column;gap:1px">
+              <sc-for list="{{ treeChanged }}" as="f" hint-placeholder-count="12">
+                <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;background:{{ f.bg }};font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:{{ f.c }};padding-left:{{ f.pad }}">
+                  <span style="color:#4E555B;flex:none">{{ f.icon }}</span>
+                  <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ f.n }}</span>
+                  <span style="margin-left:auto;font-size:10.5px;color:{{ f.tagC }}">{{ f.tag }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:auto;border-top:1px solid #1D2023;background:#0B0C0D;display:flex;flex-direction:column;min-height:0">
+              <div style="padding:9px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5E656B;border-bottom:1px solid #1D2023">Pricing.tsx · preview</div>
+              <pre style="margin:0;padding:12px 14px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;line-height:1.65;color:#7D848A;overflow:hidden"><div><span style="color:#5E9B72">+ export function Pricing() {</span></div><div><span style="color:#5E9B72">+   return (</span></div><div><span style="color:#5E9B72">+     &lt;section className="grid"&gt;</span></div><div>    ...</div></pre>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;min-height:0;background:#0B0C0D">
+            <div style="flex:1;padding:32px 40px;display:flex;flex-direction:column;gap:26px;overflow:auto">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">You:</div>
+                <div style="font-size:15px;line-height:1.7;color:#E7E9EA;max-width:640px">Add a responsive pricing section to the marketing page, then run validation.</div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">LunarForge:</div>
+                <div style="font-size:15px;line-height:1.7;color:#B3B9BE;max-width:640px">I read <span style="font-family:'IBM Plex Mono',monospace;font-size:13.5px;padding:1px 5px;border-radius:4px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035">AGENTS.md</span> and the marketing route, added a three-tier pricing section with a mobile stack, and wired it into the page. Next I need to run the project's validation command.</div>
+                <div style="display:flex;flex-direction:column;gap:6px;max-width:640px">
+                  <sc-for list="{{ toolRows }}" as="t" hint-placeholder-count="4">
+                    <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border:1px solid #1F2225;border-radius:7px;background:#0F1113;font-family:'IBM Plex Mono',monospace;font-size:12.5px">
+                      <span style="color:{{ t.c }};width:64px;flex:none">{{ t.kind }}</span>
+                      <span style="color:#C9CFD4">{{ t.name }}</span>
+                      <span style="color:#6E767C;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.arg }}</span>
+                      <span style="margin-left:auto;color:#4E555B;flex:none">{{ t.time }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#8E959B">
+                  <span style="width:7px;height:7px;border-radius:999px;background:#E8783A"></span>
+                  Waiting for approval · elapsed 00:38
+                </div>
+              </div>
+
+              <!-- approval panel -->
+              <div style="border:1px solid #3A2C1C;border-radius:10px;background:#121316;box-shadow:0 20px 50px -30px #000;overflow:hidden;max-width:640px">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:16px 18px;border-bottom:1px solid #2E2519;background:#151311">
+                  <div style="display:flex;flex-direction:column;gap:4px">
+                    <div style="font-size:16px;font-weight:600;color:#E7E9EA">Run command in sandbox</div>
+                    <div style="font-size:13.5px;color:#8E959B">Executes the project's validation command inside the container. No network access.</div>
+                  </div>
+                  <div style="flex:none;padding:3px 9px;border-radius:999px;background:#2A2114;color:#E5A33B;font-family:'IBM Plex Mono',monospace;font-size:11px">risk: medium</div>
+                </div>
+                <div style="padding:14px 18px;display:flex;flex-direction:column;gap:10px;max-height:170px;overflow:auto;background:#0E1012">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:12.5px;line-height:1.75;color:#C9CFD4;word-break:break-all">npm run validate -- --reporter=json --max-warnings=0 --project /workspace/sample-app --output /workspace/.lunarforge/validation-8f3c2a.json</div>
+                  <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-family:'IBM Plex Mono',monospace;font-size:12px">
+                    <sc-for list="{{ approvalMeta }}" as="m" hint-placeholder-count="4">
+                      <div style="color:#5E656B">{{ m.k }}</div><div style="color:#A8AFB5">{{ m.v }}</div>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-top:1px solid #2E2519;background:#121316">
+                  <div style="font-size:12.5px;color:#6E767C">Denying stops the task and keeps file edits.</div>
+                  <div style="margin-left:auto;display:flex;gap:8px">
+                    <div style="padding:9px 18px;border-radius:6px;box-shadow:inset 0 0 0 1px #2C3035;background:#191C1F;color:#C9CFD4;font-size:13.5px;font-weight:500">Deny</div>
+                    <div style="padding:9px 18px;border-radius:6px;background:#E8783A;color:#180D05;font-size:13.5px;font-weight:600;box-shadow:0 0 0 3px #E8783A22">Approve</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="flex:none;border-top:1px solid #1D2023;padding:16px 40px 20px;background:#0D0F10">
+              <div style="border:1px solid #24272B;border-radius:10px;background:#101214;padding:14px 16px;display:flex;flex-direction:column;gap:14px;opacity:0.85">
+                <div style="font-size:15px;color:#4E555B">Input paused while an approval is pending…</div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="display:flex;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11.5px">
+                    <span style="padding:4px 8px;border-radius:5px;box-shadow:inset 0 0 0 1px #2C3035;color:#8E959B">Compact context</span>
+                  </div>
+                  <div style="margin-left:auto;display:flex;gap:8px">
+                    <div style="padding:8px 14px;border-radius:6px;box-shadow:inset 0 0 0 1px #4A2E2C;color:#C4655C;font-size:13.5px;font-weight:500">Stop task</div>
+                    <div style="padding:8px 16px;border-radius:6px;background:#1D2023;color:#5E656B;font-size:13.5px;font-weight:600">Send</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="border-left:1px solid #1D2023;background:#0D0F10;display:flex;flex-direction:column;min-height:0">
+            <div style="padding:10px;border-bottom:1px solid #1D2023">
+              <div style="display:flex;gap:2px;padding:3px;border-radius:7px;background:#131518;box-shadow:inset 0 0 0 1px #1F2225">
+                <sc-for list="{{ tabsActive }}" as="t" hint-placeholder-count="4">
+                  <div style="flex:1;text-align:center;padding:6px 4px;border-radius:5px;font-size:12.5px;background:{{ t.bg }};color:{{ t.c }};box-shadow:{{ t.ring }}">{{ t.t }}</div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="padding:14px;display:flex;flex-direction:column;gap:12px;overflow:auto">
+              <div style="display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid #24272B;border-radius:8px;background:#101214">
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <div style="font-size:13px;font-weight:500">Validation</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#E5A33B">pending approval</div>
+                </div>
+                <div style="height:4px;border-radius:999px;background:#1D2023;overflow:hidden">
+                  <div style="width:62%;height:100%;background:#E8783A"></div>
+                </div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6E767C">3 of 5 steps · 00:38 elapsed</div>
+              </div>
+              <sc-for list="{{ validation }}" as="v" hint-placeholder-count="5">
+                <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid #1D2023">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:{{ v.c }};width:14px;flex:none">{{ v.icon }}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#C9CFD4">{{ v.t }}</span>
+                  <span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4E555B">{{ v.d }}</span>
+                </div>
+              </sc-for>
+              <div style="margin-top:6px;padding:12px;border:1px solid #24272B;border-radius:8px;background:#101214;display:flex;flex-direction:column;gap:8px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#5E656B">Usage</div>
+                <sc-for list="{{ usage }}" as="u" hint-placeholder-count="3">
+                  <div style="display:flex;justify-content:space-between;font-size:12.5px">
+                    <span style="color:#8E959B">{{ u.k }}</span><span style="font-family:'IBM Plex Mono',monospace;color:#C9CFD4">{{ u.v }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ MOBILE ============ -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">mobile sandbox · 390 — chat first, panels as sheets, approval as a fixed-action sheet</div>
+      <div style="display:flex;gap:32px;flex-wrap:wrap">
+
+        <div data-screen-label="Sandbox — mobile chat" style="width:390px;height:844px;display:flex;flex-direction:column;background:#0B0C0D;border:1px solid #24272B;border-radius:12px;overflow:hidden">
+          <div style="flex:none;padding:10px 14px;border-bottom:1px solid #24272B;background:#0E1012;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:18px;height:18px;border-radius:5px;background:linear-gradient(160deg,#E8783A,#C9581F)"></div>
+                <div style="font-size:14px;font-weight:600">Sandbox</div>
+                <div style="display:flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;background:#0F1412;box-shadow:inset 0 0 0 1px #1C2A20"><span style="width:5px;height:5px;border-radius:999px;background:#5E9B72"></span><span style="font-size:11px;color:#7FB894">Working</span></div>
+              </div>
+              <div style="padding:8px 10px;border-radius:6px;box-shadow:inset 0 0 0 1px #2C3035;font-size:12px;color:#C9CFD4">Reset</div>
+            </div>
+            <div style="display:flex;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;overflow:hidden">
+              <span style="padding:3px 7px;border-radius:4px;background:#131518;box-shadow:inset 0 0 0 1px #24272B;color:#8E959B">8f3c2a</span>
+              <span style="padding:3px 7px;border-radius:4px;background:#131518;box-shadow:inset 0 0 0 1px #24272B;color:#8E959B">docker</span>
+              <span style="padding:3px 7px;border-radius:4px;background:#131518;box-shadow:inset 0 0 0 1px #24272B;color:#8E959B">effort med</span>
+              <span style="padding:3px 7px;border-radius:4px;background:#131518;box-shadow:inset 0 0 0 1px #24272B;color:#E5A33B">18:24 left</span>
+            </div>
+            <div style="display:flex;gap:2px;padding:3px;border-radius:7px;background:#131518;box-shadow:inset 0 0 0 1px #1F2225">
+              <div style="flex:1;text-align:center;padding:7px;border-radius:5px;background:#1D2023;font-size:12.5px">Chat</div>
+              <div style="flex:1;text-align:center;padding:7px;border-radius:5px;font-size:12.5px;color:#8E959B">Files <span style="color:#E5A33B">3</span></div>
+              <div style="flex:1;text-align:center;padding:7px;border-radius:5px;font-size:12.5px;color:#8E959B">Events</div>
+            </div>
+          </div>
+
+          <div style="flex:1;padding:20px 16px;display:flex;flex-direction:column;gap:22px;overflow:auto">
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#6E767C">You:</div>
+              <div style="font-size:15px;line-height:1.65">Add a responsive pricing section, then run validation.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#6E767C">LunarForge:</div>
+              <div style="font-size:15px;line-height:1.7;color:#B3B9BE">Read AGENTS.md and the marketing route, added a three-tier section with a mobile stack, and wired it in.</div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;gap:10px;padding:8px 10px;border:1px solid #1F2225;border-radius:7px;background:#0F1113;font-family:'IBM Plex Mono',monospace;font-size:11.5px"><span style="color:#5E9B72">edit</span><span style="color:#C9CFD4">Pricing.tsx</span><span style="margin-left:auto;color:#4E555B">1.2s</span></div>
+                <div style="display:flex;gap:10px;padding:8px 10px;border:1px solid #1F2225;border-radius:7px;background:#0F1113;font-family:'IBM Plex Mono',monospace;font-size:11.5px"><span style="color:#E8783A">run</span><span style="color:#C9CFD4">npm run validate</span><span style="margin-left:auto;color:#E5A33B">gate</span></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8E959B"><span style="width:6px;height:6px;border-radius:999px;background:#E8783A"></span>Waiting for approval · 00:38</div>
+            </div>
+          </div>
+
+          <div style="flex:none;border-top:1px solid #3A2C1C;background:#121316;padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 -20px 40px -24px #000">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+              <div style="display:flex;flex-direction:column;gap:3px">
+                <div style="font-size:15px;font-weight:600">Run command in sandbox</div>
+                <div style="font-size:13px;color:#8E959B;line-height:1.5">Runs the project's validation command. No network.</div>
+              </div>
+              <div style="flex:none;padding:3px 8px;border-radius:999px;background:#2A2114;color:#E5A33B;font-family:'IBM Plex Mono',monospace;font-size:10.5px">medium</div>
+            </div>
+            <div style="max-height:76px;overflow:auto;padding:10px;border-radius:7px;background:#0E1012;box-shadow:inset 0 0 0 1px #24272B;font-family:'IBM Plex Mono',monospace;font-size:11.5px;line-height:1.65;color:#C9CFD4;word-break:break-all">npm run validate -- --reporter=json --max-warnings=0 --project /workspace/sample-app --output /workspace/.lunarforge/validation-8f3c2a.json</div>
+            <div style="display:flex;gap:10px">
+              <div style="flex:1;padding:14px;border-radius:6px;box-shadow:inset 0 0 0 1px #2C3035;background:#191C1F;color:#C9CFD4;font-size:14px;font-weight:500;text-align:center">Deny</div>
+              <div style="flex:1;padding:14px;border-radius:6px;background:#E8783A;color:#180D05;font-size:14px;font-weight:600;text-align:center">Approve</div>
+            </div>
+          </div>
+        </div>
+
+        <div data-screen-label="Sandbox — mobile files" style="width:390px;height:844px;display:flex;flex-direction:column;background:#0B0C0D;border:1px solid #24272B;border-radius:12px;overflow:hidden">
+          <div style="flex:none;padding:10px 14px;border-bottom:1px solid #24272B;background:#0E1012;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:18px;height:18px;border-radius:5px;background:linear-gradient(160deg,#E8783A,#C9581F)"></div>
+                <div style="font-size:14px;font-weight:600">Sandbox</div>
+              </div>
+              <div style="padding:8px 10px;border-radius:6px;box-shadow:inset 0 0 0 1px #2C3035;font-size:12px;color:#C9CFD4">↻ Refresh</div>
+            </div>
+            <div style="display:flex;gap:2px;padding:3px;border-radius:7px;background:#131518;box-shadow:inset 0 0 0 1px #1F2225">
+              <div style="flex:1;text-align:center;padding:7px;border-radius:5px;font-size:12.5px;color:#8E959B">Chat</div>
+              <div style="flex:1;text-align:center;padding:7px;border-radius:5px;background:#1D2023;font-size:12.5px">Files <span style="color:#E5A33B">3</span></div>
+              <div style="flex:1;text-align:center;padding:7px;border-radius:5px;font-size:12.5px;color:#8E959B">Events</div>
+            </div>
+          </div>
+          <div style="padding:10px 8px;display:flex;flex-direction:column;gap:1px;border-bottom:1px solid #1D2023">
+            <sc-for list="{{ treeChanged }}" as="f" hint-placeholder-count="12">
+              <div style="display:flex;align-items:center;gap:8px;padding:9px 8px;border-radius:5px;background:{{ f.bg }};font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:{{ f.c }};padding-left:{{ f.pad }}">
+                <span style="color:#4E555B;flex:none">{{ f.icon }}</span><span>{{ f.n }}</span>
+                <span style="margin-left:auto;font-size:10.5px;color:{{ f.tagC }}">{{ f.tag }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;min-height:0">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #1D2023;background:#0D0F10">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#C9CFD4">Pricing.tsx</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5E9B72">added · read-only</div>
+            </div>
+            <pre style="margin:0;padding:14px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;line-height:1.75;color:#7D848A;overflow:auto"><div><span style="color:#5E9B72">+ export function Pricing() {</span></div><div><span style="color:#5E9B72">+   return (</span></div><div><span style="color:#5E9B72">+     &lt;section className="pricing"&gt;</span></div><div><span style="color:#5E9B72">+       {tiers.map((t) =&gt; (</span></div><div><span style="color:#5E9B72">+         &lt;Tier key={t.id} {...t} /&gt;</span></div><div><span style="color:#5E9B72">+       ))}</span></div><div><span style="color:#5E9B72">+     &lt;/section&gt;</span></div><div><span style="color:#5E9B72">+   );</span></div><div><span style="color:#5E9B72">+ }</span></div></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ STATES ============ -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#E8783A">Sandbox states</div>
+        <div style="font-size:15px;color:#8E959B;max-width:720px">Each state is rendered in the chat column; the header status pill and input controls change with it. Panels keep their last known content and dim when the backend is unreachable.</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,440px);gap:16px">
+        <sc-for list="{{ states }}" as="s" hint-placeholder-count="13">
+          <div style="border:1px solid #24272B;border-radius:10px;background:#0D0F10;overflow:hidden;display:flex;flex-direction:column">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #1D2023;background:#0E1012">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="width:7px;height:7px;border-radius:999px;background:{{ s.c }}"></span>
+                <span style="font-size:13px;font-weight:500">{{ s.t }}</span>
+              </div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5E656B">{{ s.key }}</div>
+            </div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:10px;flex:1">
+              <div style="padding:12px;border-radius:8px;background:#0B0C0D;box-shadow:inset 0 0 0 1px {{ s.ring }};display:flex;flex-direction:column;gap:8px;min-height:76px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:{{ s.c }}">{{ s.line }}</div>
+                <div style="font-size:12.5px;line-height:1.55;color:#8E959B">{{ s.body }}</div>
+                <sc-if value="{{ s.bar }}" hint-placeholder-val="{{ true }}">
+                  <div style="height:3px;border-radius:999px;background:#1D2023;overflow:hidden"><div style="width:{{ s.barW }};height:100%;background:{{ s.c }}"></div></div>
+                </sc-if>
+              </div>
+              <div style="margin-top:auto;display:flex;gap:6px">
+                <sc-for list="{{ s.actions }}" as="a" hint-placeholder-count="2">
+                  <div style="padding:7px 12px;border-radius:6px;font-size:12px;background:{{ a.bg }};color:{{ a.c }};box-shadow:{{ a.ring }};font-weight:{{ a.w }}">{{ a.t }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:2000,&quot;height&quot;:1400}}">
+class Component extends DCLogic {
+  renderVals() {
+    const mkTree = (changed) => [
+      ["▾", "sample-app", 0, "", false],
+      ["▾", "app", 1, "", false],
+      ["·", "layout.tsx", 2, "", false],
+      ["·", "page.tsx", 2, changed ? "M" : "", changed],
+      ["▾", "components", 1, "", false],
+      ["·", "Hero.tsx", 2, "", false],
+      ["·", "Pricing.tsx", 2, changed ? "A" : "", changed],
+      ["·", "Nav.tsx", 2, "", false],
+      ["·", "AGENTS.md", 1, "", false],
+      ["·", "package.json", 1, changed ? "M" : "", changed],
+      ["·", "lunarforge.yaml", 1, "", false],
+      ["·", "README.md", 1, "", false],
+    ].map(([icon, n, lvl, tag, hot], i) => ({
+      icon, n, tag,
+      pad: 8 + lvl * 14 + "px",
+      bg: (changed && n === "Pricing.tsx") ? "#191C1F" : "transparent",
+      c: lvl === 0 ? "#E7E9EA" : hot ? "#C9CFD4" : "#8E959B",
+      tagC: tag === "A" ? "#5E9B72" : "#E5A33B",
+    }));
+
+    const tabSet = (active) => ["Activity", "Validation", "Artifacts", "Usage"].map(t => ({
+      t,
+      bg: t === active ? "#1D2023" : "transparent",
+      c: t === active ? "#E7E9EA" : "#8E959B",
+      ring: t === active ? "inset 0 0 0 1px #2C3035" : "none",
+    }));
+
+    const states = [
+      ["No sandbox yet", "idle", "#8E959B", "#24272B", "No session", "Start a sandbox to try LunarForge. Sessions are disposable and time-boxed to 30 minutes.", ["Start sandbox|p", "View docs|s"]],
+      ["Provisioning", "booting", "#E5A33B", "#3A2C1C", "Provisioning container…", "Pulling the image and mounting the sample project. Usually under five seconds.", ["Cancel|s"], "38%"],
+      ["Ready", "ready", "#5E9B72", "#1C2A20", "Sandbox ready · 29:41 left", "Sample project loaded at /workspace/sample-app. Ask a question or pick an example prompt.", ["Explain this project|p", "Reset|s"]],
+      ["Agent working", "running", "#E8783A", "#3A2C1C", "Editing files · 00:22", "Public progress lines stream in; the input stays open for follow-ups but queues them.", ["Stop task|d", "Compact context|s"], "62%"],
+      ["Waiting for approval", "gated", "#E5A33B", "#3A2C1C", "Approval required · run npm run validate", "Everything pauses. Deny and Approve stay pinned above the input on every viewport.", ["Deny|s", "Approve|p"]],
+      ["Validation running", "validating", "#E8783A", "#3A2C1C", "Running validation · step 4 of 5", "Live output goes to the Validation tab; the transcript keeps a single summary line.", ["Stop task|d", "Open Validation|s"], "80%"],
+      ["Task completed", "done", "#5E9B72", "#1C2A20", "Done · 3 files changed · 41s", "Summary, changed-file list, and an offer to prepare a commit message for review.", ["Review changes|p", "New task|s"]],
+      ["Cancelled + rollback", "cancelled", "#8E959B", "#24272B", "Task stopped · edits rolled back", "Stop reverts uncommitted edits from this task and reports exactly what was undone.", ["Undo rollback|s", "New task|s"]],
+      ["Sandbox expired", "expired", "#8E959B", "#24272B", "Session expired after 30:00", "The container was destroyed. The transcript stays readable; start a fresh sandbox to continue.", ["Start new sandbox|p", "Copy transcript|s"]],
+      ["Rate limited", "limited", "#E5A33B", "#3A2C1C", "Hourly limit reached", "You have used 5 of 5 sandbox sessions this hour. Local install has no limit.", ["Install locally|p", "Retry in 12:04|s"]],
+      ["Backend disconnected", "offline", "#E5A33B", "#3A2C1C", "Reconnecting… attempt 2 of 5", "The event stream dropped. Panels dim and hold their last state; the session is preserved server-side.", ["Reconnect now|s"], "45%"],
+      ["Recoverable error", "error", "#C4655C", "#4A2E2C", "Command failed with exit code 1", "The agent shows the failing output and proposes a next step. Nothing else was changed.", ["Let it fix this|p", "View output|s"]],
+      ["Fatal sandbox error", "fatal", "#C4655C", "#4A2E2C", "Sandbox terminated unexpectedly", "The container could not be recovered. Report the session ID so we can trace it.", ["Start new sandbox|p", "Copy session ID|s"]],
+    ].map(([t, key, c, ring, line, body, actions, barW]) => ({
+      t, key, c, ring, line, body,
+      bar: !!barW, barW: barW || "0%",
+      actions: actions.map(a => {
+        const [label, kind] = a.split("|");
+        return {
+          t: label,
+          bg: kind === "p" ? "#E8783A" : "transparent",
+          c: kind === "p" ? "#180D05" : kind === "d" ? "#C4655C" : "#C9CFD4",
+          ring: kind === "p" ? "none" : kind === "d" ? "inset 0 0 0 1px #4A2E2C" : "inset 0 0 0 1px #2C3035",
+          w: kind === "p" ? 600 : 500,
+        };
+      }),
+    }));
+
+    return {
+      states,
+      tree: mkTree(false),
+      treeChanged: mkTree(true),
+      tabs: tabSet("Activity"),
+      tabsActive: tabSet("Validation"),
+      headerMeta: [
+        { k: "session", v: "8f3c2a" }, { k: "runtime", v: "docker" },
+        { k: "model", v: "provider-neutral" }, { k: "effort", v: "medium" },
+        { k: "network", v: "off" }, { k: "time left", v: "29:41" },
+      ],
+      headerMetaActive: [
+        { k: "session", v: "8f3c2a", c: "#C9CFD4" }, { k: "runtime", v: "docker", c: "#C9CFD4" },
+        { k: "model", v: "provider-neutral", c: "#C9CFD4" }, { k: "effort", v: "medium", c: "#C9CFD4" },
+        { k: "network", v: "off", c: "#C9CFD4" }, { k: "time left", v: "18:24", c: "#E5A33B" },
+      ],
+      prompts: [
+        "Explain this project",
+        "Add a responsive pricing section",
+        "Run validation and fix one failure",
+        "Review the project without editing files",
+      ],
+      activity: [
+        { t: "sandbox.ready", d: "container started · image node-22", time: "0.0s", c: "#5E9B72" },
+        { t: "project.mounted", d: "/workspace/sample-app · 24 files", time: "0.4s", c: "#5E9B72" },
+        { t: "agents.loaded", d: "AGENTS.md · 1 nested file", time: "0.6s", c: "#5E9B72" },
+        { t: "session.created", d: "8f3c2a · resumable", time: "0.7s", c: "#8E959B" },
+        { t: "stream.open", d: "structured events attached", time: "0.8s", c: "#8E959B" },
+      ],
+      toolRows: [
+        { kind: "read", name: "AGENTS.md", arg: "root + app/", time: "0.3s", c: "#8E959B" },
+        { kind: "read", name: "app/page.tsx", arg: "142 lines", time: "0.4s", c: "#8E959B" },
+        { kind: "edit", name: "components/Pricing.tsx", arg: "new file · 86 lines", time: "1.2s", c: "#5E9B72" },
+        { kind: "run", name: "npm run validate", arg: "awaiting approval", time: "—", c: "#E5A33B" },
+      ],
+      approvalMeta: [
+        { k: "runtime", v: "docker · node-22 · no network" },
+        { k: "cwd", v: "/workspace/sample-app" },
+        { k: "writes", v: ".lunarforge/ (session artifacts)" },
+        { k: "requested by", v: "main agent · step 4 of 5" },
+      ],
+      validation: [
+        { icon: "✓", t: "typecheck", d: "1.8s", c: "#5E9B72" },
+        { icon: "✓", t: "lint", d: "2.4s", c: "#5E9B72" },
+        { icon: "✓", t: "unit tests", d: "41 passed", c: "#5E9B72" },
+        { icon: "•", t: "build", d: "queued", c: "#E5A33B" },
+        { icon: "•", t: "browser check", d: "queued", c: "#5E656B" },
+      ],
+      usage: [
+        { k: "Session time", v: "18:24 left" },
+        { k: "Commands run", v: "3 of 20" },
+        { k: "Events emitted", v: "148" },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#161719; font-family:'IBM Plex Sans',system-ui,sans-serif; }
+  a { color:#E8783A; text-decoration:none; }
+  a:hover { color:#F0925C; }
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;gap:64px;padding:56px;background:#161719;color:#E7E9EA;font-family:'IBM Plex Sans',system-ui,sans-serif">
+
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#E8783A">02 — Documentation route</div>
+    <div style="font-size:28px;font-weight:600;letter-spacing:-0.01em">LunarForge Web · <span style="color:#8E959B">/docs</span></div>
+    <div style="font-size:15px;color:#8E959B;max-width:760px">Overview, a reference article with callouts and code blocks, the ⌘K command menu, and the mobile reading experience with drawer navigation.</div>
+  </div>
+
+  <div style="display:flex;gap:56px;align-items:flex-start;flex-wrap:wrap">
+
+    <!-- ================= DOCS OVERVIEW ================= -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">docs overview · desktop 1440</div>
+      <div data-screen-label="Docs overview — desktop" style="width:1440px;background:#0B0C0D;border:1px solid #24272B;border-radius:12px;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 24px;border-bottom:1px solid #24272B;background:#0E1012">
+          <div style="display:flex;align-items:center;gap:36px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:20px;height:20px;border-radius:5px;background:linear-gradient(160deg,#E8783A,#C9581F)"></div>
+              <div style="font-size:15px;font-weight:600">LunarForge</div>
+              <div style="padding:2px 7px;border-radius:4px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#A8AFB5">docs</div>
+            </div>
+            <div style="display:flex;gap:4px">
+              <div style="padding:6px 12px;border-radius:6px;font-size:14px;color:#8E959B">Home</div>
+              <div style="padding:6px 12px;border-radius:6px;font-size:14px;background:#191B1E;box-shadow:inset 0 0 0 1px #2C3035">Docs</div>
+              <div style="padding:6px 12px;border-radius:6px;font-size:14px;color:#8E959B">Sandbox</div>
+              <div style="padding:6px 12px;border-radius:6px;font-size:14px;color:#8E959B">GitHub</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:40px;width:260px;padding:7px 10px;border:1px solid #26292E;border-radius:6px;background:#131518;font-size:13px;color:#6E767C">Search documentation<span style="padding:1px 5px;border:1px solid #2C3035;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:11px">⌘K</span></div>
+            <div style="padding:8px 14px;border-radius:6px;background:#E8783A;color:#180D05;font-size:14px;font-weight:600">Try the sandbox</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:264px minmax(0,1fr)">
+          <div style="border-right:1px solid #1D2023;padding:24px 16px;background:#0D0F10;display:flex;flex-direction:column;gap:20px">
+            <sc-for list="{{ nav }}" as="g" hint-placeholder-count="5">
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <div style="padding:0 10px 8px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#5E656B">{{ g.t }}</div>
+                <sc-for list="{{ g.items }}" as="i" hint-placeholder-count="5">
+                  <div style="padding:7px 10px;border-radius:6px;font-size:14px;color:#9AA1A7">{{ i }}</div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="padding:56px 64px 72px;max-width:960px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C;margin-bottom:14px">Documentation</div>
+            <h1 style="margin:0 0 14px;font-size:40px;font-weight:600;letter-spacing:-0.025em">LunarForge documentation</h1>
+            <p style="margin:0 0 32px;font-size:17px;line-height:1.65;color:#9AA1A7;max-width:660px">Install the agent, point it at a project, and understand exactly what it is allowed to do. Start with the quick start, then read the safety model before running anything unfamiliar.</p>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:44px">
+              <div style="padding:22px;border:1px solid #3A2C1C;border-radius:10px;background:#131417;display:flex;flex-direction:column;gap:8px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#E8783A">START HERE</div>
+                <div style="font-size:18px;font-weight:600">Quick start</div>
+                <div style="font-size:14px;line-height:1.55;color:#8E959B">Install, run your first task in Docker, and approve a command — about five minutes.</div>
+              </div>
+              <div style="padding:22px;border:1px solid #24272B;border-radius:10px;background:#101214;display:flex;flex-direction:column;gap:8px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6E767C">READ NEXT</div>
+                <div style="font-size:18px;font-weight:600">Security model</div>
+                <div style="font-size:14px;line-height:1.55;color:#8E959B">What local mode does and does not isolate, and when to require Docker.</div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:32px">
+              <sc-for list="{{ overview }}" as="s" hint-placeholder-count="4">
+                <div style="display:flex;flex-direction:column;gap:14px">
+                  <div style="display:flex;align-items:baseline;gap:12px">
+                    <h2 style="margin:0;font-size:20px;font-weight:600;letter-spacing:-0.01em">{{ s.t }}</h2>
+                    <div style="flex:1;height:1px;background:#1D2023"></div>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+                    <sc-for list="{{ s.items }}" as="i" hint-placeholder-count="6">
+                      <div style="padding:14px 16px;border:1px solid #1F2225;border-radius:8px;background:#0E1012;display:flex;flex-direction:column;gap:4px">
+                        <div style="font-size:14px;font-weight:500">{{ i.t }}</div>
+                        <div style="font-size:13px;line-height:1.45;color:#6E767C">{{ i.d }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= DOCS ARTICLE ================= -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">docs article · desktop 1440 · callouts, tables, steps, code blocks</div>
+      <div data-screen-label="Docs article — desktop" style="width:1440px;background:#0B0C0D;border:1px solid #24272B;border-radius:12px;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 24px;border-bottom:1px solid #24272B;background:#0E1012">
+          <div style="display:flex;align-items:center;gap:36px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:20px;height:20px;border-radius:5px;background:linear-gradient(160deg,#E8783A,#C9581F)"></div>
+              <div style="font-size:15px;font-weight:600">LunarForge</div>
+              <div style="padding:2px 7px;border-radius:4px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#A8AFB5">docs</div>
+            </div>
+            <div style="display:flex;gap:4px">
+              <div style="padding:6px 12px;border-radius:6px;font-size:14px;color:#8E959B">Home</div>
+              <div style="padding:6px 12px;border-radius:6px;font-size:14px;background:#191B1E;box-shadow:inset 0 0 0 1px #2C3035">Docs</div>
+              <div style="padding:6px 12px;border-radius:6px;font-size:14px;color:#8E959B">Sandbox</div>
+              <div style="padding:6px 12px;border-radius:6px;font-size:14px;color:#8E959B">GitHub</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:40px;width:260px;padding:7px 10px;border:1px solid #26292E;border-radius:6px;background:#131518;font-size:13px;color:#6E767C">Search documentation<span style="padding:1px 5px;border:1px solid #2C3035;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:11px">⌘K</span></div>
+            <div style="padding:8px 14px;border-radius:6px;background:#E8783A;color:#180D05;font-size:14px;font-weight:600">Try the sandbox</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:264px minmax(0,1fr) 240px">
+          <!-- sidebar -->
+          <div style="border-right:1px solid #1D2023;padding:24px 16px;background:#0D0F10;display:flex;flex-direction:column;gap:20px">
+            <sc-for list="{{ nav }}" as="g" hint-placeholder-count="5">
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <div style="padding:0 10px 8px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#5E656B">{{ g.t }}</div>
+                <sc-for list="{{ g.items }}" as="i" hint-placeholder-count="5">
+                  <div style="padding:7px 10px;border-radius:6px;font-size:14px;color:#9AA1A7">{{ i }}</div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+
+          <!-- article -->
+          <div style="padding:48px 56px 64px;max-width:820px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#6E767C;margin-bottom:20px">
+              <span>Execution</span><span style="color:#3A4046">/</span><span style="color:#A8AFB5">Permissions and approvals</span>
+            </div>
+            <h1 style="margin:0 0 16px;font-size:38px;font-weight:600;letter-spacing:-0.025em;line-height:1.15">Permissions and approvals</h1>
+            <p style="margin:0 0 28px;font-size:17px;line-height:1.7;color:#9AA1A7">LunarForge never runs a command without a decision. This page describes the approval gate, how policies are configured, and how approvals behave in Docker mode and in resumed sessions.</p>
+
+            <div style="display:flex;gap:16px;padding-bottom:28px;margin-bottom:36px;border-bottom:1px solid #1D2023;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">
+              <span>Updated 2026-07-18</span><span style="color:#2C3035">·</span><span>v0.8.2</span><span style="color:#2C3035">·</span><span style="color:#E8783A">Edit this page on GitHub</span>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:36px">
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <h2 style="margin:0;font-size:24px;font-weight:600;letter-spacing:-0.015em;display:flex;align-items:center;gap:10px">How the gate works<span style="font-family:'IBM Plex Mono',monospace;font-size:15px;color:#3A4046">#</span></h2>
+                <p style="margin:0;font-size:16px;line-height:1.75;color:#B3B9BE">When the agent needs to execute anything — a shell command, a Docker build, a browser check — it emits an <code style="font-family:'IBM Plex Mono',monospace;font-size:14px;padding:1px 5px;border-radius:4px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035;color:#E7E9EA">approval.requested</code> event and blocks. The interface renders the request; nothing proceeds until it receives <code style="font-family:'IBM Plex Mono',monospace;font-size:14px;padding:1px 5px;border-radius:4px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035;color:#E7E9EA">approval.resolved</code>.</p>
+
+                <div style="display:flex;gap:12px;padding:16px;border:1px solid #24272B;border-left:2px solid #4E8CC4;border-radius:8px;background:#0F1215">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#4E8CC4;flex:none;padding-top:2px">NOTE</div>
+                  <div style="font-size:15px;line-height:1.65;color:#B3B9BE">File edits inside the project directory do not require approval by default. Writes outside the project boundary are refused, not prompted.</div>
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <h2 style="margin:0;font-size:24px;font-weight:600;letter-spacing:-0.015em;display:flex;align-items:center;gap:10px">Configuring policy<span style="font-family:'IBM Plex Mono',monospace;font-size:15px;color:#3A4046">#</span></h2>
+                <p style="margin:0;font-size:16px;line-height:1.75;color:#B3B9BE">Approval policy lives in <code style="font-family:'IBM Plex Mono',monospace;font-size:14px;padding:1px 5px;border-radius:4px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035;color:#E7E9EA">lunarforge.yaml</code> at the project root. Nested AGENTS.md files can tighten policy for a subtree, never loosen it.</p>
+
+                <div style="border:1px solid #24272B;border-radius:8px;overflow:hidden;background:#0E1012">
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:#141618;border-bottom:1px solid #24272B;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8E959B">
+                    <span>lunarforge.yaml</span><span style="padding:2px 8px;border-radius:4px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035;color:#A8AFB5">Copy</span>
+                  </div>
+                  <pre style="margin:0;padding:16px;font-family:'IBM Plex Mono',monospace;font-size:13.5px;line-height:1.7;color:#C9CFD4;overflow:auto"><div><span style="color:#8FA9C4">runtime</span>: docker</div><div><span style="color:#8FA9C4">approvals</span>:</div><div>  <span style="color:#8FA9C4">default</span>: ask</div><div>  <span style="color:#8FA9C4">allow</span>:</div><div>    - <span style="color:#5E9B72">"npm test"</span></div><div>    - <span style="color:#5E9B72">"pytest -q"</span></div><div>  <span style="color:#8FA9C4">deny</span>:</div><div>    - <span style="color:#5E9B72">"curl *"</span>       <span style="color:#6E767C"># network egress</span></div><div>    - <span style="color:#5E9B72">"rm -rf *"</span></div></pre>
+                </div>
+
+                <div style="display:flex;gap:12px;padding:16px;border:1px solid #3A2C1C;border-left:2px solid #E5A33B;border-radius:8px;background:#141210">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#E5A33B;flex:none;padding-top:2px">WARNING</div>
+                  <div style="font-size:15px;line-height:1.65;color:#B3B9BE">An <code style="font-family:'IBM Plex Mono',monospace;font-size:14px;padding:1px 5px;border-radius:4px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035;color:#E7E9EA">allow</code> entry skips the gate for every matching command in the session. Keep the list narrow and specific.</div>
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <h2 style="margin:0;font-size:24px;font-weight:600;letter-spacing:-0.015em;display:flex;align-items:center;gap:10px">Options reference<span style="font-family:'IBM Plex Mono',monospace;font-size:15px;color:#3A4046">#</span></h2>
+                <div style="border:1px solid #24272B;border-radius:8px;overflow:hidden">
+                  <div style="display:grid;grid-template-columns:1.1fr 0.7fr 0.8fr 1.6fr;padding:11px 16px;background:#141618;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#8E959B">
+                    <div>Option</div><div>Type</div><div>Default</div><div>Description</div>
+                  </div>
+                  <sc-for list="{{ options }}" as="o" hint-placeholder-count="5">
+                    <div style="display:grid;grid-template-columns:1.1fr 0.7fr 0.8fr 1.6fr;padding:12px 16px;border-top:1px solid #1D2023;font-size:14px;background:#0E1012;align-items:baseline">
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#E8783A">{{ o.k }}</div>
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#8E959B">{{ o.type }}</div>
+                      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#8E959B">{{ o.def }}</div>
+                      <div style="color:#B3B9BE;line-height:1.5">{{ o.d }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <h2 style="margin:0;font-size:24px;font-weight:600;letter-spacing:-0.015em;display:flex;align-items:center;gap:10px">Approving from the CLI<span style="font-family:'IBM Plex Mono',monospace;font-size:15px;color:#3A4046">#</span></h2>
+                <div style="display:flex;flex-direction:column;gap:0">
+                  <sc-for list="{{ procedure }}" as="p" hint-placeholder-count="3">
+                    <div style="display:flex;gap:16px;padding:14px 0;border-top:1px solid #1D2023">
+                      <div style="flex:none;width:26px;height:26px;border-radius:999px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#E8783A">{{ p.n }}</div>
+                      <div style="font-size:15px;line-height:1.6;color:#B3B9BE;padding-top:2px">{{ p.d }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+
+                <div style="border:1px solid #24272B;border-radius:8px;overflow:hidden;background:#0E1012">
+                  <div style="display:flex;gap:4px;padding:6px 8px;background:#141618;border-bottom:1px solid #24272B">
+                    <div style="padding:5px 10px;border-radius:5px;background:#1D2023;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#E7E9EA">shell</div>
+                    <div style="padding:5px 10px;border-radius:5px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">python</div>
+                    <div style="padding:5px 10px;border-radius:5px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">json</div>
+                    <div style="margin-left:auto;padding:5px 10px;border-radius:5px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#A8AFB5">Copy</div>
+                  </div>
+                  <pre style="margin:0;padding:16px;font-family:'IBM Plex Mono',monospace;font-size:13.5px;line-height:1.7;color:#C9CFD4;overflow:auto"><div><span style="color:#5E9B72">$</span> lunarforge run <span style="color:#5E9B72">"run validation and fix one failure"</span> --runtime docker</div><div><span style="color:#6E767C">  ⟩ approval required — run: pytest -q  (risk: low)</span></div><div><span style="color:#6E767C">  ⟩ [a]pprove  [d]eny  [v]iew details</span></div><div><span style="color:#5E9B72">$</span> a</div><div><span style="color:#6E767C">  ✓ 41 passed, 1 fixed · session 8f3c2a saved</span></div></pre>
+                </div>
+
+                <div style="border:1px solid #24272B;border-radius:8px;overflow:hidden;background:#0E1012">
+                  <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:#141618;border-bottom:1px solid #24272B;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8E959B">
+                    <span>approval.requested — event payload</span><span style="padding:2px 8px;border-radius:4px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035;color:#A8AFB5">Copy</span>
+                  </div>
+                  <pre style="margin:0;padding:16px;font-family:'IBM Plex Mono',monospace;font-size:13.5px;line-height:1.7;color:#C9CFD4;overflow:auto"><div>{</div><div>  <span style="color:#8FA9C4">"type"</span>: <span style="color:#5E9B72">"approval.requested"</span>,</div><div>  <span style="color:#8FA9C4">"id"</span>: <span style="color:#5E9B72">"apr_7c1e"</span>,</div><div>  <span style="color:#8FA9C4">"action"</span>: <span style="color:#5E9B72">"command.run"</span>,</div><div>  <span style="color:#8FA9C4">"summary"</span>: <span style="color:#5E9B72">"pytest -q"</span>,</div><div>  <span style="color:#8FA9C4">"risk"</span>: <span style="color:#5E9B72">"low"</span>,</div><div>  <span style="color:#8FA9C4">"runtime"</span>: <span style="color:#5E9B72">"docker"</span>,</div><div>  <span style="color:#8FA9C4">"cwd"</span>: <span style="color:#5E9B72">"/workspace/my-app"</span></div><div>}</div></pre>
+                </div>
+
+                <div style="display:flex;gap:12px;padding:16px;border:1px solid #2A1C1C;border-left:2px solid #C4655C;border-radius:8px;background:#141011">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#C4655C;flex:none;padding-top:2px">DANGER</div>
+                  <div style="font-size:15px;line-height:1.65;color:#B3B9BE">Auto-approving every command in local mode removes the only boundary between the agent and your machine. Use Docker mode instead of a blanket allow rule.</div>
+                </div>
+
+                <div style="display:flex;gap:12px;padding:16px;border:1px solid #1C2A20;border-left:2px solid #5E9B72;border-radius:8px;background:#0F1412">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5E9B72;flex:none;padding-top:2px">TIP</div>
+                  <div style="font-size:15px;line-height:1.65;color:#B3B9BE">Resumed sessions replay pending approvals. If a task was stopped mid-gate, the request reappears with its original details intact.</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:48px;padding-top:28px;border-top:1px solid #1D2023">
+              <div style="padding:16px 18px;border:1px solid #24272B;border-radius:8px;background:#0E1012">
+                <div style="font-size:12px;color:#6E767C;margin-bottom:4px">← Previous</div>
+                <div style="font-size:15px;font-weight:500">File and project tools</div>
+              </div>
+              <div style="padding:16px 18px;border:1px solid #24272B;border-radius:8px;background:#0E1012;text-align:right">
+                <div style="font-size:12px;color:#6E767C;margin-bottom:4px">Next →</div>
+                <div style="font-size:15px;font-weight:500">Local execution safety</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TOC -->
+          <div style="border-left:1px solid #1D2023;padding:48px 20px;background:#0B0C0D">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#5E656B;margin-bottom:14px">On this page</div>
+            <div style="display:flex;flex-direction:column;gap:2px;border-left:1px solid #1D2023">
+              <sc-for list="{{ toc }}" as="t" hint-placeholder-count="6">
+                <div style="padding:6px 12px;font-size:13px;line-height:1.4;color:{{ t.c }};border-left:1px solid {{ t.bar }};margin-left:-1px;padding-left:{{ t.pad }}">{{ t.t }}</div>
+              </sc-for>
+            </div>
+            <div style="margin-top:28px;padding-top:20px;border-top:1px solid #1D2023;display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:13px;color:#8E959B">Edit this page</div>
+              <div style="font-size:13px;color:#8E959B">Report an issue</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= COMMAND MENU + MOBILE ================= -->
+    <div style="display:flex;gap:56px;align-items:flex-start;flex-wrap:wrap">
+
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">docs search · ⌘K command menu over dimmed page</div>
+        <div data-screen-label="Docs search — command menu" style="width:1000px;height:720px;position:relative;background:#0B0C0D;border:1px solid #24272B;border-radius:12px;overflow:hidden">
+          <div style="position:absolute;inset:0;opacity:0.35;filter:saturate(0.6)">
+            <div style="height:60px;border-bottom:1px solid #24272B;background:#0E1012"></div>
+            <div style="display:grid;grid-template-columns:230px 1fr;height:660px">
+              <div style="border-right:1px solid #1D2023;background:#0D0F10;padding:20px;display:flex;flex-direction:column;gap:10px">
+                <sc-for list="{{ ghost }}" as="w" hint-placeholder-count="10">
+                  <div style="height:10px;border-radius:3px;background:#1D2023;width:{{ w }}"></div>
+                </sc-for>
+              </div>
+              <div style="padding:40px 48px;display:flex;flex-direction:column;gap:14px">
+                <div style="height:26px;width:340px;border-radius:4px;background:#1D2023"></div>
+                <sc-for list="{{ ghost }}" as="w" hint-placeholder-count="10">
+                  <div style="height:10px;border-radius:3px;background:#16191B;width:{{ w }}"></div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+          <div style="position:absolute;inset:0;background:#05060799"></div>
+          <div style="position:absolute;top:88px;left:50%;transform:translateX(-50%);width:620px;border:1px solid #2C3035;border-radius:12px;background:#101214;box-shadow:0 40px 90px -30px #000000;overflow:hidden">
+            <div style="display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid #24272B">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:#E8783A">⌕</div>
+              <div style="font-size:16px;color:#E7E9EA">approval<span style="display:inline-block;width:1.5px;height:17px;background:#E8783A;vertical-align:-3px;margin-left:2px"></span></div>
+              <div style="margin-left:auto;padding:2px 7px;border:1px solid #2C3035;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6E767C">ESC</div>
+            </div>
+            <div style="padding:8px;display:flex;flex-direction:column;gap:2px;max-height:420px">
+              <div style="padding:8px 10px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#5E656B">Documentation · 6 results</div>
+              <sc-for list="{{ results }}" as="r" hint-placeholder-count="5">
+                <div style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:8px;background:{{ r.bg }};box-shadow:{{ r.ring }}">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6E767C;width:56px;flex:none">{{ r.kind }}</div>
+                  <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+                    <div style="font-size:14.5px;font-weight:500">{{ r.t }}</div>
+                    <div style="font-size:13px;color:#7D848A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.d }}</div>
+                  </div>
+                  <div style="margin-left:auto;font-size:12px;color:#5E656B;font-family:'IBM Plex Mono',monospace">{{ r.path }}</div>
+                </div>
+              </sc-for>
+              <div style="padding:8px 10px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#5E656B">Actions</div>
+              <div style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:8px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6E767C;width:56px;flex:none">go</div>
+                <div style="font-size:14.5px">Open the sandbox</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px;padding:10px 16px;border-top:1px solid #24272B;background:#0D0F10;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6E767C">
+              <span>↑↓ navigate</span><span>↵ open</span><span>⌘↵ new tab</span><span style="margin-left:auto">Search by title and body</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:32px">
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">mobile article · 390</div>
+          <div data-screen-label="Docs article — mobile" style="width:390px;background:#0B0C0D;border:1px solid #24272B;border-radius:12px;overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 16px;border-bottom:1px solid #24272B;background:#0E1012">
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:20px;height:20px;border-radius:5px;background:linear-gradient(160deg,#E8783A,#C9581F)"></div>
+                <div style="font-size:15px;font-weight:600">LunarForge</div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <div style="width:44px;height:44px;border-radius:6px;box-shadow:inset 0 0 0 1px #2C3035;display:flex;align-items:center;justify-content:center;color:#C9CFD4">⌕</div>
+                <div style="width:44px;height:44px;border-radius:6px;box-shadow:inset 0 0 0 1px #2C3035;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+                  <div style="width:16px;height:1.5px;background:#C9CFD4"></div><div style="width:16px;height:1.5px;background:#C9CFD4"></div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #1D2023;background:#0D0F10">
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#8E959B"><span style="color:#5E656B">Execution</span><span style="color:#3A4046">/</span>Permissions</div>
+              <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:6px;box-shadow:inset 0 0 0 1px #2C3035;font-size:12px;color:#C9CFD4">On this page <span style="color:#6E767C">▾</span></div>
+            </div>
+            <div style="padding:28px 20px 32px;display:flex;flex-direction:column;gap:22px">
+              <h1 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.02em;line-height:1.2">Permissions and approvals</h1>
+              <p style="margin:0;font-size:16px;line-height:1.7;color:#9AA1A7">LunarForge never runs a command without a decision. This page describes the approval gate and how policy is configured.</p>
+              <h2 style="margin:0;font-size:20px;font-weight:600">How the gate works</h2>
+              <p style="margin:0;font-size:15.5px;line-height:1.75;color:#B3B9BE">The agent emits an <code style="font-family:'IBM Plex Mono',monospace;font-size:13.5px;padding:1px 5px;border-radius:4px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035">approval.requested</code> event and blocks until the interface responds.</p>
+              <div style="display:flex;gap:10px;padding:14px;border:1px solid #24272B;border-left:2px solid #4E8CC4;border-radius:8px;background:#0F1215">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4E8CC4;flex:none;padding-top:2px">NOTE</div>
+                <div style="font-size:14px;line-height:1.6;color:#B3B9BE">Writes outside the project boundary are refused, not prompted.</div>
+              </div>
+              <div style="border:1px solid #24272B;border-radius:8px;overflow:hidden;background:#0E1012">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:#141618;border-bottom:1px solid #24272B;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8E959B">
+                  <span>lunarforge.yaml</span><span style="padding:2px 7px;border-radius:4px;box-shadow:inset 0 0 0 1px #2C3035;color:#A8AFB5">Copy</span>
+                </div>
+                <pre style="margin:0;padding:14px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;line-height:1.7;color:#C9CFD4;overflow:auto"><div><span style="color:#8FA9C4">runtime</span>: docker</div><div><span style="color:#8FA9C4">approvals</span>:</div><div>  <span style="color:#8FA9C4">default</span>: ask</div><div>  <span style="color:#8FA9C4">allow</span>:</div><div>    - <span style="color:#5E9B72">"pytest -q"</span></div></pre>
+              </div>
+              <div style="display:flex;gap:10px;padding:14px;border:1px solid #3A2C1C;border-left:2px solid #E5A33B;border-radius:8px;background:#141210">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#E5A33B;flex:none;padding-top:2px">WARN</div>
+                <div style="font-size:14px;line-height:1.6;color:#B3B9BE">Keep allow rules narrow — they skip the gate for the whole session.</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;padding-top:20px;border-top:1px solid #1D2023">
+                <div style="padding:14px 16px;border:1px solid #24272B;border-radius:8px;background:#0E1012">
+                  <div style="font-size:12px;color:#6E767C;margin-bottom:4px">← Previous</div>
+                  <div style="font-size:15px;font-weight:500">File and project tools</div>
+                </div>
+                <div style="padding:14px 16px;border:1px solid #24272B;border-radius:8px;background:#0E1012">
+                  <div style="font-size:12px;color:#6E767C;margin-bottom:4px">Next →</div>
+                  <div style="font-size:15px;font-weight:500">Local execution safety</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">mobile docs nav drawer · 390</div>
+          <div data-screen-label="Docs nav drawer — mobile" style="width:390px;background:#0B0C0D;border:1px solid #24272B;border-radius:12px;overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 16px;border-bottom:1px solid #24272B;background:#0E1012">
+              <div style="font-size:15px;font-weight:600">Documentation</div>
+              <div style="width:44px;height:44px;border-radius:6px;box-shadow:inset 0 0 0 1px #2C3035;display:flex;align-items:center;justify-content:center;color:#C9CFD4;font-size:18px">×</div>
+            </div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 12px;border:1px solid #26292E;border-radius:6px;background:#131518;font-size:14px;color:#6E767C">Search documentation<span style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:#E8783A">⌕</span></div>
+              <sc-for list="{{ nav }}" as="g" hint-placeholder-count="5">
+                <div style="display:flex;flex-direction:column;gap:2px">
+                  <div style="padding:8px 10px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#5E656B">{{ g.t }}</div>
+                  <sc-for list="{{ g.items }}" as="i" hint-placeholder-count="5">
+                    <div style="padding:11px 10px;border-radius:6px;font-size:15px;color:#9AA1A7">{{ i }}</div>
+                  </sc-for>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:2000,&quot;height&quot;:1400}}">
+class Component extends DCLogic {
+  renderVals() {
+    const nav = [
+      { t: "Getting started", items: ["Introduction", "Installation", "Quick start", "Configuration"] },
+      { t: "Using the agent", items: ["CLI usage", "Textual chat", "Projects and AGENTS.md", "File and project tools"] },
+      { t: "Execution", items: ["Permissions and approvals", "Local execution safety", "Docker mode", "Validation", "Browser validation"] },
+      { t: "Sessions", items: ["Sessions and resume", "Working-memory compaction", "Subagents"] },
+      { t: "Extending", items: ["MCP", "Plugins", "Git support"] },
+      { t: "Reference", items: ["Event protocol", "Public Python API", "Troubleshooting", "Security model"] },
+    ];
+
+    const overview = [
+      { t: "Getting started", items: [
+        ["Introduction", "What LunarForge is and is not"],
+        ["Installation", "pip, supported Python versions"],
+        ["Quick start", "First task in five minutes"],
+        ["Configuration", "lunarforge.yaml reference"],
+        ["CLI usage", "Commands, flags, exit codes"],
+        ["Textual chat", "Continuous terminal chat"],
+      ]},
+      { t: "Projects and safety", items: [
+        ["Projects and AGENTS.md", "Root and nested instructions"],
+        ["File and project tools", "Reads, writes, boundaries"],
+        ["Permissions and approvals", "The approval gate"],
+        ["Local execution safety", "What local mode does not isolate"],
+        ["Docker mode", "Images, mounts, network"],
+        ["Security model", "Threat model and guarantees"],
+      ]},
+      { t: "Validation and sessions", items: [
+        ["Validation", "Running your check commands"],
+        ["Browser validation", "Confirming rendered output"],
+        ["Sessions and resume", "Persisting long tasks"],
+        ["Working-memory compaction", "Keeping context usable"],
+        ["Subagents", "Delegating focused work"],
+        ["Git support", "Summaries and commits"],
+      ]},
+      { t: "Extending and reference", items: [
+        ["MCP", "Attaching MCP servers"],
+        ["Plugins", "Adding tools without forking"],
+        ["Event protocol", "Every event type, versioned"],
+        ["Public Python API", "Agent, Session, Approval"],
+        ["Troubleshooting", "Common failures and fixes"],
+        ["Changelog", "Milestones and releases"],
+      ]},
+    ].map(s => ({ t: s.t, items: s.items.map(([t, d]) => ({ t, d })) }));
+
+    const options = [
+      ["approvals.default", "enum", "ask", "ask, allow, or deny for commands with no matching rule."],
+      ["approvals.allow", "list[str]", "[]", "Glob patterns that bypass the gate for the current session."],
+      ["approvals.deny", "list[str]", "[]", "Patterns refused outright; takes precedence over allow."],
+      ["runtime", "enum", "local", "local or docker. Docker is recommended for untrusted work."],
+      ["approvals.timeout", "int", "0", "Seconds before an unanswered request is denied. 0 waits indefinitely."],
+    ].map(([k, type, def, d]) => ({ k, type, def, d }));
+
+    const procedure = [
+      "Start a task with lunarforge run, or resume one with --session.",
+      "When the gate opens, press v to inspect the full command, working directory, and runtime.",
+      "Press a to approve or d to deny. The decision is recorded in the session transcript.",
+    ].map((d, i) => ({ d, n: String(i + 1) }));
+
+    const toc = [
+      ["How the gate works", 0, true],
+      ["Configuring policy", 0, false],
+      ["Options reference", 0, false],
+      ["Approving from the CLI", 0, false],
+      ["Event payload", 1, false],
+      ["Resumed sessions", 1, false],
+    ].map(([t, lvl, active]) => ({
+      t,
+      c: active ? "#E8783A" : "#8E959B",
+      bar: active ? "#E8783A" : "transparent",
+      pad: lvl ? "26px" : "12px",
+    }));
+
+    const results = [
+      ["page", "Permissions and approvals", "The approval gate, policy rules, and resumed sessions", "/docs/approvals", true],
+      ["page", "Local execution safety", "Why local mode is a policy boundary, not an OS boundary", "/docs/local-safety", false],
+      ["event", "approval.requested", "Emitted when the agent needs a decision before executing", "/docs/events", false],
+      ["api", "Approval.APPROVE", "Resolve a pending approval from the Python API", "/docs/python-api", false],
+      ["page", "Docker mode", "Auto-approval patterns inside a container image", "/docs/docker", false],
+    ].map(([kind, t, d, path, active]) => ({
+      kind, t, d, path,
+      bg: active ? "#191C1F" : "transparent",
+      ring: active ? "inset 0 0 0 1px #3A2C1C" : "none",
+    }));
+
+    return {
+      nav, overview, options, procedure, toc, results,
+      ghost: ["70%","90%","55%","80%","65%","88%","48%","76%","60%","84%"],
+    };
+  }
+}
+</script>
+</body>
+</html>

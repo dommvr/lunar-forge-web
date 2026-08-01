@@ -1,0 +1,900 @@
+/* Compare route. Geometry from `project/Comparison.dc.html`. */
+
+.page {
+  position: relative;
+}
+
+.section {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-8);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sunken {
+  background: var(--panel-alt);
+}
+
+/* ---------- Header ---------- */
+
+.header {
+  max-width: 1440px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: var(--space-8);
+  padding: 72px var(--space-8) var(--space-7);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.headerCopy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.badge {
+  align-self: flex-start;
+  padding: 5px 10px;
+  border: 1px solid var(--pill-border);
+  border-radius: var(--r-full);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.title {
+  font-size: 52px;
+  line-height: 1.06;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  text-wrap: pretty;
+}
+
+.lede {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--text-body);
+  max-width: 560px;
+  text-wrap: pretty;
+}
+
+.headerActions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Task card */
+
+.taskCard {
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  align-self: start;
+}
+
+.taskHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 12px var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--panel-alt);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.taskHeadNote {
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--success);
+}
+
+.taskPrompt {
+  padding: 18px var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-bright);
+}
+
+.taskEndpoint {
+  color: var(--accent);
+}
+
+.taskFacts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border-subtle);
+}
+
+.taskFact {
+  padding: 14px var(--space-3);
+  background: var(--panel-card);
+}
+
+.factLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.factValue {
+  margin-top: var(--space-1);
+  font-size: 13px;
+  color: var(--text);
+}
+
+/* ---------- Section headings ---------- */
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.h2 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.h2Small {
+  font-size: 24px;
+}
+
+.sectionNote {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-soft);
+  flex: none;
+}
+
+.sectionIntro {
+  font-size: 15px;
+  color: var(--text-muted);
+  max-width: 640px;
+  margin-top: var(--space-2);
+}
+
+/* ---------- Scoreboard ---------- */
+
+.scoreboard {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.agentCard {
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.agentFeatured {
+  border-color: #3a2a1c;
+  box-shadow:
+    0 0 0 1px #e8783a22,
+    0 12px 32px -20px #000;
+}
+
+.agentHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: var(--space-3) 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--panel-alt);
+}
+
+.agentFeatured .agentHead {
+  background: #14100c;
+}
+
+.agentName {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.agentMark {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  background: var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-body);
+  flex: none;
+}
+
+.agentMarkPrimary {
+  background: linear-gradient(160deg, var(--accent), var(--accent-press));
+  color: var(--logo-ink);
+}
+
+.agentBadge {
+  padding: 3px var(--space-2);
+  border-radius: var(--r-xs);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  flex: none;
+}
+
+.badgeAccent {
+  background: var(--chip-amber-bg);
+  color: var(--amber);
+}
+
+.badgeSuccess {
+  background: var(--success-ring);
+  color: var(--success);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: var(--border-subtle);
+}
+
+.metric {
+  padding: 18px 20px;
+  background: var(--panel-card);
+}
+
+.metricLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.metricBig {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.metricMid {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--text-bright);
+}
+
+.metricSuccess {
+  color: var(--success);
+}
+
+.metricWarning {
+  color: var(--amber);
+}
+
+.metricUnit {
+  color: var(--text-soft);
+}
+
+.agentNote {
+  padding: var(--space-3) 20px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ---------- Time / tokens ---------- */
+
+.breakdown {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: var(--space-8);
+}
+
+.chartBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.barGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.barHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.barName {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.barTotal {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.barTrack {
+  display: flex;
+  height: 28px;
+  border-radius: 5px;
+  overflow: hidden;
+  min-width: 120px;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding-top: var(--space-1);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex: none;
+}
+
+.tokenCard {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: var(--space-4);
+  background: var(--panel-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  align-self: start;
+}
+
+.tokenTitle {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.tokenIntro {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+}
+
+.tokenRows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.tokenRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tokenHead {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.tokenName {
+  color: var(--text-bright);
+}
+
+.tokenTotal {
+  color: var(--text-muted);
+}
+
+.tokenTrack {
+  display: flex;
+  height: 10px;
+  border-radius: 3px;
+  overflow: hidden;
+  min-width: 60px;
+}
+
+.tokenLegend {
+  display: flex;
+  gap: var(--space-3);
+  padding-top: var(--space-1);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.tokenLegendItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ---------- Run record table ---------- */
+
+.tableWrap {
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.tableHead,
+.tableRow {
+  display: grid;
+  grid-template-columns: 260px repeat(3, minmax(0, 1fr)) 150px;
+  min-width: 880px;
+}
+
+.tableHead {
+  background: #141618;
+  border-bottom: 1px solid var(--border);
+}
+
+.tableHead > div {
+  padding: 12px 20px;
+}
+
+.thMeta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+.thAgent {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-bright);
+}
+
+.thPrimary {
+  color: var(--accent);
+}
+
+.tableRow {
+  border-bottom: 1px solid var(--rule-quiet);
+  background: #0f1012;
+}
+
+.tableRow > div {
+  padding: 14px 20px;
+}
+
+.tdMetric {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.tdValue {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-bright);
+}
+
+.tdPrimary {
+  color: var(--text);
+}
+
+.tdBest {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--success);
+}
+
+.tableNote {
+  margin-top: var(--space-3);
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+.tableNoteMono {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+/* ---------- Diffs ---------- */
+
+.diffGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.diffCard {
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.diffHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--panel-alt);
+}
+
+.diffName {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.diffStat {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--success);
+}
+
+.diffFiles {
+  padding: var(--space-3) 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.diffFile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.diffPath {
+  color: var(--text-bright);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diffDelta {
+  color: var(--text-soft);
+  flex: none;
+}
+
+.diffNote {
+  padding: 14px 18px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin-top: auto;
+}
+
+/* ---------- Qualitative ---------- */
+
+.qualGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.qualCard {
+  display: flex;
+  gap: var(--space-3);
+  padding: 22px;
+  background: var(--panel-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+
+.qualNum {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent);
+  padding-top: 2px;
+  flex: none;
+}
+
+.qualTitle {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.qualBody {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* ---------- Methodology ---------- */
+
+.methodGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-8);
+}
+
+.methodColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.methodTitle {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.methodList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.methodItem {
+  display: flex;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-body);
+}
+
+.markOk {
+  color: var(--success);
+  flex: none;
+}
+
+.markWarn {
+  color: var(--amber);
+  flex: none;
+}
+
+.methodFoot {
+  margin-top: var(--space-1);
+  padding: var(--space-3) 18px;
+  border: 1px solid var(--pill-border);
+  border-radius: var(--r-md);
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+
+/* ---------- CTA ---------- */
+
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 48px;
+  padding: var(--space-7) var(--space-8);
+}
+
+.ctaTitle {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.ctaBody {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin-top: var(--space-2);
+}
+
+.ctaActions {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* ---------- Mobile-only compact metrics ---------- */
+
+.mobileMetrics {
+  display: none;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.mobileRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--rule-quiet);
+}
+
+.mobileRowLabel {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.mobileRowValues,
+.mobileLegend {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.mobileValuePrimary {
+  color: var(--accent);
+}
+
+.mobileValue {
+  color: var(--text-bright);
+}
+
+.mobileLegend {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1279px) {
+  .header {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    padding: var(--space-7) var(--space-6) 48px;
+    gap: var(--space-6);
+  }
+  .section {
+    padding: var(--space-7) var(--space-6);
+  }
+  .title {
+    font-size: 44px;
+  }
+  .breakdown,
+  .methodGrid {
+    gap: var(--space-6);
+  }
+  .cta {
+    padding: 48px var(--space-6);
+  }
+}
+
+@media (max-width: 1023px) {
+  .header {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .scoreboard,
+  .diffGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .breakdown,
+  .methodGrid,
+  .qualGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tokenCard {
+    align-self: stretch;
+  }
+  .cta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+}
+
+@media (max-width: 767px) {
+  .header {
+    padding: 36px 20px var(--space-5);
+    gap: 18px;
+  }
+  .section {
+    padding: 28px 20px;
+  }
+  .title {
+    font-size: 34px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .lede {
+    font-size: 15px;
+  }
+  .h2 {
+    font-size: 20px;
+    letter-spacing: -0.015em;
+  }
+  .h2Small {
+    font-size: 18px;
+  }
+  .sectionHead {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+  .sectionNote {
+    display: none;
+  }
+  .badge {
+    font-size: 10px;
+  }
+  .headerActions > * {
+    width: 100%;
+  }
+  .metric {
+    padding: 14px var(--space-3);
+  }
+  .metricBig {
+    font-size: 20px;
+  }
+  .metricMid {
+    font-size: 15px;
+  }
+  .barTrack {
+    height: 20px;
+  }
+
+  /* The full run record becomes stacked rows. */
+  .tableWrap {
+    display: none;
+  }
+  .tableNote {
+    display: none;
+  }
+  .mobileMetrics {
+    display: flex;
+  }
+  .methodFoot {
+    padding: 12px 14px;
+  }
+}

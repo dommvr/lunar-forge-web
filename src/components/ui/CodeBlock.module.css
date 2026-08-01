@@ -1,0 +1,107 @@
+.wrap {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--surface-nav);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 9px 12px;
+  background: #141618;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-1);
+  padding: 6px 8px;
+  background: #141618;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+.tabActive {
+  background: var(--border-subtle);
+  color: var(--text);
+}
+
+.copy {
+  padding: 2px 8px;
+  border-radius: var(--r-xs);
+  background: var(--surface-3);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+  color: var(--text-body);
+  font-family: var(--font-mono);
+  font-size: inherit;
+  transition: color 120ms ease;
+}
+
+.copy:hover {
+  color: var(--text);
+}
+
+.copyDone {
+  color: var(--success);
+}
+
+.pre {
+  padding: 16px;
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--text-bright);
+  overflow-x: auto;
+}
+
+.dense .pre {
+  padding: 14px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.roomy .pre {
+  padding: 20px;
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+@media (max-width: 767px) {
+  .pre {
+    font-size: 12.5px;
+    padding: 14px;
+  }
+}
+
+/* Token colours used inside <pre> content. */
+.kw {
+  color: var(--accent);
+}
+.str {
+  color: var(--success);
+}
+.key {
+  color: var(--yaml-key);
+}
+.dim {
+  color: var(--text-soft);
+}
+.ok {
+  color: var(--success);
+}
+.add {
+  color: var(--success);
+}

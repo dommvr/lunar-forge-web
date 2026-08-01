@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#161719; font-family:'IBM Plex Sans',system-ui,sans-serif; }
+  a { color:#E8783A; text-decoration:none; }
+  a:hover { color:#F0925C; }
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;gap:56px;padding:56px;background:#161719;color:#E7E9EA;font-family:'IBM Plex Sans',system-ui,sans-serif">
+
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#E8783A">04 — Design system</div>
+    <div style="font-size:28px;font-weight:600;letter-spacing:-0.01em">Tokens, components, and interaction notes</div>
+    <div style="font-size:15px;color:#8E959B;max-width:760px">Token names map to CSS custom properties; every value here is used verbatim in the three route mockups. 8-point spacing, restrained radii, borders instead of shadows except for overlays.</div>
+  </div>
+
+  <!-- ================= TOKENS ================= -->
+  <div data-screen-label="Tokens" style="width:1440px;border:1px solid #24272B;border-radius:12px;background:#0B0C0D;padding:40px;display:flex;flex-direction:column;gap:44px">
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#E8783A">Color tokens</div>
+      <sc-for list="{{ colorGroups }}" as="g" hint-placeholder-count="4">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:14px;font-weight:500;color:#8E959B">{{ g.t }}</div>
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px">
+            <sc-for list="{{ g.items }}" as="c" hint-placeholder-count="6">
+              <div style="border:1px solid #1F2225;border-radius:8px;overflow:hidden;background:#0E1012">
+                <div style="height:52px;background:{{ c.v }};border-bottom:1px solid #1F2225"></div>
+                <div style="padding:9px 10px;display:flex;flex-direction:column;gap:2px">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#C9CFD4">{{ c.k }}</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5E656B">{{ c.v }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:32px;padding-top:36px;border-top:1px solid #1D2023">
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#E8783A">Typography scale</div>
+        <div style="display:flex;flex-direction:column;gap:0">
+          <sc-for list="{{ type }}" as="t" hint-placeholder-count="8">
+            <div style="display:flex;align-items:baseline;gap:24px;padding:12px 0;border-bottom:1px solid #1D2023">
+              <div style="width:120px;flex:none;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#6E767C">{{ t.k }}</div>
+              <div style="width:150px;flex:none;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#5E656B">{{ t.spec }}</div>
+              <div style="font-family:{{ t.fam }};font-size:{{ t.size }};font-weight:{{ t.weight }};letter-spacing:{{ t.ls }};color:#E7E9EA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.sample }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="font-size:13px;color:#6E767C;line-height:1.6">IBM Plex Sans for interface and prose; IBM Plex Mono for code, event names, session metadata, and eyebrow labels. No third family.</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:32px">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#E8783A">Spacing · 8-point</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <sc-for list="{{ spacing }}" as="s" hint-placeholder-count="8">
+              <div style="display:flex;align-items:center;gap:14px">
+                <div style="width:64px;flex:none;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8E959B">{{ s.k }}</div>
+                <div style="width:44px;flex:none;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#5E656B">{{ s.v }}</div>
+                <div style="height:10px;border-radius:2px;background:#E8783A;width:{{ s.v }};opacity:0.75"></div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#E8783A">Radius</div>
+          <div style="display:flex;gap:10px">
+            <sc-for list="{{ radii }}" as="r" hint-placeholder-count="5">
+              <div style="flex:1;display:flex;flex-direction:column;gap:6px;align-items:center">
+                <div style="width:100%;height:48px;background:#131518;box-shadow:inset 0 0 0 1px #2C3035;border-radius:{{ r.v }}"></div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8E959B">{{ r.k }}</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5E656B">{{ r.v }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#E8783A">Elevation &amp; border rules</div>
+          <sc-for list="{{ elevation }}" as="e" hint-placeholder-count="4">
+            <div style="display:flex;gap:12px;padding:10px 0;border-top:1px solid #1D2023">
+              <div style="width:88px;flex:none;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#C9CFD4">{{ e.k }}</div>
+              <div style="font-size:13px;line-height:1.55;color:#8E959B">{{ e.d }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= COMPONENTS ================= -->
+  <div data-screen-label="Components" style="width:1440px;border:1px solid #24272B;border-radius:12px;background:#0B0C0D;padding:40px;display:grid;grid-template-columns:1fr 1fr;gap:40px">
+
+    <div style="grid-column:1 / -1;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#E8783A">Components</div>
+
+    <!-- buttons -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:15px;font-weight:600">Buttons</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+        <div style="padding:9px 16px;border-radius:6px;background:#E8783A;color:#180D05;font-size:13.5px;font-weight:600">Primary</div>
+        <div style="padding:9px 16px;border-radius:6px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035;font-size:13.5px;font-weight:500">Secondary</div>
+        <div style="padding:9px 16px;border-radius:6px;color:#C9CFD4;font-size:13.5px;font-weight:500">Ghost</div>
+        <div style="padding:9px 16px;border-radius:6px;box-shadow:inset 0 0 0 1px #4A2E2C;color:#C4655C;font-size:13.5px;font-weight:500">Destructive</div>
+        <div style="padding:9px 16px;border-radius:6px;background:#1D2023;color:#5E656B;font-size:13.5px;font-weight:600">Disabled</div>
+        <div style="padding:9px 16px;border-radius:6px;background:#E8783A;color:#180D05;font-size:13.5px;font-weight:600;box-shadow:0 0 0 2px #0B0C0D,0 0 0 4px #E8783A">Focus ring</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:9px 16px;border-radius:6px;background:#E8783A;color:#180D05;font-size:13.5px;font-weight:600;opacity:0.8">
+          <span style="width:11px;height:11px;border-radius:999px;border:2px solid #180D05;border-top-color:transparent"></span>Loading
+        </div>
+        <div style="padding:6px 12px;border-radius:6px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035;font-size:12.5px">Small</div>
+        <div style="padding:12px 22px;border-radius:6px;background:#E8783A;color:#180D05;font-size:15px;font-weight:600">Large</div>
+      </div>
+    </div>
+
+    <!-- inputs -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:15px;font-weight:600">Inputs</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="padding:10px 12px;border-radius:6px;background:#131518;box-shadow:inset 0 0 0 1px #2C3035;font-size:14px;color:#5E656B">Placeholder text</div>
+        <div style="padding:10px 12px;border-radius:6px;background:#131518;box-shadow:inset 0 0 0 1px #E8783A,0 0 0 3px #E8783A22;font-size:14px">Focused value<span style="display:inline-block;width:1.5px;height:15px;background:#E8783A;vertical-align:-2px"></span></div>
+        <div style="padding:10px 12px;border-radius:6px;background:#131518;box-shadow:inset 0 0 0 1px #4A2E2C;font-size:14px;color:#E7E9EA">Invalid value</div>
+        <div style="font-size:12.5px;color:#C4655C">Session IDs are 6 hexadecimal characters.</div>
+        <div style="padding:10px 12px;border-radius:6px;background:#0F1113;box-shadow:inset 0 0 0 1px #1F2225;font-size:14px;color:#4E555B">Disabled · read-only</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:6px;background:#131518;box-shadow:inset 0 0 0 1px #2C3035;font-size:14px;color:#5E656B">Search documentation<span style="padding:1px 5px;border:1px solid #2C3035;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:11px">⌘K</span></div>
+      </div>
+    </div>
+
+    <!-- nav + tabs -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:15px;font-weight:600">Navigation &amp; tabs</div>
+      <div style="display:flex;align-items:center;gap:4px;padding:8px;border-radius:8px;background:#0E1012;box-shadow:inset 0 0 0 1px #1F2225">
+        <div style="padding:6px 12px;border-radius:6px;font-size:14px;background:#191B1E;box-shadow:inset 0 0 0 1px #2C3035">Active route</div>
+        <div style="padding:6px 12px;border-radius:6px;font-size:14px;color:#8E959B">Inactive</div>
+        <div style="padding:6px 12px;border-radius:6px;font-size:14px;color:#E7E9EA;box-shadow:inset 0 0 0 1px #2C3035">Hover</div>
+      </div>
+      <div style="display:flex;gap:2px;padding:3px;border-radius:7px;background:#131518;box-shadow:inset 0 0 0 1px #1F2225;max-width:340px">
+        <div style="flex:1;text-align:center;padding:6px;border-radius:5px;background:#1D2023;box-shadow:inset 0 0 0 1px #2C3035;font-size:12.5px">Activity</div>
+        <div style="flex:1;text-align:center;padding:6px;border-radius:5px;font-size:12.5px;color:#8E959B">Validation</div>
+        <div style="flex:1;text-align:center;padding:6px;border-radius:5px;font-size:12.5px;color:#8E959B">Artifacts</div>
+        <div style="flex:1;text-align:center;padding:6px;border-radius:5px;font-size:12.5px;color:#8E959B">Usage</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;max-width:280px;padding:8px;border-radius:8px;background:#0D0F10;box-shadow:inset 0 0 0 1px #1F2225">
+        <div style="padding:0 10px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#5E656B">Sidebar group</div>
+        <div style="padding:7px 10px;border-radius:6px;font-size:14px;color:#9AA1A7">Inactive item</div>
+        <div style="padding:7px 10px;border-radius:6px;font-size:14px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035;color:#E8783A">Current page</div>
+      </div>
+    </div>
+
+    <!-- status badges + file rows -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:15px;font-weight:600">Status badges &amp; file tree rows</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <sc-for list="{{ badges }}" as="b" hint-placeholder-count="6">
+          <div style="display:flex;align-items:center;gap:7px;padding:4px 10px;border-radius:999px;background:{{ b.bg }};box-shadow:inset 0 0 0 1px {{ b.ring }}">
+            <span style="width:6px;height:6px;border-radius:999px;background:{{ b.c }}"></span>
+            <span style="font-size:12px;color:{{ b.c }}">{{ b.t }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:1px;padding:6px;border-radius:8px;background:#0D0F10;box-shadow:inset 0 0 0 1px #1F2225;max-width:340px">
+        <sc-for list="{{ fileRows }}" as="f" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;background:{{ f.bg }};font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:{{ f.c }}">
+            <span style="color:#4E555B">{{ f.icon }}</span><span>{{ f.n }}</span>
+            <span style="margin-left:auto;font-size:10.5px;color:{{ f.tagC }}">{{ f.tag }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- cards -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:15px;font-weight:600">Cards</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="padding:18px;border:1px solid #24272B;border-radius:10px;background:#101214;display:flex;flex-direction:column;gap:6px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6E767C">01</div>
+          <div style="font-size:15px;font-weight:600">Default card</div>
+          <div style="font-size:13px;line-height:1.5;color:#8E959B">Surface 1 on page background, 1px border, radius 10.</div>
+        </div>
+        <div style="padding:18px;border:1px solid #3A2C1C;border-radius:10px;background:#131417;display:flex;flex-direction:column;gap:6px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#E8783A">FEATURED</div>
+          <div style="font-size:15px;font-weight:600">Accented card</div>
+          <div style="font-size:13px;line-height:1.5;color:#8E959B">Warm border only — never an orange fill behind body text.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- code block -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:15px;font-weight:600">Code block</div>
+      <div style="border:1px solid #24272B;border-radius:8px;overflow:hidden;background:#0E1012">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#141618;border-bottom:1px solid #24272B;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8E959B">
+          <span>shell</span><span style="padding:2px 8px;border-radius:4px;box-shadow:inset 0 0 0 1px #2C3035;color:#A8AFB5">Copy</span>
+        </div>
+        <pre style="margin:0;padding:14px;font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.7;color:#C9CFD4;overflow:auto"><div><span style="color:#5E9B72">$</span> pip install lunarforge</div><div><span style="color:#5E9B72">$</span> lunarforge init --runtime docker</div><div><span style="color:#6E767C">  ✓ wrote lunarforge.yaml</span></div></pre>
+      </div>
+    </div>
+
+    <!-- callouts -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:15px;font-weight:600">Documentation callouts</div>
+      <sc-for list="{{ callouts }}" as="c" hint-placeholder-count="4">
+        <div style="display:flex;gap:12px;padding:13px 14px;border:1px solid {{ c.ring }};border-left:2px solid {{ c.c }};border-radius:8px;background:{{ c.bg }}">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:{{ c.c }};flex:none;width:56px;padding-top:2px">{{ c.k }}</div>
+          <div style="font-size:14px;line-height:1.6;color:#B3B9BE">{{ c.d }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- chat + progress -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:15px;font-weight:600">Chat message &amp; progress block</div>
+      <div style="padding:16px;border:1px solid #1F2225;border-radius:10px;background:#0E1012;display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#6E767C">You:</div>
+          <div style="font-size:14.5px;line-height:1.65">Review the project without editing files.</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#6E767C">LunarForge:</div>
+          <div style="font-size:14.5px;line-height:1.7;color:#B3B9BE">Reading the project in review-only mode. No file tools will write.</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:8px 10px;border:1px solid #1F2225;border-radius:7px;background:#0F1113;font-family:'IBM Plex Mono',monospace;font-size:12px">
+            <span style="color:#8E959B;width:48px">read</span><span style="color:#C9CFD4">app/page.tsx</span><span style="margin-left:auto;color:#4E555B">0.4s</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:9px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8E959B"><span style="width:6px;height:6px;border-radius:999px;background:#E8783A"></span>Inspecting project · 00:12</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- dialog -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:15px;font-weight:600">Dialog</div>
+      <div style="border:1px solid #2C3035;border-radius:10px;background:#101214;box-shadow:0 30px 60px -35px #000;overflow:hidden;max-width:420px">
+        <div style="padding:16px 18px;border-bottom:1px solid #24272B">
+          <div style="font-size:15px;font-weight:600">Reset this sandbox?</div>
+          <div style="font-size:13.5px;color:#8E959B;margin-top:4px;line-height:1.5">The container and all file changes are destroyed. The transcript stays available.</div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;padding:14px 18px;background:#0D0F10">
+          <div style="padding:9px 16px;border-radius:6px;box-shadow:inset 0 0 0 1px #2C3035;font-size:13.5px">Cancel</div>
+          <div style="padding:9px 16px;border-radius:6px;box-shadow:inset 0 0 0 1px #4A2E2C;color:#C4655C;font-size:13.5px;font-weight:500">Reset sandbox</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- approval panel -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:15px;font-weight:600">Approval panel</div>
+      <div style="border:1px solid #3A2C1C;border-radius:10px;background:#121316;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid #2E2519;background:#151311">
+          <div style="font-size:14.5px;font-weight:600">Run command in sandbox</div>
+          <div style="padding:3px 9px;border-radius:999px;background:#2A2114;color:#E5A33B;font-family:'IBM Plex Mono',monospace;font-size:11px">risk: medium</div>
+        </div>
+        <div style="padding:12px 16px;background:#0E1012;font-family:'IBM Plex Mono',monospace;font-size:12.5px;line-height:1.7;color:#C9CFD4;max-height:64px;overflow:auto;word-break:break-all">npm run validate -- --reporter=json --max-warnings=0</div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;padding:12px 16px;border-top:1px solid #2E2519">
+          <div style="padding:8px 16px;border-radius:6px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035;font-size:13px">Deny</div>
+          <div style="padding:8px 16px;border-radius:6px;background:#E8783A;color:#180D05;font-size:13px;font-weight:600">Approve</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- toasts -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:15px;font-weight:600">Toasts &amp; banners</div>
+      <sc-for list="{{ toasts }}" as="t" hint-placeholder-count="4">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid {{ t.ring }};border-radius:8px;background:{{ t.bg }}">
+          <span style="width:7px;height:7px;border-radius:999px;background:{{ t.c }};flex:none"></span>
+          <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+            <div style="font-size:13.5px;font-weight:500">{{ t.t }}</div>
+            <div style="font-size:12.5px;color:#8E959B">{{ t.d }}</div>
+          </div>
+          <div style="margin-left:auto;font-size:12.5px;color:{{ t.c }};flex:none">{{ t.action }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- ================= NOTES ================= -->
+  <div data-screen-label="Interaction notes" style="width:1440px;border:1px solid #24272B;border-radius:12px;background:#0B0C0D;padding:40px;display:flex;flex-direction:column;gap:28px">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#E8783A">Interaction &amp; responsive notes</div>
+      <div style="font-size:15px;color:#8E959B;max-width:720px">Implementation contract for the Next.js frontend and the FastAPI-backed sandbox.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#5E656B">Breakpoints</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+        <sc-for list="{{ breakpoints }}" as="b" hint-placeholder-count="4">
+          <div style="padding:14px 16px;border:1px solid #1F2225;border-radius:8px;background:#0E1012;display:flex;flex-direction:column;gap:5px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#E8783A">{{ b.k }}</div>
+            <div style="font-size:13.5px;font-weight:500">{{ b.t }}</div>
+            <div style="font-size:12.5px;line-height:1.5;color:#8E959B">{{ b.d }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
+      <sc-for list="{{ noteCols }}" as="col" hint-placeholder-count="2">
+        <div style="display:flex;flex-direction:column;gap:0">
+          <sc-for list="{{ col }}" as="n" hint-placeholder-count="6">
+            <div style="display:flex;gap:20px;padding:14px 0;border-top:1px solid #1D2023">
+              <div style="width:170px;flex:none;font-size:14px;font-weight:500">{{ n.t }}</div>
+              <div style="font-size:13.5px;line-height:1.6;color:#8E959B;text-wrap:pretty">{{ n.d }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1600,&quot;height&quot;:1200}}">
+class Component extends DCLogic {
+  renderVals() {
+    const colorGroups = [
+      { t: "Surfaces", items: [
+        ["--bg", "#0B0C0D"], ["--surface-1", "#101214"], ["--surface-2", "#131518"],
+        ["--surface-3", "#191C1F"], ["--surface-nav", "#0E1012"], ["--surface-sunken", "#0D0F10"],
+      ]},
+      { t: "Borders and text", items: [
+        ["--border", "#24272B"], ["--border-subtle", "#1D2023"], ["--border-strong", "#2C3035"],
+        ["--text", "#E7E9EA"], ["--text-muted", "#8E959B"], ["--text-faint", "#5E656B"],
+      ]},
+      { t: "Accents", items: [
+        ["--accent", "#E8783A"], ["--accent-hover", "#F0925C"], ["--accent-press", "#C9581F"],
+        ["--accent-ink", "#180D05"], ["--amber", "#E5A33B"], ["--accent-ring", "#3A2C1C"],
+      ]},
+      { t: "Semantic", items: [
+        ["--success", "#5E9B72"], ["--success-bg", "#0F1412"], ["--warning", "#E5A33B"],
+        ["--warning-bg", "#141210"], ["--error", "#C4655C"], ["--error-bg", "#141011"],
+      ]},
+    ].map(g => ({ t: g.t, items: g.items.map(([k, v]) => ({ k, v })) }));
+
+    const sans = "'IBM Plex Sans',system-ui,sans-serif";
+    const mono = "'IBM Plex Mono',monospace";
+    const type = [
+      ["display", "56 / 1.06 / 600", "56px", 600, "-0.028em", sans, "A safe, extensible coding agent"],
+      ["h1", "38 / 1.15 / 600", "38px", 600, "-0.025em", sans, "Permissions and approvals"],
+      ["h2", "24 / 1.3 / 600", "24px", 600, "-0.015em", sans, "How the gate works"],
+      ["h3", "18 / 1.4 / 600", "18px", 600, "-0.01em", sans, "Configuring policy"],
+      ["body-lg", "17 / 1.7 / 400", "17px", 400, "0", sans, "Prose in documentation articles"],
+      ["body", "15 / 1.65 / 400", "15px", 400, "0", sans, "Interface copy and chat messages"],
+      ["ui", "13.5 / 1.4 / 500", "13.5px", 500, "0", sans, "Buttons, tabs, controls"],
+      ["mono", "13 / 1.7 / 400", "13px", 400, "0", mono, "npm run validate --reporter=json"],
+      ["eyebrow", "11 / 0.1em / mono", "11px", 500, "0.1em", mono, "ON THIS PAGE"],
+    ].map(([k, spec, size, weight, ls, fam, sample]) => ({ k, spec, size, weight, ls, fam, sample }));
+
+    const spacing = [["space-1","4px"],["space-2","8px"],["space-3","16px"],["space-4","24px"],["space-5","32px"],["space-6","40px"],["space-7","56px"],["space-8","80px"]].map(([k,v])=>({k,v}));
+    const radii = [["r-xs","4px"],["r-sm","6px"],["r-md","8px"],["r-lg","10px"],["r-full","999px"]].map(([k,v])=>({k,v}));
+
+    const elevation = [
+      ["flat", "Page and sidebar surfaces. Separation by 1px border only, never a shadow."],
+      ["raised", "Cards and code blocks: surface-1 with --border. No shadow at rest."],
+      ["overlay", "Dialogs, command menu, mobile sheets: 0 30px 60px -35px #000 plus --border-strong."],
+      ["focus", "2px --accent ring offset 2px from the page background, on every interactive element."],
+    ].map(([k, d]) => ({ k, d }));
+
+    const badges = [
+      ["Ready", "#5E9B72", "#0F1412", "#1C2A20"],
+      ["Working", "#E8783A", "#141210", "#3A2C1C"],
+      ["Waiting", "#E5A33B", "#141210", "#3A2C1C"],
+      ["Expired", "#8E959B", "#0F1113", "#24272B"],
+      ["Error", "#C4655C", "#141011", "#4A2E2C"],
+      ["Offline", "#8E959B", "#0F1113", "#24272B"],
+    ].map(([t, c, bg, ring]) => ({ t, c, bg, ring }));
+
+    const fileRows = [
+      ["▾", "components", "", "", "transparent", "#E7E9EA"],
+      ["·", "Hero.tsx", "", "", "transparent", "#8E959B"],
+      ["·", "Pricing.tsx", "A", "#5E9B72", "#191C1F", "#C9CFD4"],
+      ["·", "page.tsx", "M", "#E5A33B", "transparent", "#8E959B"],
+      ["·", "AGENTS.md", "ro", "#5E656B", "transparent", "#8E959B"],
+    ].map(([icon, n, tag, tagC, bg, c]) => ({ icon, n, tag, tagC, bg, c }));
+
+    const callouts = [
+      ["NOTE", "#4E8CC4", "#0F1215", "#24272B", "Neutral context that does not change what the reader should do."],
+      ["TIP", "#5E9B72", "#0F1412", "#1C2A20", "An optional shortcut or a better default once the basics work."],
+      ["WARNING", "#E5A33B", "#141210", "#3A2C1C", "A setting that widens what the agent may do without asking."],
+      ["DANGER", "#C4655C", "#141011", "#4A2E2C", "Data loss, or removing the last boundary around execution."],
+    ].map(([k, c, bg, ring, d]) => ({ k, c, bg, ring, d }));
+
+    const toasts = [
+      ["Command approved", "npm run validate is running in the sandbox", "#5E9B72", "#0F1412", "#1C2A20", "View"],
+      ["Reconnecting", "Attempt 2 of 5 · session preserved", "#E5A33B", "#141210", "#3A2C1C", "Retry"],
+      ["Sandbox expired", "Session 8f3c2a was destroyed after 30 minutes", "#8E959B", "#0F1113", "#24272B", "New"],
+      ["Validation failed", "1 test failing in components/Pricing.test.tsx", "#C4655C", "#141011", "#4A2E2C", "Open"],
+    ].map(([t, d, c, bg, ring, action]) => ({ t, d, c, bg, ring, action }));
+
+    const breakpoints = [
+      ["< 768", "Mobile", "Single column. Docs nav and sandbox panels become drawers; approval is a fixed bottom sheet."],
+      ["768–1023", "Tablet", "Docs keeps the sidebar, drops the TOC. Sandbox shows chat plus one collapsible panel."],
+      ["1024–1279", "Laptop", "Full docs three-column at reduced widths. Sandbox right panel collapses to icons on demand."],
+      ["≥ 1280", "Desktop", "Layouts as drawn: 264px docs sidebar, 248/1fr/300 sandbox grid, 820px article measure."],
+    ].map(([k, t, d]) => ({ k, t, d }));
+
+    const notes = [
+      ["Navbar", "Sticky at all breakpoints, 64px desktop / 56px mobile, translucent with backdrop blur and a 1px bottom border. The active route gets a filled pill, not an underline. Mobile opens a full-width menu panel below the bar with 44px rows and a focus trap; Escape closes and returns focus to the toggle."],
+      ["Docs sidebar", "Independent scroll container with the page; the current item is highlighted and scrolled into the sidebar viewport on navigation. Groups are always expanded on desktop. Below 768 it becomes a drawer opened from the breadcrumb bar."],
+      ["Docs search", "⌘K / Ctrl-K anywhere, or click the field. Results are grouped by kind (page, event, api) and filtered as you type; ↑↓ move, ↵ opens, ⌘↵ opens in a new tab, Escape closes and restores scroll position. Empty query shows recent pages."],
+      ["On this page", "Headings observed with IntersectionObserver; the active entry gets the orange left bar. Below 1280 the TOC collapses into a disclosure under the breadcrumb, closed by default."],
+      ["Panel collapse", "Sandbox panels collapse left-to-right as width drops: right details panel first, then the files panel. Below 768 all three regions become a segmented control (Chat / Files / Events) with chat as the default tab."],
+      ["Approval flow", "An approval.requested event pauses the run, disables the composer, and renders the panel inline at the end of the transcript. Focus moves to Deny (the safe default). Long commands scroll inside the details region; the action row never scrolls away. On mobile it is a bottom sheet pinned above the keyboard."],
+    ];
+    const notes2 = [
+      ["Stop task", "Stop is available whenever a task is running. It cancels the in-flight tool, rolls back uncommitted edits from that task, and posts a cancellation summary listing exactly what was undone. A toast offers Undo rollback for 10 seconds."],
+      ["Reconnect", "On stream loss the status pill turns amber, panels dim to 60% and stop accepting input while retries back off (1s, 2s, 4s, 8s, 16s). The session is server-side, so a successful reconnect replays missed events in order. After 5 failures the state becomes fatal with a copyable session ID."],
+      ["Focus management", "Visible focus on every control: 2px accent ring, 2px offset, never removed. Dialogs and mobile drawers trap focus and restore it to the trigger on close. Streaming output uses aria-live=\"polite\"; approval requests use aria-live=\"assertive\"."],
+      ["Keyboard", "⌘K search, ⌘⏎ send, ⇧⏎ newline, Escape closes overlays or clears a pending composer, A / D approve or deny while an approval is focused, [ and ] toggle the sandbox side panels."],
+      ["Loading transitions", "Skeletons only for content that has a known shape (file tree, docs article). Streaming text appends without layout shift; the progress line holds its own row so the transcript does not jump. Minimum 200ms visible state for any spinner to avoid flashing."],
+      ["Error transitions", "Recoverable errors render inline in the transcript with the failing output collapsed to five lines. Fatal errors replace the chat column with a full-region state card and keep the header visible so the session ID stays copyable."],
+    ];
+
+    return {
+      colorGroups, type, spacing, radii, elevation, badges, fileRows, callouts, toasts, breakpoints,
+      noteCols: [notes.map(([t, d]) => ({ t, d })), notes2.map(([t, d]) => ({ t, d }))],
+    };
+  }
+}
+</script>
+</body>
+</html>

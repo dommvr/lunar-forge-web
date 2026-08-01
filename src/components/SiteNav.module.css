@@ -1,0 +1,269 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--nav-h);
+  padding: 0 var(--space-5);
+  border-bottom: 1px solid var(--border);
+  background: #0b0c0dee;
+  backdrop-filter: blur(12px);
+}
+
+.docs .bar {
+  height: 60px;
+  padding: 0 var(--space-4);
+  background: #0e1012ee;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  min-width: 0;
+}
+
+.docs .left {
+  gap: 36px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+}
+
+.brand:hover {
+  color: var(--text);
+}
+
+.mark {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-sm);
+  background: linear-gradient(160deg, var(--accent), var(--accent-press));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--logo-ink);
+  flex: none;
+}
+
+.docs .mark,
+.mobileBar .mark {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  font-size: 11px;
+}
+
+.word {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.docs .word,
+.mobileBar .word {
+  font-size: 15px;
+}
+
+.sectionChip {
+  padding: 2px 7px;
+  border-radius: var(--r-xs);
+  background: var(--surface-3);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-body);
+}
+
+.links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.link {
+  padding: 6px 12px;
+  border-radius: var(--r-sm);
+  font-size: 14px;
+  color: var(--text-muted);
+  transition:
+    color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.link:hover {
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+
+/* The active route gets a filled pill, not an underline. */
+.linkActive,
+.linkActive:hover {
+  color: var(--text);
+  background: #191b1e;
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Compact search trigger (marketing). */
+.searchChip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 10px;
+  border: 1px solid var(--field-border);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-soft);
+  transition: color 120ms ease;
+}
+
+/* Wide search field (docs). */
+.searchField {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  width: 260px;
+  padding: 7px 10px;
+  border: 1px solid var(--field-border);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  font-size: 13px;
+  color: var(--text-soft);
+  transition: color 120ms ease;
+}
+
+.searchChip:hover,
+.searchField:hover {
+  color: var(--text-bright);
+}
+
+.kbd {
+  padding: 1px 5px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-xs);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+/* ---- Mobile ---- */
+
+.mobileBar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--nav-h-mobile);
+  padding: 0 var(--space-3);
+  border-bottom: 1px solid var(--border);
+  background: #0b0c0dee;
+  backdrop-filter: blur(12px);
+}
+
+.docs .mobileBar {
+  background: #0e1012ee;
+}
+
+.mobileActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.iconButton {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-sm);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  color: var(--text-bright);
+  font-size: 18px;
+}
+
+.burgerLine {
+  width: 16px;
+  height: 1.5px;
+  background: var(--text-bright);
+}
+
+.menu {
+  padding: var(--space-1);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-nav);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.menuLink {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 14px 12px;
+  border-radius: var(--r-sm);
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+.menuLinkActive {
+  background: var(--surface-3);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+  color: var(--text);
+}
+
+.menuCta {
+  margin: var(--space-2) var(--space-1) var(--space-1);
+  padding: 13px;
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.menuCta:hover {
+  color: var(--accent-ink);
+  background: var(--accent-hover);
+}
+
+@media (max-width: 1023px) {
+  .searchField {
+    width: 200px;
+    gap: var(--space-3);
+  }
+  .left {
+    gap: var(--space-4);
+  }
+}
+
+@media (max-width: 767px) {
+  .bar {
+    display: none;
+  }
+  .mobileBar {
+    display: flex;
+  }
+}

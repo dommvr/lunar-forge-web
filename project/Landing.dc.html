@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; background:#161719; font-family:'IBM Plex Sans',system-ui,sans-serif; }
+  a { color:#E8783A; text-decoration:none; }
+  a:hover { color:#F0925C; }
+  ::selection { background:#E8783A33; }
+</style>
+</helmet>
+
+<div style="display:flex;flex-direction:column;gap:64px;padding:56px;background:#161719;color:#E7E9EA;font-family:'IBM Plex Sans',system-ui,sans-serif">
+
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#E8783A">01 — Landing route</div>
+    <div style="font-size:28px;font-weight:600;letter-spacing:-0.01em">LunarForge Web · <span style="color:#8E959B">/ — product landing page</span></div>
+    <div style="font-size:15px;color:#8E959B;max-width:720px">Desktop 1440 and mobile 390. Sticky navbar, hero with live transcript preview, capabilities, safety model, architecture flow, workflow, developer surface, footer.</div>
+  </div>
+
+  <div style="display:flex;gap:56px;align-items:flex-start;flex-wrap:wrap">
+
+    <!-- ============ DESKTOP LANDING ============ -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">desktop · 1440 × auto</div>
+      <div data-screen-label="Landing — desktop" style="position:relative;width:1440px;background:#0B0C0D;border:1px solid #24272B;border-radius:12px;overflow:hidden">
+
+        <!-- page-wide ember layer (position:fixed in the real build) -->
+        <div style="position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(500px 380px at -2% 50%,#E8783A1F,transparent 70%),radial-gradient(500px 380px at 102% 50%,#E8783A19,transparent 70%);background-repeat:repeat-y;background-size:100% 900px"></div>
+        <canvas ref="{{ emberCanvas }}" style="position:absolute;inset:0;z-index:2;width:100%;height:100%;pointer-events:none"></canvas>
+
+        <!-- navbar -->
+        <div style="position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;height:64px;padding:0 32px;background:#0B0C0Dee;backdrop-filter:blur(12px);border-bottom:1px solid #24272B">
+          <div style="display:flex;align-items:center;gap:40px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:22px;height:22px;border-radius:6px;background:linear-gradient(160deg,#E8783A,#C9581F);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:#160D06">L</div>
+              <div style="font-size:16px;font-weight:600;letter-spacing:-0.01em">LunarForge</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <div style="padding:6px 12px;border-radius:6px;font-size:14px;color:#E7E9EA;background:#191B1E;box-shadow:inset 0 0 0 1px #2C3035">Home</div>
+              <div style="padding:6px 12px;border-radius:6px;font-size:14px;color:#8E959B">Docs</div>
+              <div style="padding:6px 12px;border-radius:6px;font-size:14px;color:#8E959B">Sandbox</div>
+              <div style="padding:6px 12px;border-radius:6px;font-size:14px;color:#8E959B">GitHub</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #26292E;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">Search docs <span style="padding:1px 5px;border:1px solid #2C3035;border-radius:4px">⌘K</span></div>
+            <div style="padding:9px 16px;border-radius:6px;background:#E8783A;color:#180D05;font-size:14px;font-weight:600">Try the sandbox</div>
+          </div>
+        </div>
+
+        <!-- hero -->
+        <div style="position:relative;border-bottom:1px solid #1D2023;overflow:hidden">
+          <div style="position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:64px;padding:88px 64px 72px">
+          <div style="display:flex;flex-direction:column;gap:28px;padding-top:8px">
+            <div style="display:inline-flex;align-self:flex-start;align-items:center;gap:8px;padding:5px 10px 5px 8px;border:1px solid #2C3035;border-radius:999px;background:#141618;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#A8AFB5">
+              <span style="width:6px;height:6px;border-radius:999px;background:#5E9B72"></span>v0.8 · milestone 3 — sandbox preview
+            </div>
+            <h1 style="margin:0;font-size:56px;line-height:1.06;letter-spacing:-0.028em;font-weight:600;text-wrap:balance">A safe, extensible coding agent for real projects.</h1>
+            <p style="margin:0;font-size:18px;line-height:1.6;color:#9AA1A7;max-width:540px;text-wrap:pretty">LunarForge inspects your repository, follows root and nested AGENTS.md instructions, plans changes, edits files inside project boundaries, and runs only the commands you approve — locally or in Docker.</p>
+            <div style="display:flex;gap:12px;align-items:center">
+              <div style="padding:12px 20px;border-radius:6px;background:#E8783A;color:#180D05;font-size:15px;font-weight:600">Try the sandbox</div>
+              <div style="padding:12px 20px;border-radius:6px;background:#141618;box-shadow:inset 0 0 0 1px #2C3035;color:#E7E9EA;font-size:15px;font-weight:500">Read the docs</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;margin-top:12px;padding-top:28px;border-top:1px solid #1D2023">
+              <sc-for list="{{ trust }}" as="t" hint-placeholder-count="4">
+                <div style="display:flex;gap:10px;align-items:flex-start">
+                  <div style="margin-top:6px;width:5px;height:5px;border-radius:999px;background:#E8783A;flex:none"></div>
+                  <div style="font-size:14px;line-height:1.45;color:#A8AFB5">{{ t }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <!-- transcript preview -->
+          <div style="border:1px solid #26292E;border-radius:10px;background:#0E1012;box-shadow:0 24px 60px -30px #000000cc;overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#141618;border-bottom:1px solid #24272B">
+              <div style="display:flex;align-items:center;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8E959B">
+                <span style="width:8px;height:8px;border-radius:999px;background:#5E9B72"></span>lunarforge · session 8f3c2a
+              </div>
+              <div style="display:flex;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11px">
+                <span style="padding:2px 7px;border-radius:4px;background:#191C1F;color:#A8AFB5;box-shadow:inset 0 0 0 1px #2C3035">docker</span>
+                <span style="padding:2px 7px;border-radius:4px;background:#191C1F;color:#A8AFB5;box-shadow:inset 0 0 0 1px #2C3035">effort: high</span>
+              </div>
+            </div>
+            <div style="padding:20px;display:flex;flex-direction:column;gap:20px;font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.65">
+              <div>
+                <div style="color:#6E767C">You:</div>
+                <div style="color:#E7E9EA">Add a responsive pricing section to the marketing site.</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="color:#6E767C">LunarForge:</div>
+                <div style="color:#C9CFD4">Inspecting project · 12 files matched · reading AGENTS.md</div>
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #24272B;border-radius:6px;background:#131518">
+                  <span style="color:#E8783A">tool</span><span style="color:#C9CFD4">read_file</span><span style="color:#6E767C">src/app/(marketing)/page.tsx</span><span style="margin-left:auto;color:#6E767C">0.4s</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #24272B;border-radius:6px;background:#131518">
+                  <span style="color:#E8783A">tool</span><span style="color:#C9CFD4">edit_file</span><span style="color:#6E767C">3 edits · 1 new file</span><span style="margin-left:auto;color:#6E767C">1.2s</span>
+                </div>
+              </div>
+              <div style="border:1px solid #3A2C1C;border-radius:8px;background:#161310;overflow:hidden">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #2E2519">
+                  <div style="color:#E5A33B;font-weight:500">Approval required</div>
+                  <div style="padding:2px 7px;border-radius:4px;background:#2A2114;color:#E5A33B;font-size:11px">risk: medium</div>
+                </div>
+                <div style="padding:12px;display:flex;flex-direction:column;gap:8px">
+                  <div style="color:#C9CFD4">run <span style="color:#E7E9EA">npm run build</span></div>
+                  <div style="color:#6E767C">docker · project-confined · no network</div>
+                  <div style="display:flex;gap:8px;padding-top:4px">
+                    <div style="padding:7px 14px;border-radius:6px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035;color:#C9CFD4;font-size:12px">Deny</div>
+                    <div style="padding:7px 14px;border-radius:6px;background:#E8783A;color:#180D05;font-size:12px;font-weight:600">Approve</div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div style="color:#6E767C">LunarForge:</div>
+                <div style="color:#E7E9EA">Edited 3 files. Build and validation passed in 41s.</div>
+                <div style="color:#8E959B">Staged summary — feat(marketing): responsive pricing section</div>
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+
+        <!-- capabilities -->
+        <div style="padding:80px 64px;border-bottom:1px solid #1D2023">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:36px">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#E8783A">Capabilities</div>
+              <h2 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.02em">Everything the agent does, in the open.</h2>
+            </div>
+            <div style="font-size:14px;color:#8E959B;max-width:340px;text-align:right">Every capability emits structured events, so the CLI, the Textual chat, and the web UI show the same truth.</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+            <sc-for list="{{ caps }}" as="c" hint-placeholder-count="9">
+              <div style="padding:24px;border:1px solid #24272B;border-radius:10px;background:#101214;display:flex;flex-direction:column;gap:10px;min-height:150px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6E767C">{{ c.n }}</div>
+                <div style="font-size:16px;font-weight:600;letter-spacing:-0.01em">{{ c.t }}</div>
+                <div style="font-size:14px;line-height:1.55;color:#8E959B;text-wrap:pretty">{{ c.d }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- safety -->
+        <div style="padding:80px 64px;border-bottom:1px solid #1D2023;background:#0D0F10">
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:36px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#E8783A">Safety model</div>
+            <h2 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.02em">Convenience and isolation are not the same thing.</h2>
+            <p style="margin:0;font-size:16px;color:#8E959B;max-width:640px;line-height:1.6">Local mode keeps file writes inside the project and gates every command behind approval — but it is not OS-level isolation. Run untrusted work in Docker.</p>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+            <sc-for list="{{ modes }}" as="m" hint-placeholder-count="3">
+              <div style="border:1px solid #24272B;border-radius:10px;background:#101214;overflow:hidden;display:flex;flex-direction:column">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #1D2023">
+                  <div style="font-size:16px;font-weight:600">{{ m.t }}</div>
+                  <div style="padding:3px 8px;border-radius:999px;font-family:'IBM Plex Mono',monospace;font-size:11px;background:{{ m.badgeBg }};color:{{ m.badgeFg }}">{{ m.badge }}</div>
+                </div>
+                <div style="padding:20px;display:flex;flex-direction:column;gap:14px;flex:1">
+                  <div style="font-size:14px;line-height:1.55;color:#9AA1A7">{{ m.d }}</div>
+                  <div style="display:flex;flex-direction:column;gap:8px;margin-top:auto">
+                    <sc-for list="{{ m.rows }}" as="r" hint-placeholder-count="4">
+                      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;padding:7px 0;border-top:1px solid #1D2023">
+                        <span style="color:#8E959B">{{ r.k }}</span>
+                        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:{{ r.c }}">{{ r.v }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- how it works -->
+        <div style="padding:80px 64px;border-bottom:1px solid #1D2023">
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:36px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#E8783A">How it works</div>
+            <h2 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.02em">One engine, one event stream, three interfaces.</h2>
+          </div>
+          <div style="display:flex;align-items:stretch;gap:8px;padding:24px;border:1px solid #24272B;border-radius:10px;background:#101214">
+            <sc-for list="{{ flow }}" as="f" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+                <div style="flex:1;min-width:0;padding:18px 16px;border:1px solid #2C3035;border-radius:8px;background:#131518;display:flex;flex-direction:column;gap:6px;min-height:96px">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#E8783A">{{ f.n }}</div>
+                  <div style="font-size:14px;font-weight:600;line-height:1.3">{{ f.t }}</div>
+                  <div style="font-size:12px;line-height:1.45;color:#8E959B">{{ f.d }}</div>
+                </div>
+                <sc-if value="{{ f.arrow }}" hint-placeholder-val="{{ true }}">
+                  <div style="color:#3A4046;font-size:16px;flex:none">→</div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- workflow -->
+        <div style="display:grid;grid-template-columns:minmax(0,0.9fr) minmax(0,1.1fr);gap:56px;padding:80px 64px;border-bottom:1px solid #1D2023;background:#0D0F10">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#E8783A">Example workflow</div>
+            <h2 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.02em">A typical task, start to commit.</h2>
+            <p style="margin:0;font-size:16px;color:#8E959B;line-height:1.6;max-width:420px">Every step is visible in the transcript and resumable. Stop at any point; the session picks up where it left off.</p>
+          </div>
+          <div style="display:flex;flex-direction:column">
+            <sc-for list="{{ steps }}" as="s" hint-placeholder-count="6">
+              <div style="display:flex;gap:20px;padding:18px 0;border-bottom:1px solid #1D2023">
+                <div style="flex:none;width:28px;height:28px;border-radius:6px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#E8783A">{{ s.n }}</div>
+                <div style="display:flex;flex-direction:column;gap:4px">
+                  <div style="font-size:16px;font-weight:600">{{ s.t }}</div>
+                  <div style="font-size:14px;color:#8E959B;line-height:1.55">{{ s.d }}</div>
+                </div>
+                <div style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5E9B72;align-self:center">{{ s.tag }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- developer -->
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:56px;padding:80px 64px;border-bottom:1px solid #1D2023">
+          <div style="display:flex;flex-direction:column;gap:24px">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#E8783A">For developers</div>
+              <h2 style="margin:0;font-size:34px;font-weight:600;letter-spacing:-0.02em">A Python package, not a black box.</h2>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <sc-for list="{{ dev }}" as="d" hint-placeholder-count="5">
+                <div style="display:flex;gap:14px;align-items:baseline;padding:14px 0;border-top:1px solid #1D2023">
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C;width:24px;flex:none">{{ d.n }}</div>
+                  <div style="display:flex;flex-direction:column;gap:3px">
+                    <div style="font-size:15px;font-weight:600">{{ d.t }}</div>
+                    <div style="font-size:14px;color:#8E959B;line-height:1.5">{{ d.d }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="border:1px solid #24272B;border-radius:10px;background:#0E1012;overflow:hidden;align-self:start">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#141618;border-bottom:1px solid #24272B;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8E959B">
+              <span>python</span><span style="padding:2px 8px;border-radius:4px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035;color:#A8AFB5">Copy</span>
+            </div>
+            <pre style="margin:0;padding:20px;font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.75;color:#C9CFD4;overflow:auto"><div><span style="color:#6E767C"># pip install lunarforge</span></div><div><span style="color:#E8783A">from</span> lunarforge <span style="color:#E8783A">import</span> Agent, Approval</div><div>&nbsp;</div><div>agent = Agent(</div><div>    project=<span style="color:#5E9B72">"./my-app"</span>,</div><div>    runtime=<span style="color:#5E9B72">"docker"</span>,</div><div>    effort=<span style="color:#5E9B72">"high"</span>,</div><div>)</div><div>&nbsp;</div><div><span style="color:#E8783A">for</span> event <span style="color:#E8783A">in</span> agent.run(<span style="color:#5E9B72">"Run validation and fix one failure"</span>):</div><div>    <span style="color:#E8783A">if</span> event.type == <span style="color:#5E9B72">"approval.requested"</span>:</div><div>        agent.respond(event.id, Approval.APPROVE)</div><div>    <span style="color:#E8783A">else</span>:</div><div>        print(event.to_json())  <span style="color:#6E767C"># JSON-safe, UI-neutral</span></div></pre>
+          </div>
+        </div>
+
+        <!-- final CTA -->
+        <div style="padding:88px 64px;display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center;background:#0D0F10;border-bottom:1px solid #1D2023">
+          <h2 style="margin:0;font-size:40px;font-weight:600;letter-spacing:-0.025em;max-width:640px;text-wrap:balance">Point it at a repository. Approve the first command.</h2>
+          <p style="margin:0;font-size:17px;color:#8E959B;max-width:520px;line-height:1.6">The browser sandbox runs a disposable session — no install, no repository access, same event stream.</p>
+          <div style="display:flex;gap:12px;margin-top:8px">
+            <div style="padding:12px 22px;border-radius:6px;background:#E8783A;color:#180D05;font-size:15px;font-weight:600">Try the sandbox</div>
+            <div style="padding:12px 22px;border-radius:6px;background:#141618;box-shadow:inset 0 0 0 1px #2C3035;font-size:15px;font-weight:500">Read the docs</div>
+          </div>
+        </div>
+
+        <!-- footer -->
+        <div style="padding:48px 64px;display:flex;justify-content:space-between;gap:64px;background:#0B0C0D">
+          <div style="display:flex;flex-direction:column;gap:12px;max-width:340px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:20px;height:20px;border-radius:5px;background:linear-gradient(160deg,#E8783A,#C9581F)"></div>
+              <div style="font-size:15px;font-weight:600">LunarForge</div>
+            </div>
+            <div style="font-size:13px;line-height:1.6;color:#6E767C">A Python coding agent that inspects projects, plans and edits safely, runs approved commands locally or in Docker, and emits a structured event stream for any interface.</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#4E555B;margin-top:4px">v0.8.2 · milestone 3 — sandbox preview</div>
+          </div>
+          <div style="display:flex;gap:64px">
+            <sc-for list="{{ footer }}" as="col" hint-placeholder-count="3">
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#4E555B">{{ col.t }}</div>
+                <sc-for list="{{ col.items }}" as="i" hint-placeholder-count="4">
+                  <div style="font-size:13px;color:#8E959B">{{ i }}</div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ HERO EMBER FIELD SPEC ============ -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">implementation spec · page ember field</div>
+      <div style="width:520px;background:#0B0C0D;border:1px solid #24272B;border-radius:12px;overflow:hidden">
+        <div style="padding:24px 24px 20px;border-bottom:1px solid #1D2023;background:#0E0F11;display:flex;flex-direction:column;gap:8px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#E8783A">Background animation</div>
+          <div style="font-size:20px;font-weight:600;letter-spacing:-0.015em">Forge embers — viewport-fixed, landing route</div>
+          <div style="font-size:14px;line-height:1.6;color:#8E959B;text-wrap:pretty">One fixed &lt;canvas&gt; behind the whole landing page. Embers rise from the left and right edges, drift inward, and cool as they climb — warm palette only, no new hues. The layer is locked to the viewport, so the field stays visible and stationary through every section. Slow by design: residual heat, not a landing-page effect. Frames below show it as a page-height layer because the mockup does not scroll.</div>
+        </div>
+        <div style="display:flex;flex-direction:column">
+          <sc-for list="{{ emberSpec }}" as="s" hint-placeholder-count="15">
+            <div style="display:grid;grid-template-columns:132px minmax(0,1fr);gap:16px;padding:13px 24px;border-bottom:1px solid #16191B">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.04em;text-transform:uppercase;color:#6E767C;padding-top:2px">{{ s.k }}</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.6;color:#C9CFD4">{{ s.v }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="padding:20px 24px;display:flex;flex-direction:column;gap:10px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#6E767C">Notes for implementation</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;gap:10px;font-size:13px;line-height:1.6;color:#A8AFB5"><span style="color:#E8783A;flex:none">·</span><div>Client component, mounted once; never re-render the canvas on route state changes.</div></div>
+            <div style="display:flex;gap:10px;font-size:13px;line-height:1.6;color:#A8AFB5"><span style="color:#E8783A;flex:none">·</span><div>Pause the loop only on document.hidden, and tear it down when the landing route unmounts — never on scroll position.</div></div>
+            <div style="display:flex;gap:10px;font-size:13px;line-height:1.6;color:#A8AFB5"><span style="color:#E8783A;flex:none">·</span><div>Content sits above the layer with position:relative — embers must never reduce text contrast.</div></div>
+            <div style="display:flex;gap:10px;font-size:13px;line-height:1.6;color:#A8AFB5"><span style="color:#E8783A;flex:none">·</span><div>Landing route only. No embers on docs, sandbox, or compare.</div></div>
+            <div style="display:flex;gap:10px;font-size:13px;line-height:1.6;color:#A8AFB5"><span style="color:#E8783A;flex:none">·</span><div>Keep the bands narrow at every breakpoint — the centre column stays clear at all times.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ MOBILE LANDING ============ -->
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6E767C">mobile · 390 × auto</div>
+      <div data-screen-label="Landing — mobile" style="position:relative;width:390px;background:#0B0C0D;border:1px solid #24272B;border-radius:12px;overflow:hidden">
+
+        <!-- page-wide ember layer (position:fixed in the real build) -->
+        <div style="position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(280px 300px at -6% 50%,#E8783A1C,transparent 70%),radial-gradient(280px 300px at 106% 50%,#E8783A16,transparent 70%);background-repeat:repeat-y;background-size:100% 760px"></div>
+        <canvas ref="{{ emberCanvasMobile }}" style="position:absolute;inset:0;z-index:2;width:100%;height:100%;pointer-events:none"></canvas>
+        <div style="display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 16px;border-bottom:1px solid #24272B;background:#0B0C0Dee">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:20px;height:20px;border-radius:5px;background:linear-gradient(160deg,#E8783A,#C9581F)"></div>
+            <div style="font-size:15px;font-weight:600">LunarForge</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="padding:8px 12px;border-radius:6px;background:#E8783A;color:#180D05;font-size:13px;font-weight:600">Sandbox</div>
+            <div style="width:44px;height:44px;border-radius:6px;box-shadow:inset 0 0 0 1px #2C3035;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+              <div style="width:16px;height:1.5px;background:#C9CFD4"></div>
+              <div style="width:16px;height:1.5px;background:#C9CFD4"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- open mobile menu -->
+        <div style="padding:8px;border-bottom:1px solid #24272B;background:#0E1012;display:flex;flex-direction:column;gap:2px">
+          <div style="padding:14px 12px;border-radius:6px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035;font-size:15px">Home</div>
+          <div style="padding:14px 12px;border-radius:6px;font-size:15px;color:#8E959B">Docs</div>
+          <div style="padding:14px 12px;border-radius:6px;font-size:15px;color:#8E959B">Sandbox</div>
+          <div style="padding:14px 12px;border-radius:6px;font-size:15px;color:#8E959B">GitHub</div>
+          <div style="margin:8px 4px 4px;padding:13px;border-radius:6px;background:#E8783A;color:#180D05;font-size:15px;font-weight:600;text-align:center">Try the sandbox</div>
+        </div>
+
+        <div style="padding:40px 20px 32px;display:flex;flex-direction:column;gap:20px;border-bottom:1px solid #1D2023">
+          <div style="display:inline-flex;align-self:flex-start;align-items:center;gap:8px;padding:5px 10px 5px 8px;border:1px solid #2C3035;border-radius:999px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#A8AFB5">
+            <span style="width:6px;height:6px;border-radius:999px;background:#5E9B72"></span>v0.8 · sandbox preview
+          </div>
+          <h1 style="margin:0;font-size:34px;line-height:1.1;letter-spacing:-0.025em;font-weight:600">A safe, extensible coding agent for real projects.</h1>
+          <p style="margin:0;font-size:16px;line-height:1.6;color:#9AA1A7">Inspects your repository, follows AGENTS.md, plans changes, edits inside project boundaries, and runs only approved commands — locally or in Docker.</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="padding:14px;border-radius:6px;background:#E8783A;color:#180D05;font-size:15px;font-weight:600;text-align:center">Try the sandbox</div>
+            <div style="padding:14px;border-radius:6px;background:#141618;box-shadow:inset 0 0 0 1px #2C3035;font-size:15px;font-weight:500;text-align:center">Read the docs</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px;padding-top:20px;border-top:1px solid #1D2023">
+            <sc-for list="{{ trust }}" as="t" hint-placeholder-count="4">
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <div style="margin-top:6px;width:5px;height:5px;border-radius:999px;background:#E8783A;flex:none"></div>
+                <div style="font-size:14px;line-height:1.45;color:#A8AFB5">{{ t }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="padding:20px;border-bottom:1px solid #1D2023">
+          <div style="border:1px solid #26292E;border-radius:10px;background:#0E1012;overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#141618;border-bottom:1px solid #24272B;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8E959B">
+              <div style="display:flex;align-items:center;gap:8px"><span style="width:7px;height:7px;border-radius:999px;background:#5E9B72"></span>session 8f3c2a</div>
+              <span style="padding:2px 6px;border-radius:4px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035">docker</span>
+            </div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:16px;font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.6">
+              <div><div style="color:#6E767C">You:</div><div>Add a responsive pricing section.</div></div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="color:#6E767C">LunarForge:</div>
+                <div style="color:#C9CFD4">Inspecting project · 12 files</div>
+                <div style="padding:7px 9px;border:1px solid #24272B;border-radius:6px;background:#131518;display:flex;gap:8px"><span style="color:#E8783A">tool</span><span style="color:#C9CFD4">edit_file</span><span style="color:#6E767C">3 edits</span></div>
+              </div>
+              <div style="border:1px solid #3A2C1C;border-radius:8px;background:#161310;padding:12px;display:flex;flex-direction:column;gap:8px">
+                <div style="color:#E5A33B;font-weight:500">Approval required</div>
+                <div style="color:#C9CFD4">run npm run build</div>
+                <div style="display:flex;gap:8px">
+                  <div style="flex:1;padding:10px;border-radius:6px;background:#191C1F;box-shadow:inset 0 0 0 1px #2C3035;color:#C9CFD4;text-align:center">Deny</div>
+                  <div style="flex:1;padding:10px;border-radius:6px;background:#E8783A;color:#180D05;font-weight:600;text-align:center">Approve</div>
+                </div>
+              </div>
+              <div><div style="color:#6E767C">LunarForge:</div><div>Edited 3 files. Validation passed in 41s.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="padding:40px 20px;border-bottom:1px solid #1D2023;display:flex;flex-direction:column;gap:20px">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#E8783A">Capabilities</div>
+            <h2 style="margin:0;font-size:26px;font-weight:600;letter-spacing:-0.02em">Everything the agent does, in the open.</h2>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ capsMobile }}" as="c" hint-placeholder-count="5">
+              <div style="padding:18px;border:1px solid #24272B;border-radius:10px;background:#101214;display:flex;flex-direction:column;gap:6px">
+                <div style="font-size:15px;font-weight:600">{{ c.t }}</div>
+                <div style="font-size:13px;line-height:1.5;color:#8E959B">{{ c.d }}</div>
+              </div>
+            </sc-for>
+            <div style="padding:14px;border:1px dashed #2C3035;border-radius:10px;text-align:center;font-size:13px;color:#8E959B">+ 5 more capabilities</div>
+          </div>
+        </div>
+
+        <div style="padding:40px 20px;border-bottom:1px solid #1D2023;background:#0D0F10;display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#E8783A">Safety model</div>
+            <h2 style="margin:0;font-size:26px;font-weight:600;letter-spacing:-0.02em">Convenience is not isolation.</h2>
+          </div>
+          <sc-for list="{{ modes }}" as="m" hint-placeholder-count="3">
+            <div style="border:1px solid #24272B;border-radius:10px;background:#101214;padding:16px;display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div style="font-size:15px;font-weight:600">{{ m.t }}</div>
+                <div style="padding:3px 8px;border-radius:999px;font-family:'IBM Plex Mono',monospace;font-size:10px;background:{{ m.badgeBg }};color:{{ m.badgeFg }}">{{ m.badge }}</div>
+              </div>
+              <div style="font-size:13px;line-height:1.5;color:#9AA1A7">{{ m.d }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="padding:48px 20px;display:flex;flex-direction:column;gap:16px;text-align:center;align-items:center">
+          <h2 style="margin:0;font-size:28px;font-weight:600;letter-spacing:-0.02em">Point it at a repository.</h2>
+          <p style="margin:0;font-size:15px;color:#8E959B;line-height:1.6">The browser sandbox runs a disposable session — no install, same event stream.</p>
+          <div style="align-self:stretch;padding:14px;border-radius:6px;background:#E8783A;color:#180D05;font-size:15px;font-weight:600">Try the sandbox</div>
+        </div>
+
+        <div style="padding:28px 20px 32px;background:#0B0C0D;border-top:1px solid #1D2023;display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;flex-wrap:wrap;gap:12px 24px">
+            <div style="font-size:13px;color:#8E959B">Docs</div>
+            <div style="font-size:13px;color:#8E959B">Sandbox</div>
+            <div style="font-size:13px;color:#8E959B">GitHub</div>
+            <div style="font-size:13px;color:#8E959B">Security</div>
+            <div style="font-size:13px;color:#8E959B">License</div>
+          </div>
+          <div style="font-size:12px;line-height:1.6;color:#6E767C">A Python coding agent that plans, edits safely, runs approved commands, and emits structured events.</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#4E555B">v0.8.2 · milestone 3</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:2000,&quot;height&quot;:1400}}">
+class Component extends DCLogic {
+  emberCanvas = React.createRef();
+  emberCanvasMobile = React.createRef();
+
+  // ── Forge ember field ─────────────────────────────────────────────
+  // Params mirrored in the "Hero ember field" spec panel in the doc.
+  emberConfig = {
+    maxParticles: 44,
+    spawnPerSecond: 7,
+    bandWidth: 0.14,        // fraction of width each edge spawns within
+    life: [4.5, 9.5],       // seconds
+    riseSpeed: [8, 22],     // px/s upward
+    driftInward: [2, 11],   // px/s toward centre
+    wobbleAmp: [3, 11],     // px lateral
+    wobbleSpeed: [0.25, 0.6],
+    radius: [0.6, 2.2],     // px
+    brightChance: 0.12,
+    palette: ["#E8783A", "#F0925C", "#C9581F", "#8A4A22"],
+    brightColor: "#FFD2A1",
+  };
+
+  componentDidMount() {
+    this._stops = [];
+    this.initEmbers(this.emberCanvas.current, 1);
+    this.initEmbers(this.emberCanvasMobile.current, 2.4);
+  }
+
+  initEmbers(cv, bandScale) {
+    if (!cv || cv.__emberOwned) return; // one loop per canvas node
+    cv.__emberOwned = true;
+    const ctx = cv.getContext("2d");
+    const cfg = this.emberConfig;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let w = 0, h = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const P = [];
+    const rnd = (a, b) => a + Math.random() * (b - a);
+
+    // Density scales with canvas height so a page-tall field matches the
+    // per-viewport density of the fixed layer in the real implementation.
+    const dens = () => Math.min(Math.max(1, h / 720), 3);
+
+    const spawn = (seed) => {
+      const left = Math.random() < 0.5;
+      const band = w * cfg.bandWidth * bandScale;
+      const x = left ? rnd(-8, band) : rnd(w - band, w + 8);
+      const bright = Math.random() < cfg.brightChance;
+      P.push({
+        x, y: rnd(0, h + 12),
+        dir: left ? 1 : -1,
+        vy: rnd(cfg.riseSpeed[0], cfg.riseSpeed[1]),
+        vx: rnd(cfg.driftInward[0], cfg.driftInward[1]),
+        amp: rnd(cfg.wobbleAmp[0], cfg.wobbleAmp[1]),
+        ws: rnd(cfg.wobbleSpeed[0], cfg.wobbleSpeed[1]),
+        ph: Math.random() * Math.PI * 2,
+        r: rnd(cfg.radius[0], cfg.radius[1]) * (bright ? 1.35 : 1),
+        life: rnd(cfg.life[0], cfg.life[1]),
+        age: seed ? rnd(0, 2) : 0,
+        col: bright ? cfg.brightColor : cfg.palette[(Math.random() * cfg.palette.length) | 0],
+        bright,
+      });
+    };
+
+    const resize = () => {
+      const r = cv.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      w = r.width; h = r.height;
+      cv.width = Math.round(w * dpr);
+      cv.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(cv);
+
+    for (let i = 0; i < Math.round(22 * dens()); i++) spawn(true);
+
+    const draw = () => {
+      ctx.clearRect(0, 0, w, h);
+      ctx.globalCompositeOperation = "lighter";
+      for (const p of P) {
+        const t = p.age / p.life;
+        const fade = t < 0.12 ? t / 0.12 : t > 0.6 ? 1 - (t - 0.6) / 0.4 : 1;
+        const a = Math.max(0, fade) * (p.bright ? 0.95 : 0.62);
+        const x = p.x + Math.sin(p.ph + p.age * p.ws) * p.amp;
+        const r = p.r * (1 - t * 0.45);
+        const g = ctx.createRadialGradient(x, p.y, 0, x, p.y, Math.max(r * 6, 5));
+        g.addColorStop(0, p.col);
+        g.addColorStop(0.35, p.col + "66");
+        g.addColorStop(1, p.col + "00");
+        ctx.globalAlpha = a * 0.5;
+        ctx.beginPath(); ctx.arc(x, p.y, Math.max(r * 6, 5), 0, 7); ctx.fillStyle = g; ctx.fill();
+        ctx.globalAlpha = a;
+        ctx.beginPath(); ctx.arc(x, p.y, Math.max(r, 0.35), 0, 7); ctx.fillStyle = p.col; ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
+    };
+
+    draw(); // paint the seeded field immediately, before any frame runs
+    if (reduce) { this._stops.push(() => { if (!cv.isConnected) ro.disconnect(); }); return; }
+
+    let alive = true, raf = 0, gen = 0, beat = performance.now();
+    // Stop only when THIS canvas node is gone — a double-mount cleanup must not
+    // kill the loop belonging to the instance that survived.
+    const stop = () => {
+      if (cv.isConnected) return;
+      alive = false; cancelAnimationFrame(raf); ro.disconnect();
+      clearInterval(watchdog); cv.__emberOwned = false;
+    };
+    // If anything cancels the loop while the canvas is still on the page, restart it.
+    // Never while hidden: rAF is suspended there, so a restart would only queue
+    // duplicate loops that all fire at once on re-focus.
+    const watchdog = setInterval(() => {
+      if (!cv.isConnected) { stop(); return; }
+      if (document.hidden) return;
+      if (performance.now() - beat > 300) run();
+    }, 400);
+    this._stops.push(stop);
+
+    let last = performance.now(), debt = 0;
+    const frame = (now, step) => {
+      if (!alive || !cv.isConnected) return;
+      beat = now;
+      try {
+        const dt = Math.min((now - last) / 1000, 0.05); last = now;
+        debt += dt * cfg.spawnPerSecond * dens();
+        while (debt >= 1) { debt -= 1; if (P.length < cfg.maxParticles * dens()) spawn(false); }
+        for (let i = P.length - 1; i >= 0; i--) {
+          const p = P[i];
+          p.age += dt;
+          p.y -= p.vy * dt;
+          p.x += p.vx * p.dir * dt;
+          if (p.age >= p.life || p.y < -20) P.splice(i, 1);
+        }
+        draw();
+      } catch (e) {
+        console.error("ember loop", e);
+        alive = false;
+        return;
+      }
+      raf = requestAnimationFrame(step);
+    };
+
+    // Single-owner loop: each run() invalidates every earlier generation, so a
+    // restart can never leave two loops advancing the same field.
+    function run() {
+      const my = ++gen;
+      alive = true;
+      last = performance.now();
+      cancelAnimationFrame(raf);
+      const step = (now) => { if (my !== gen) return; frame(now, step); };
+      raf = requestAnimationFrame(step);
+    }
+    run();
+  }
+
+  componentWillUnmount() {
+    // Each stop() self-guards on its own canvas node still being connected.
+    (this._stops || []).forEach((stop) => stop());
+  }
+
+  renderVals() {
+    const caps = [
+      ["Inspect and understand projects", "Walks the tree, reads source, and follows root and nested AGENTS.md instructions before touching anything."],
+      ["Plan and edit safely", "Proposes a plan, then applies scoped edits with file tools confined to the project directory."],
+      ["Local and Docker execution", "Run approved commands on your machine or inside a container image you control."],
+      ["Validation and browser checks", "Runs your validation commands and can drive a browser to confirm the change actually renders."],
+      ["Textual continuous chat", "A terminal chat UI that keeps the conversation going across tasks instead of one-shot prompts."],
+      ["Resumable sessions", "Sessions persist and compact working memory, so long tasks survive restarts."],
+      ["Subagents", "Delegates focused work to specialist subagents and folds the results back into the main transcript."],
+      ["MCP and plugins", "Attach MCP servers and plugins to extend the tool surface without forking the agent."],
+      ["Structured event protocol", "Every step is a JSON-safe event — the same stream feeds the CLI, Textual, and web UIs."],
+      ["Git-aware summaries", "Reads repository state, summarises what changed, and can prepare a commit for review."],
+    ].map(([t, d], i) => ({ t, d, n: String(i + 1).padStart(2, "0") }));
+
+    const modes = [
+      { t: "Local mode", badge: "convenient", badgeBg: "#2A2114", badgeFg: "#E5A33B",
+        d: "Runs on your machine with your toolchain. File writes stay inside the project and every command waits for approval — but this is a policy boundary, not an OS boundary.",
+        rows: [ {k:"File writes",v:"project-confined",c:"#5E9B72"}, {k:"Commands",v:"approval-gated",c:"#5E9B72"}, {k:"OS isolation",v:"none",c:"#C4655C"}, {k:"Best for",v:"your own repos",c:"#A8AFB5"} ] },
+      { t: "Docker mode", badge: "recommended", badgeBg: "#1C2A20", badgeFg: "#5E9B72",
+        d: "The same agent, executing inside a container with a mounted project and a controlled image. The recommended path for untrusted code or unfamiliar dependencies.",
+        rows: [ {k:"File writes",v:"container + mount",c:"#5E9B72"}, {k:"Commands",v:"approval-gated",c:"#5E9B72"}, {k:"OS isolation",v:"container",c:"#5E9B72"}, {k:"Best for",v:"untrusted work",c:"#A8AFB5"} ] },
+      { t: "Hosted sandbox", badge: "demo only", badgeBg: "#1B1E21", badgeFg: "#8E959B",
+        d: "A disposable, time-boxed session in the browser with no access to your machine. It exists so you can try the agent in one click — there is no managed or paid hosting, and there won't be. Real work runs locally or in Docker.",
+        rows: [ {k:"File writes",v:"ephemeral",c:"#A8AFB5"}, {k:"Commands",v:"approval-gated",c:"#5E9B72"}, {k:"OS isolation",v:"remote",c:"#5E9B72"}, {k:"Best for",v:"a first look",c:"#A8AFB5"} ] },
+    ];
+
+    const flow = [
+      ["User request", "A task, in plain language"],
+      ["LunarForge engine", "Inspect, plan, decide"],
+      ["Structured events", "JSON-safe, UI-neutral"],
+      ["Tools + approval gates", "Nothing runs unapproved"],
+      ["Validation", "Commands and browser checks"],
+      ["CLI · Textual · Web", "Same stream, three surfaces"],
+    ].map(([t, d], i, a) => ({ t, d, n: String(i + 1).padStart(2, "0"), arrow: i < a.length - 1 }));
+
+    const steps = [
+      ["Inspect repository", "Reads the tree, package manifests, and every AGENTS.md in scope.", "12 files"],
+      ["Plan changes", "Writes an explicit plan before editing, so you can redirect early.", "3 edits"],
+      ["Request approval", "Any command — local or Docker — pauses for an explicit decision.", "1 gate"],
+      ["Edit files", "Scoped writes inside the project; nothing outside the boundary.", "3 files"],
+      ["Run validation", "Your validation commands, plus optional browser checks.", "passed"],
+      ["Review and commit", "A Git-aware summary you can edit, then commit on your terms.", "staged"],
+    ].map(([t, d, tag], i) => ({ t, d, tag, n: String(i + 1) }));
+
+    const dev = [
+      ["Python package", "pip install lunarforge. Import the agent, drive it from your own scripts and CI."],
+      ["Provider-neutral model layer", "Swap model providers without rewriting prompts, tools, or session handling."],
+      ["JSON-safe event protocol", "Every event serialises cleanly — log it, replay it, or render it in your own UI."],
+      ["Public package API", "A documented surface for agents, sessions, tools, and approvals."],
+      ["Web and cloud ready", "The event stream is transport-agnostic, so a hosted or web frontend is a client, not a fork."],
+    ].map(([t, d], i) => ({ t, d, n: String(i + 1).padStart(2, "0") }));
+
+    const cfg = this.emberConfig;
+    const emberSpec = [
+      ["Canvas layer", "position:fixed; inset:0; width:100vw; height:100vh; pointer-events:none; z-index:0 — viewport-locked, does not scroll"],
+      ["Scope", "landing route only, mounted once at page level; never inside a section wrapper"],
+      ["Stacking", "page content sits above at z-index:1+; nav keeps its own higher layer"],
+      ["Section backgrounds", "sections must be transparent (page bg lives on body) or the fixed layer is hidden behind them"],
+      ["Spawn origin", "left and right edge bands, " + Math.round(cfg.bandWidth * 100) + "% of viewport width each; y anywhere in the viewport"],
+      ["Spawn rate", cfg.spawnPerSecond + " particles/s per viewport, hard cap " + cfg.maxParticles + " alive"],
+      ["Lifetime", cfg.life[0] + "–" + cfg.life[1] + " s, then removed"],
+      ["Rise speed", cfg.riseSpeed[0] + "–" + cfg.riseSpeed[1] + " px/s upward (slow ember drift, not sparks)"],
+      ["Inward drift", cfg.driftInward[0] + "–" + cfg.driftInward[1] + " px/s toward centre; sign flips per edge"],
+      ["Wobble", "sin(phase + age × " + cfg.wobbleSpeed[0] + "–" + cfg.wobbleSpeed[1] + ") × " + cfg.wobbleAmp[0] + "–" + cfg.wobbleAmp[1] + " px lateral"],
+      ["Core radius", cfg.radius[0] + "–" + cfg.radius[1] + " px, shrinking to 55% over life"],
+      ["Glow", "radial gradient at 6× core radius, additive (globalCompositeOperation: lighter)"],
+      ["Opacity envelope", "fade in 0–12% of life, hold to 60%, fade out to 0 by 100%; peak 0.62 (0.95 bright)"],
+      ["Palette", cfg.palette.join(" · ") + " — bright " + cfg.brightColor + " at " + Math.round(cfg.brightChance * 100) + "% chance"],
+      ["Edge glow", "two fixed radial gradients at 0% / 100% × 50% viewport height, #E8783A at 12% / 10% alpha"],
+      ["On scroll", "nothing moves with the page — the field is stationary in the viewport the whole way down"],
+      ["Reduced motion", "prefers-reduced-motion: draw one static seeded field, no rAF loop"],
+      ["No-JS / export", "the two edge glows are plain CSS and render alone — canvas is progressive enhancement"],
+      ["Mobile", "same fixed field, band ×2.4 of viewport width, cap 18, spawn 4/s — sparks hug the margins"],
+      ["Sizing", "ResizeObserver + devicePixelRatio (capped at 2); clear and redraw per frame"],
+    ].map(([k, v]) => ({ k, v }));
+
+    return {
+      caps, emberSpec,
+      emberCanvas: this.emberCanvas,
+      emberCanvasMobile: this.emberCanvasMobile,
+      capsMobile: caps.slice(0, 5),
+      modes, flow, steps, dev,
+      trust: [
+        "Project-confined file tools",
+        "Local or Docker execution",
+        "Resumable continuous chat",
+        "Structured events for multiple UIs",
+      ],
+      footer: [
+        { t: "Product", items: ["Docs", "Sandbox", "Changelog"] },
+        { t: "Source", items: ["GitHub", "License", "Security"] },
+        { t: "Reference", items: ["Event protocol", "Python API", "Troubleshooting"] },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+.footer {
+  position: relative;
+  z-index: 1;
+  padding: 48px var(--space-8);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-8);
+  background: var(--bg);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.about {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 340px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mark {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  background: linear-gradient(160deg, var(--accent), var(--accent-press));
+  flex: none;
+}
+
+.name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.blurb {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-soft);
+}
+
+.release {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-ghost);
+  margin-top: var(--space-1);
+}
+
+.columns {
+  display: flex;
+  gap: var(--space-8);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.columnTitle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-ghost);
+}
+
+.link {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.link:hover {
+  color: var(--text);
+}
+
+/* ---- Compact variant (compare route) ---- */
+
+.compact {
+  align-items: flex-end;
+  padding: 36px var(--space-8) 44px;
+  gap: 48px;
+}
+
+.compactMeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.compactNote {
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+.inlineLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+@media (max-width: 1023px) {
+  .footer {
+    padding: 40px var(--space-5);
+    gap: var(--space-6);
+  }
+  .columns {
+    gap: var(--space-6);
+  }
+}
+
+@media (max-width: 767px) {
+  .footer,
+  .compact {
+    flex-direction: column;
+    padding: 28px var(--space-4) var(--space-5);
+    gap: var(--space-4);
+    align-items: stretch;
+  }
+  .columns {
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-5);
+  }
+  .about {
+    max-width: none;
+  }
+}

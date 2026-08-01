@@ -1,0 +1,71 @@
+.callout {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--ring);
+  border-left: 2px solid var(--tone);
+  border-radius: var(--r-md);
+  background: var(--fill);
+}
+
+.kind {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--tone);
+  padding-top: 2px;
+}
+
+.body {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-prose);
+}
+
+.note {
+  --tone: var(--info);
+  --fill: var(--info-bg);
+  --ring: var(--border);
+}
+.tip {
+  --tone: var(--success);
+  --fill: var(--success-bg);
+  --ring: var(--success-ring);
+}
+.warning {
+  --tone: var(--warning);
+  --fill: var(--warning-bg);
+  --ring: var(--accent-ring);
+}
+.danger {
+  --tone: var(--error);
+  --fill: var(--error-bg);
+  --ring: #2a1c1c;
+}
+
+/* Compact form used in the mobile article. */
+.compact {
+  padding: 14px;
+  gap: 10px;
+}
+.compact .kind {
+  font-size: 11px;
+}
+.compact .body {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+@media (max-width: 767px) {
+  .callout {
+    padding: 14px;
+    gap: 10px;
+  }
+  .kind {
+    font-size: 11px;
+  }
+  .body {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+}
