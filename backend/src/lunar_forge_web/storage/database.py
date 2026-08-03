@@ -10,8 +10,20 @@ from sqlalchemy.ext.asyncio import (
 )
 
 
-def create_database_engine(database_url: str) -> AsyncEngine:
-    return create_async_engine(database_url, pool_pre_ping=True)
+def create_database_engine(
+    database_url: str,
+    *,
+    pool_size: int = 5,
+    max_overflow: int = 5,
+) -> AsyncEngine:
+    options: dict[str, object] = {"pool_pre_ping": True}
+    if not database_url.startswith("sqlite"):
+        options.update(
+            pool_size=pool_size,
+            max_overflow=max_overflow,
+            pool_recycle=300,
+        )
+    return create_async_engine(database_url, **options)
 
 
 def create_session_factory(

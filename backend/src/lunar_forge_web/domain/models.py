@@ -79,6 +79,12 @@ class RuntimeCapability(ContractModel):
     network_policy: Literal["offline", "provider_enforced", "unavailable"]
     supports_preview: bool = False
     supports_command_cancellation: bool = False
+    supports_ttl_extension: bool = False
+    supports_temporary_egress: bool = False
+    supports_public_git_clone: bool = False
+    inactivity_ttl_seconds: int | None = Field(default=None, ge=1, le=86_400)
+    cpu_count: int | None = Field(default=None, ge=1, le=128)
+    memory_mb: int | None = Field(default=None, ge=1)
 
 
 class CapabilitiesResponse(ContractModel):
@@ -103,6 +109,17 @@ class TemplatesResponse(ContractModel):
 
 class SandboxCreateRequest(ContractModel):
     template_id: Identifier
+
+
+class PublicGitValidateRequest(ContractModel):
+    url: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=2_048)]
+
+
+class PublicGitValidateResponse(ContractModel):
+    canonical_url: Annotated[str, StringConstraints(max_length=2_048)]
+    owner: Identifier
+    repository: Identifier
+    clone_supported: bool
 
 
 class SandboxResponse(ContractModel):
@@ -287,6 +304,16 @@ class AdminOverviewResponse(ContractModel):
     cleanup_failures: int = Field(ge=0)
     sandbox_kill_switch_enabled: bool
     owner_funded_enabled: bool
+
+
+class AdminSettingsResponse(ContractModel):
+    sandbox_kill_switch_enabled: bool
+    owner_funded_enabled: bool
+
+
+class AdminSettingsPatch(ContractModel):
+    sandbox_kill_switch_enabled: bool | None = None
+    owner_funded_enabled: bool | None = None
 
 
 class RealtimeTicketRequest(ContractModel):

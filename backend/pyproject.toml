@@ -13,21 +13,28 @@ dependencies = [
   "alembic>=1.16,<2",
   "asyncpg>=0.30,<1",
   "email-validator>=2.2,<3",
+  "e2b==2.37.0",
   "fastapi>=0.116,<1",
   "httpx>=0.28,<1",
   "pydantic>=2.11,<3",
   "pydantic-settings>=2.10,<3",
   "pyjwt[crypto]>=2.10,<3",
+  "redis>=6.4,<8",
   "sqlalchemy[asyncio]>=2.0.41,<3",
   "uvicorn[standard]>=0.35,<1",
 ]
 
 [project.optional-dependencies]
 dev = [
+  "build>=1.2,<2",
   "httpx2>=2,<3",
+  "lunar-forge",
   "pytest>=8.4,<10",
   "pytest-asyncio>=1.0,<2",
 ]
+
+[tool.uv.sources]
+lunar-forge = { path = "../../lunar-forge", editable = false }
 
 [project.scripts]
 lunar-forge-web-api = "lunar_forge_web.api.main:run"
@@ -40,6 +47,10 @@ packages = ["src/lunar_forge_web"]
 addopts = "-ra --strict-config --strict-markers"
 asyncio_mode = "auto"
 testpaths = ["tests"]
+markers = [
+  "live_e2b: opt-in test that calls a configured live E2B project",
+  "live_model: opt-in test that calls a configured live model provider",
+]
 
 [tool.coverage.run]
 branch = true

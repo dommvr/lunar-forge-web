@@ -15,6 +15,16 @@ class DeploymentEnvironment(StrEnum):
     PRODUCTION = "production"
 
 
+class InfrastructureBackend(StrEnum):
+    MEMORY = "memory"
+    NEON_UPSTASH = "neon_upstash"
+
+
+class RuntimeBackend(StrEnum):
+    FAKE = "fake"
+    E2B = "e2b"
+
+
 _LOCAL_WORKER_SECRET = "local-only-worker-secret"
 
 
@@ -51,11 +61,32 @@ class Settings(BaseSettings):
     )
     jwks_cache_ttl_seconds: int = Field(default=600, ge=30, le=3_600)
     database_url: str = "sqlite+aiosqlite:///./lunar-forge-web.db"
+    migration_database_url: str | None = None
+    infrastructure_backend: InfrastructureBackend = InfrastructureBackend.MEMORY
+    runtime_backend: RuntimeBackend = RuntimeBackend.E2B
+    e2b_api_key: SecretStr | None = None
+    e2b_python_cli_template: str = "lfw-python-cli-v1"
+    e2b_static_site_template: str = "lfw-static-site-v1"
+    e2b_vite_react_template: str = "lfw-vite-react-v1"
+    e2b_request_timeout_seconds: float = Field(default=20.0, ge=1.0, le=60.0)
+    redis_url: SecretStr = SecretStr("redis://localhost:6379/0")
+    redis_key_prefix: str = "lfw:local"
+    redis_max_connections: int = Field(default=20, ge=2, le=200)
+    redis_socket_timeout_seconds: float = Field(default=5.0, ge=0.5, le=30.0)
+    event_stream_ttl_seconds: int = Field(default=3_600, ge=1_800, le=86_400)
+    control_stream_ttl_seconds: int = Field(default=3_600, ge=900, le=86_400)
     worker_shared_secret: SecretStr = SecretStr(_LOCAL_WORKER_SECRET)
     websocket_ticket_ttl_seconds: int = Field(default=60, ge=15, le=300)
+    preview_ticket_ttl_seconds: int = Field(default=60, ge=15, le=300)
+    owner_funded_model: str = "server-default"
     max_event_replay_items: int = Field(default=500, ge=1, le=2_000)
     max_request_body_bytes: int = Field(
         default=1_048_576,
+        ge=16_384,
+        le=10_485_760,
+    )
+    max_response_body_bytes: int = Field(
+        default=2_097_152,
         ge=16_384,
         le=10_485_760,
     )
@@ -102,6 +133,12 @@ class Settings(BaseSettings):
             return self
         if self.fake_auth_enabled:
             raise ValueError("Fake authentication cannot be enabled in production.")
+        if self.infrastructure_backend is not InfrastructureBackend.NEON_UPSTASH:
+            raise ValueError("Production requires the Neon/Upstash infrastructure backend.")
+        if self.runtime_backend is not RuntimeBackend.E2B:
+            raise ValueError("Production requires the E2B runtime backend.")
+        if self.e2b_api_key is None or not self.e2b_api_key.get_secret_value():
+            raise ValueError("Production requires an E2B API key.")
         if any(not origin.startswith("https://") for origin in self.cors_allowed_origins):
             raise ValueError("Production CORS origins must use HTTPS.")
         if not self.supabase_issuer.startswith("https://"):
@@ -110,6 +147,17 @@ class Settings(BaseSettings):
             raise ValueError("Production Supabase JWKS URL must use HTTPS.")
         if not self.database_url.startswith("postgresql+asyncpg://"):
             raise ValueError("Production database URL must use postgresql+asyncpg.")
+        migration_url = self.migration_database_url
+        if migration_url is not None and not migration_url.startswith(
+            "postgresql+asyncpg://"
+        ):
+            raise ValueError("Production migration database URL must use postgresql+asyncpg.")
+        if not self.redis_url.get_secret_value().startswith("rediss://"):
+            raise ValueError("Production Upstash Redis URL must use TLS (rediss://).")
+        if self.redis_key_prefix == "lfw:local":
+            raise ValueError("Production requires an environment-specific Redis key prefix.")
+        if self.owner_funded_model == "server-default":
+            raise ValueError("Production requires one explicit owner-funded model.")
         secret = self.worker_shared_secret.get_secret_value()
         if secret == _LOCAL_WORKER_SECRET or len(secret) < 32:
             raise ValueError("Production worker secret must be at least 32 characters.")

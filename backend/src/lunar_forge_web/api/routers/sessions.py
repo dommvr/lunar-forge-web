@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Query, status
+from uuid import uuid4
 
 from lunar_forge_web.api.dependencies import ContainerDep, OwnedSandbox, OwnedSession
 from lunar_forge_web.api.errors import ERROR_RESPONSES
@@ -12,15 +13,24 @@ from lunar_forge_web.domain.models import (
     EventReplayResponse,
     SessionCreateRequest,
     SessionResponse,
+    SessionSettings,
     TurnCreateRequest,
     TurnResponse,
 )
+from lunar_forge_web.domain.enums import FundingMode
 from lunar_forge_web.services.fake_flow_service import (
     FakeFlowNotFoundError,
     FakeFlowService,
     FakeFlowStateError,
 )
 from lunar_forge_web.services.session_service import SessionService
+from lunar_forge_web.services.sandbox_service import (
+    MeaningfulActivity,
+    SandboxService,
+    runtime_sandbox,
+)
+from lunar_forge_web.services.usage_service import UsageService
+from lunar_forge_web.storage.repositories import QuotaLimitError
 
 
 router = APIRouter(tags=["sessions"])
@@ -81,10 +91,64 @@ async def create_turn(
     sandbox = await container.sandboxes.get(session.sandbox_id)
     if sandbox is None:
         raise ApiError(404, "sandbox_not_found", "Sandbox was not found.")
+    settings = body.settings or SessionSettings()
+    admin_settings = await container.admin_settings.get()
+    if admin_settings.sandbox_kill_switch_enabled:
+        raise ApiError(503, "sandbox_kill_switch", "Sandbox use is disabled.")
+    if (
+        settings.funding_mode == FundingMode.OWNER_FUNDED.value
+        and not admin_settings.owner_funded_enabled
+    ):
+        raise ApiError(
+            503,
+            "owner_funded_disabled",
+            "Owner-funded mode is disabled.",
+        )
+    owner_funded = settings.funding_mode == FundingMode.OWNER_FUNDED.value
+    if owner_funded and settings.provider != "openai":
+        raise ApiError(
+            422,
+            "owner_funded_provider_not_allowed",
+            "Owner-funded mode uses OpenAI only.",
+        )
+    if owner_funded and settings.model not in {
+        "server-default",
+        container.settings.owner_funded_model,
+    }:
+        raise ApiError(
+            422,
+            "owner_funded_model_not_allowed",
+            "Owner-funded mode uses the server-approved model only.",
+        )
+    turn_id = f"turn_{uuid4().hex}"
+    if owner_funded:
+        try:
+            await UsageService(container.quotas).reserve(
+                user_id=session.owner_id,
+                turn_id=turn_id,
+            )
+        except QuotaLimitError as exc:
+            status_code = 503 if exc.code in {
+                "sandbox_kill_switch",
+                "owner_funded_disabled",
+            } else 429
+            raise ApiError(status_code, exc.code, str(exc)) from exc
     try:
-        return await fake_flow(container).submit_turn(session, sandbox, body)
+        response = await fake_flow(container).submit_turn(
+            session, sandbox, body, turn_id=turn_id
+        )
+        await SandboxService(container.sandboxes, container.runtime).record_activity(
+            sandbox.id, MeaningfulActivity.TURN_SENT
+        )
+        return response
     except FakeFlowStateError as exc:
+        if owner_funded:
+            await UsageService(container.quotas).release(turn_id)
         raise ApiError(409, "turn_conflict", str(exc)) from exc
+    except Exception:
+        if owner_funded:
+            await UsageService(container.quotas).release(turn_id)
+        raise
 
 
 @router.post(
@@ -99,11 +163,16 @@ async def resolve_approval(
     container: ContainerDep,
 ) -> ApprovalResponse:
     try:
-        return await fake_flow(container).resolve_approval(
+        response = await fake_flow(container).resolve_approval(
             session,
             approval_id,
             body.approved,
         )
+        await SandboxService(container.sandboxes, container.runtime).record_activity(
+            session.sandbox_id, MeaningfulActivity.APPROVAL_RESOLVED
+        )
+        await UsageService(container.quotas).release(response.turn_id)
+        return response
     except FakeFlowNotFoundError as exc:
         raise ApiError(404, "approval_not_found", "Approval was not found.") from exc
     except FakeFlowStateError as exc:
@@ -120,7 +189,9 @@ async def cancel_turn(
     container: ContainerDep,
 ) -> CancelResponse:
     try:
-        return await fake_flow(container).cancel(session)
+        response = await fake_flow(container).cancel(session)
+        await UsageService(container.quotas).release(response.turn.id)
+        return response
     except FakeFlowStateError as exc:
         raise ApiError(409, "turn_not_active", str(exc)) from exc
 
@@ -163,4 +234,32 @@ async def list_artifacts(
     session: OwnedSession,
     container: ContainerDep,
 ) -> ArtifactsResponse:
-    return fake_flow(container).artifacts(session)
+    sandbox = await container.sandboxes.get(session.sandbox_id)
+    if sandbox is None:
+        raise ApiError(404, "sandbox_not_found", "Sandbox was not found.")
+    if sandbox.runtime_provider == "fake":
+        response = fake_flow(container).artifacts(session)
+        await SandboxService(container.sandboxes, container.runtime).record_activity(
+            sandbox.id, MeaningfulActivity.FILE_INTERACTION
+        )
+        return response
+    items = await container.runtime.list_artifacts(runtime_sandbox(sandbox))
+    response = ArtifactsResponse(
+        items=[
+            {
+                "id": item.id,
+                "sandbox_id": sandbox.id,
+                "session_id": session.id,
+                "owner_id": session.owner_id,
+                "name": item.name,
+                "media_type": item.media_type,
+                "size_bytes": item.size_bytes,
+                "expires_at": sandbox.expires_at,
+            }
+            for item in items
+        ]
+    )
+    await SandboxService(container.sandboxes, container.runtime).record_activity(
+        sandbox.id, MeaningfulActivity.FILE_INTERACTION
+    )
+    return response

@@ -1,8 +1,13 @@
-"""Provider-neutral runtime protocol."""
+"""Provider-neutral sandbox runtime protocol.
+
+The agent/model process remains in the private worker.  Runtime providers only
+manage the isolated project workspace and its tool execution surface.
+"""
 
 from __future__ import annotations
 
-from typing import Protocol
+from datetime import datetime
+from typing import Literal, Protocol
 
 from pydantic import Field
 
@@ -14,6 +19,54 @@ class RuntimeSandbox(ContractModel):
     provider: Identifier
     reference: Identifier
     workspace_root: str = Field(min_length=1, max_length=4_096)
+    sandbox_id: Identifier | None = None
+    owner_id: Identifier | None = None
+    template_id: Identifier | None = None
+
+
+class RuntimeStatus(ContractModel):
+    state: Literal["running", "paused", "stopped", "unknown"]
+    started_at: datetime | None = None
+    expires_at: datetime | None = None
+    cpu_count: int | None = Field(default=None, ge=1, le=128)
+    memory_mb: int | None = Field(default=None, ge=1)
+    disk_size_mb: int | None = Field(default=None, ge=1)
+    secure_access: bool
+    internet_access: bool
+    metadata: dict[str, str] = Field(default_factory=dict, max_length=50)
+
+
+class RuntimeCommandResult(ContractModel):
+    command_id: Identifier
+    exit_code: int
+    stdout: str = Field(max_length=100_000)
+    stderr: str = Field(max_length=100_000)
+    output_truncated: bool = False
+
+
+class RuntimeFile(ContractModel):
+    path: str = Field(min_length=1, max_length=4_096)
+    kind: Literal["file", "directory"]
+    size_bytes: int | None = Field(default=None, ge=0)
+
+
+class RuntimeFileContent(ContractModel):
+    path: str = Field(min_length=1, max_length=4_096)
+    content: str = Field(max_length=1_000_000)
+    truncated: bool = False
+
+
+class RuntimeArchive(ContractModel):
+    filename: str = Field(min_length=1, max_length=200)
+    content: bytes = Field(max_length=10_485_760)
+
+
+class RuntimeArtifact(ContractModel):
+    id: Identifier
+    path: str = Field(min_length=1, max_length=4_096)
+    name: str = Field(min_length=1, max_length=500)
+    media_type: str = Field(min_length=1, max_length=200)
+    size_bytes: int = Field(ge=0, le=10_485_760)
 
 
 class RuntimeProvider(Protocol):
@@ -27,6 +80,38 @@ class RuntimeProvider(Protocol):
         template_id: str,
     ) -> RuntimeSandbox: ...
 
+    async def connect(self, sandbox: RuntimeSandbox) -> RuntimeSandbox: ...
+
+    async def status(self, sandbox: RuntimeSandbox) -> RuntimeStatus: ...
+
+    async def reset(self, sandbox: RuntimeSandbox) -> RuntimeSandbox: ...
+
+    async def extend_timeout(self, sandbox: RuntimeSandbox, timeout_seconds: int) -> None: ...
+
     async def terminate(self, sandbox: RuntimeSandbox) -> None: ...
 
+    async def run_command(
+        self,
+        sandbox: RuntimeSandbox,
+        command: str,
+        *,
+        timeout_seconds: int,
+    ) -> RuntimeCommandResult: ...
+
     async def cancel_active_command(self, sandbox: RuntimeSandbox) -> bool: ...
+
+    async def list_files(self, sandbox: RuntimeSandbox) -> tuple[RuntimeFile, ...]: ...
+
+    async def read_file(
+        self, sandbox: RuntimeSandbox, path: str
+    ) -> RuntimeFileContent: ...
+
+    async def archive_project(self, sandbox: RuntimeSandbox) -> RuntimeArchive: ...
+
+    async def list_artifacts(
+        self, sandbox: RuntimeSandbox
+    ) -> tuple[RuntimeArtifact, ...]: ...
+
+    async def clone_public_git(
+        self, sandbox: RuntimeSandbox, repository_url: str
+    ) -> RuntimeCommandResult: ...

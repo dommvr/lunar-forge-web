@@ -66,6 +66,7 @@ class FakeFlowService:
         session: SessionResponse,
         sandbox: SandboxResponse,
         body: TurnCreateRequest,
+        turn_id: str | None = None,
     ) -> TurnResponse:
         async with self._store.lock:
             active_id = self._store.active_turns.get(session.id)
@@ -79,7 +80,7 @@ class FakeFlowService:
 
             now = datetime.now(timezone.utc)
             turn = TurnResponse(
-                id=f"turn_{uuid4().hex}",
+                id=turn_id or f"turn_{uuid4().hex}",
                 session_id=session.id,
                 owner_id=session.owner_id,
                 status=TurnStatus.RUNNING,

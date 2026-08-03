@@ -1,0 +1,9 @@
+{
+  "package": "lunar-forge",
+  "version": "0.1.0",
+  "source": "../../lunar-forge",
+  "editable": false,
+  "git_commit": "e4f4d0a09e81e88a4fc9300767c7b0dbee4aa5fe",
+  "git_tag": "core-milestone-1",
+  "recorded_on": "2026-08-03"
+}

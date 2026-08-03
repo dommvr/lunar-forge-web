@@ -45,7 +45,33 @@ def install_request_middleware(app: FastAPI, settings: Settings) -> None:
                 )
                 response.headers["X-Request-ID"] = request_id
                 return response
+        if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
+            body = await request.body()
+            if len(body) > settings.max_request_body_bytes:
+                response = error_response(
+                    status_code=413,
+                    code="request_too_large",
+                    message="Request body is too large.",
+                    request_id=request_id,
+                )
+                response.headers["X-Request-ID"] = request_id
+                return response
         response = await call_next(request)
+        response_length = response.headers.get("content-length")
+        if response_length is not None:
+            try:
+                response_too_large = (
+                    int(response_length) > settings.max_response_body_bytes
+                )
+            except ValueError:
+                response_too_large = True
+            if response_too_large:
+                response = error_response(
+                    status_code=500,
+                    code="response_too_large",
+                    message="Response exceeded the configured size bound.",
+                    request_id=request_id,
+                )
         response.headers["X-Request-ID"] = request_id
         response.headers.setdefault("Cache-Control", "no-store")
         logger.info(

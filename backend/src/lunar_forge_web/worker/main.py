@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import secrets
+from contextlib import asynccontextmanager
 from typing import Annotated
 
 from fastapi import Depends, FastAPI
@@ -31,6 +32,14 @@ def create_worker_app(
 ) -> FastAPI:
     selected = settings or get_settings()
     dependencies = container or build_container(selected)
+
+    @asynccontextmanager
+    async def lifespan(_: FastAPI):
+        try:
+            yield
+        finally:
+            await dependencies.close()
+
     configure_logging(selected.log_level)
     app = FastAPI(
         title="LunarForge Private Turn Worker",
@@ -38,6 +47,7 @@ def create_worker_app(
         docs_url=None,
         redoc_url=None,
         openapi_url=None,
+        lifespan=lifespan,
     )
     app.state.container = dependencies
     install_request_middleware(app, selected)

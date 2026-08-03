@@ -7,6 +7,7 @@ import hashlib
 import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from typing import Protocol
 
 
 class TicketValidationError(ValueError):
@@ -24,6 +25,11 @@ class TicketGrant:
     user_id: str
     session_id: str
     expires_at: datetime
+
+
+class WebSocketTicketStore(Protocol):
+    async def issue(self, user_id: str, session_id: str) -> IssuedTicket: ...
+    async def consume(self, token: str, session_id: str) -> TicketGrant: ...
 
 
 class InMemoryWebSocketTicketStore:

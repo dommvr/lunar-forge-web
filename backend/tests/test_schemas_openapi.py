@@ -70,10 +70,25 @@ def test_sqlalchemy_metadata_covers_accepted_data_model():
         "previews",
         "usage_ledger",
         "daily_quota_counters",
+        "quota_reservations",
         "admin_settings",
         "cleanup_jobs",
         "audit_events",
     } == set(Base.metadata.tables)
+
+
+def test_schema_has_no_byok_or_provider_credential_columns():
+    forbidden = {"byok", "api_key", "provider_key", "credential", "secret"}
+    column_names = {
+        column.name.casefold()
+        for table in Base.metadata.tables.values()
+        for column in table.columns
+    }
+    assert all(
+        fragment not in column_name
+        for column_name in column_names
+        for fragment in forbidden
+    )
 
 
 def test_openapi_exports_are_current():

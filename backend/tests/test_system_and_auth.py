@@ -18,10 +18,19 @@ def test_health_version_and_capabilities_are_truthful(client: TestClient):
             "network_policy": "offline",
             "supports_preview": False,
             "supports_command_cancellation": True,
+            "supports_ttl_extension": True,
+            "supports_temporary_egress": False,
+            "supports_public_git_clone": False,
+            "inactivity_ttl_seconds": 1800,
+            "cpu_count": 1,
+            "memory_mb": 512,
         }
     ]
     features = {item["id"]: item["status"] for item in capabilities.json()["features"]}
-    assert features["hosted-runtime"] == "planned"
+    assert features["hosted-runtime"] == "fake"
+    assert features["temporary-egress"] == "unavailable"
+    assert features["public-git-clone"] == "unavailable"
+    assert features["external-browser-egress"] == "unavailable"
     assert features["real-model"] == "unavailable"
     assert {item["id"] for item in templates.json()["items"]} == {
         "python-cli",

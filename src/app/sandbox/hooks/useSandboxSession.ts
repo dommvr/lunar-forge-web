@@ -121,7 +121,26 @@ export function useSandboxSession(options: UseSandboxSessionOptions = {}) {
   const start = useCallback(async () => {
     dispatch({ type: "provision" });
     try {
-      const sandbox = await api.createSandbox({ template_id: "vite-react" });
+      const active = (await api.listSandboxes()).items.find((sandbox) =>
+        ["creating", "ready", "busy"].includes(sandbox.status),
+      );
+      let sandbox = active;
+      if (!sandbox) {
+        try {
+          sandbox = await api.createSandbox({ template_id: "vite-react" });
+        } catch (error) {
+          if (
+            !(error instanceof ApiClientError) ||
+            error.envelope.error.code !== "active_sandbox_limit"
+          ) {
+            throw error;
+          }
+          sandbox = (await api.listSandboxes()).items.find((item) =>
+            ["creating", "ready", "busy"].includes(item.status),
+          );
+          if (!sandbox) throw error;
+        }
+      }
       await createSession(sandbox.id);
     } catch (error) {
       if (mounted.current) reportError(error);

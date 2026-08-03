@@ -7,6 +7,7 @@ import { LunarForgeApiClient } from "./generated/client";
 export type SandboxApi = Pick<
   LunarForgeApiClient,
   | "createSandbox"
+  | "listSandboxes"
   | "resetSandbox"
   | "deleteSandbox"
   | "createSession"

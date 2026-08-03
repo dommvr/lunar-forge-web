@@ -33,6 +33,7 @@ function sandboxHarness() {
   let realtimeOptions: RealtimeClientOptions | undefined;
   const emit = (item: AgentEvent) => realtimeOptions?.onEvent(item);
   const apiMock = {
+    listSandboxes: vi.fn(async () => ({ items: [] })),
     createSandbox: vi.fn(async () => ({
       id: "sandbox-a",
       owner_id: "user-a",

@@ -4,7 +4,11 @@ import logging
 import pytest
 from pydantic import SecretStr, ValidationError
 
-from lunar_forge_web.config import DeploymentEnvironment, Settings
+from lunar_forge_web.config import (
+    DeploymentEnvironment,
+    InfrastructureBackend,
+    Settings,
+)
 from lunar_forge_web.security.redaction import REDACTED, RedactingJsonFormatter, redact
 
 
@@ -48,6 +52,11 @@ def test_production_settings_reject_insecure_defaults():
             "https://project.supabase.co/auth/v1/.well-known/jwks.json"
         ),
         database_url="postgresql+asyncpg://user:pass@db.example.com/app",
+        infrastructure_backend=InfrastructureBackend.NEON_UPSTASH,
+        redis_url=SecretStr("rediss://default:secret@redis.example.com:6379"),
+        redis_key_prefix="lfw:production",
+        e2b_api_key=SecretStr("e2b_test_production_key"),
+        owner_funded_model="gpt-production",
         worker_shared_secret=SecretStr("x" * 40),
     )
     assert settings.environment.value == "production"
