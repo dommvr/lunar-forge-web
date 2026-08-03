@@ -1,0 +1,42 @@
+---
+title: Plugins
+description: Add explicitly configured local Python tools through bounded manifests and the normal approval system.
+section: Extending
+sectionOrder: 5
+order: 2
+status: Experimental in core
+version: "0.1.0"
+verified: "2026-07-29"
+keywords: [plugins.yaml, manifest, Python entrypoint, tool permissions]
+---
+
+## Enable a local plugin
+
+Plugins are experimental and disabled by default. Set `plugins.enabled: true` in main configuration, then declare each manifest in the project's `.agent/plugins.yaml`.
+
+```yaml
+plugins:
+  example:
+    manifest: plugin_packs/example/plugin.yaml
+    enabled: true
+```
+
+A manifest declares its name, version, description, model-facing schema, bundle-local Python entry point, and filesystem, command, and network capabilities.
+
+## Loading boundary
+
+Manifest paths must remain inside the selected project or its nearest containing Git repository. Discovery validates configured manifests without importing handlers. The module is loaded only after the registered tool passes normal permission handling.
+
+Tools declaring writes, commands, or networking always require approval. Plan mode omits all plugin tools because in-process Python cannot enforce a manifest's read-only claim.
+
+## Diagnose configuration
+
+```bash
+lunar-forge plugins list --project ./my-app
+```
+
+The JSON report is bounded and does not require a model, API key, approval prompt, or plugin-code import.
+
+<Callout kind="danger">
+Capability declarations are a trust contract, not an OS sandbox. Enable only local Python code you have reviewed. Plugin dependency isolation and worker processes are not implemented in core 0.1.0.
+</Callout>

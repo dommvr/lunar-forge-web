@@ -1,276 +1,125 @@
-/** Data for the /docs route. Mirrors `project/Docs.dc.html`. */
+import manifest from "@/generated/docs-manifest.json";
+
+export type TocEntry = { id: string; title: string; level: 0 | 1 };
+
+export type DocPageMeta = {
+  slug: string;
+  title: string;
+  description: string;
+  section: string;
+  sectionOrder: number;
+  order: number;
+  status: string;
+  version: string;
+  verified: string;
+  featured: boolean;
+  keywords: string[];
+  headings: TocEntry[];
+  searchText: string;
+};
 
 export type NavGroup = { title: string; items: NavItem[] };
 export type NavItem = { label: string; href: string };
-
-const slug = (s: string) =>
-  s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-
-function group(title: string, items: string[]): NavGroup {
-  return {
-    title,
-    items: items.map((label) => ({ label, href: `/docs/${slug(label)}` })),
-  };
-}
-
-export const docsNav: NavGroup[] = [
-  group("Getting started", [
-    "Introduction",
-    "Installation",
-    "Quick start",
-    "Configuration",
-  ]),
-  group("Using the agent", [
-    "CLI usage",
-    "Textual chat",
-    "Projects and AGENTS.md",
-    "File and project tools",
-  ]),
-  group("Execution", [
-    "Permissions and approvals",
-    "Local execution safety",
-    "Docker mode",
-    "Validation",
-    "Browser validation",
-  ]),
-  group("Sessions", [
-    "Sessions and resume",
-    "Working-memory compaction",
-    "Subagents",
-  ]),
-  group("Extending", ["MCP", "Plugins", "Git support"]),
-  group("Reference", [
-    "Event protocol",
-    "Public Python API",
-    "Troubleshooting",
-    "Security model",
-  ]),
-];
-
 export type OverviewSection = {
   title: string;
   items: { title: string; description: string; href: string }[];
 };
 
-function section(
-  title: string,
-  items: [string, string][],
-): OverviewSection {
+export const docsPages = manifest.pages as DocPageMeta[];
+
+export const docsNav: NavGroup[] = docsPages.reduce<NavGroup[]>((groups, page) => {
+  let group = groups.find((candidate) => candidate.title === page.section);
+  if (!group) {
+    group = { title: page.section, items: [] };
+    groups.push(group);
+  }
+  group.items.push({ label: page.title, href: `/docs/${page.slug}` });
+  return groups;
+}, []);
+
+export const docsOverview: OverviewSection[] = docsNav.map((group) => ({
+  title: group.title,
+  items: group.items.map((item) => {
+    const page = docsPages.find((candidate) => candidate.title === item.label);
+    if (!page) throw new Error(`Missing docs metadata for ${item.label}`);
+    return {
+      title: page.title,
+      description: page.description,
+      href: item.href,
+    };
+  }),
+}));
+
+export function getDocPage(slug: string) {
+  return docsPages.find((page) => page.slug === slug);
+}
+
+export function getAdjacentDocs(slug: string) {
+  const index = docsPages.findIndex((page) => page.slug === slug);
   return {
-    title,
-    items: items.map(([t, d]) => ({
-      title: t,
-      description: d,
-      href: `/docs/${slug(t)}`,
-    })),
+    previous: index > 0 ? docsPages[index - 1] : undefined,
+    next: index >= 0 && index < docsPages.length - 1 ? docsPages[index + 1] : undefined,
   };
 }
 
-export const docsOverview: OverviewSection[] = [
-  section("Getting started", [
-    ["Introduction", "What LunarForge is and is not"],
-    ["Installation", "pip, supported Python versions"],
-    ["Quick start", "First task in five minutes"],
-    ["Configuration", "lunarforge.yaml reference"],
-    ["CLI usage", "Commands, flags, exit codes"],
-    ["Textual chat", "Continuous terminal chat"],
-  ]),
-  section("Projects and safety", [
-    ["Projects and AGENTS.md", "Root and nested instructions"],
-    ["File and project tools", "Reads, writes, boundaries"],
-    ["Permissions and approvals", "The approval gate"],
-    ["Local execution safety", "What local mode does not isolate"],
-    ["Docker mode", "Images, mounts, network"],
-    ["Security model", "Threat model and guarantees"],
-  ]),
-  section("Validation and sessions", [
-    ["Validation", "Running your check commands"],
-    ["Browser validation", "Confirming rendered output"],
-    ["Sessions and resume", "Persisting long tasks"],
-    ["Working-memory compaction", "Keeping context usable"],
-    ["Subagents", "Delegating focused work"],
-    ["Git support", "Summaries and commits"],
-  ]),
-  section("Extending and reference", [
-    ["MCP", "Attaching MCP servers"],
-    ["Plugins", "Adding tools without forking"],
-    ["Event protocol", "Every event type, versioned"],
-    ["Public Python API", "Agent, Session, Approval"],
-    ["Troubleshooting", "Common failures and fixes"],
-    ["Changelog", "Milestones and releases"],
-  ]),
-];
-
-/* ---- The "Permissions and approvals" article ---- */
-
-export const approvalOptions: {
-  option: string;
-  type: string;
-  fallback: string;
-  description: string;
-}[] = [
-  [
-    "approvals.default",
-    "enum",
-    "ask",
-    "ask, allow, or deny for commands with no matching rule.",
-  ],
-  [
-    "approvals.allow",
-    "list[str]",
-    "[]",
-    "Glob patterns that bypass the gate for the current session.",
-  ],
-  [
-    "approvals.deny",
-    "list[str]",
-    "[]",
-    "Patterns refused outright; takes precedence over allow.",
-  ],
-  [
-    "runtime",
-    "enum",
-    "local",
-    "local or docker. Docker is recommended for untrusted work.",
-  ],
-  [
-    "approvals.timeout",
-    "int",
-    "0",
-    "Seconds before an unanswered request is denied. 0 waits indefinitely.",
-  ],
-].map(([option, type, fallback, description]) => ({
-  option,
-  type,
-  fallback,
-  description,
-}));
-
-export const approvalProcedure: string[] = [
-  "Start a task with lunarforge run, or resume one with --session.",
-  "When the gate opens, press v to inspect the full command, working directory, and runtime.",
-  "Press a to approve or d to deny. The decision is recorded in the session transcript.",
-];
-
-export type TocEntry = { id: string; title: string; level: 0 | 1 };
-
-export const approvalToc: TocEntry[] = [
-  { id: "how-the-gate-works", title: "How the gate works", level: 0 },
-  { id: "configuring-policy", title: "Configuring policy", level: 0 },
-  { id: "options-reference", title: "Options reference", level: 0 },
-  { id: "approving-from-the-cli", title: "Approving from the CLI", level: 0 },
-  { id: "event-payload", title: "Event payload", level: 1 },
-  { id: "resumed-sessions", title: "Resumed sessions", level: 1 },
-];
-
-/* ---- ⌘K search index ---- */
-
 export type SearchKind = "page" | "event" | "api" | "go";
-
 export type SearchResult = {
   kind: SearchKind;
   title: string;
   description: string;
   href: string;
+  searchText?: string;
 };
 
-export const searchIndex: SearchResult[] = [
-  {
-    kind: "page",
-    title: "Permissions and approvals",
-    description: "The approval gate, policy rules, and resumed sessions",
-    href: "/docs/permissions-and-approvals",
-  },
-  {
-    kind: "page",
-    title: "Local execution safety",
-    description: "Why local mode is a policy boundary, not an OS boundary",
-    href: "/docs/local-execution-safety",
-  },
-  {
-    kind: "event",
-    title: "approval.requested",
-    description: "Emitted when the agent needs a decision before executing",
-    href: "/docs/event-protocol",
-  },
-  {
-    kind: "api",
-    title: "Approval.APPROVE",
-    description: "Resolve a pending approval from the Python API",
-    href: "/docs/public-python-api",
-  },
-  {
-    kind: "page",
-    title: "Docker mode",
-    description: "Auto-approval patterns inside a container image",
-    href: "/docs/docker-mode",
-  },
-  {
-    kind: "page",
-    title: "Quick start",
-    description: "Install, run your first task in Docker, and approve a command",
-    href: "/docs/quick-start",
-  },
-  {
-    kind: "page",
-    title: "Security model",
-    description: "Threat model and the guarantees each runtime gives you",
-    href: "/docs/security-model",
-  },
-  {
-    kind: "page",
-    title: "Sessions and resume",
-    description: "Persisting long tasks and replaying pending approvals",
-    href: "/docs/sessions-and-resume",
-  },
-  {
-    kind: "event",
-    title: "approval.resolved",
-    description: "Carries the decision that unblocks a paused run",
-    href: "/docs/event-protocol",
-  },
-  {
-    kind: "api",
-    title: "Agent.run",
-    description: "Iterate the structured event stream for one task",
-    href: "/docs/public-python-api",
-  },
-  {
-    kind: "page",
-    title: "Validation",
-    description: "Running your check commands and reading the results",
-    href: "/docs/validation",
-  },
-  {
-    kind: "page",
-    title: "Event protocol",
-    description: "Every event type, versioned and JSON-safe",
-    href: "/docs/event-protocol",
-  },
-];
+const pageResults: SearchResult[] = docsPages.map((page) => ({
+  kind: "page",
+  title: page.title,
+  description: page.description,
+  href: `/docs/${page.slug}`,
+  searchText: [page.searchText, ...page.keywords].join(" "),
+}));
 
-/** Shown when the query is empty. */
-export const recentPages: SearchResult[] = [
-  searchIndex[0],
-  searchIndex[5],
-  searchIndex[4],
-  searchIndex[11],
-];
+const headingResults: SearchResult[] = docsPages.flatMap((page) => {
+  const kind =
+    page.slug === "event-protocol"
+      ? "event"
+      : page.slug === "public-python-api"
+        ? "api"
+        : undefined;
+  if (!kind) return [];
+  return page.headings.map((heading) => ({
+    kind,
+    title: heading.title,
+    description: page.description,
+    href: `/docs/${page.slug}#${heading.id}`,
+    searchText: page.searchText,
+  }));
+});
+
+export const searchIndex: SearchResult[] = [...pageResults, ...headingResults];
+
+export const recentPages: SearchResult[] = docsPages
+  .filter((page) => page.featured)
+  .slice(0, 4)
+  .map((page) => ({
+    kind: "page",
+    title: page.title,
+    description: page.description,
+    href: `/docs/${page.slug}`,
+    searchText: page.searchText,
+  }));
 
 export const searchActions: SearchResult[] = [
   {
     kind: "go",
     title: "Open the sandbox",
-    description: "Start a disposable browser session",
+    description: "Open the deterministic sandbox UI preview",
     href: "/sandbox",
   },
   {
     kind: "go",
     title: "Open the comparison",
-    description: "One task, three coding agents",
+    description: "One task, three coding-agent presentation fixtures",
     href: "/compare",
   },
 ];

@@ -8,7 +8,7 @@ const COMPACT_LINKS = [
   { label: "Home", href: "/" },
   { label: "Docs", href: "/docs" },
   { label: "Sandbox", href: "/sandbox" },
-  { label: "GitHub", href: "https://github.com/lunarforge/lunarforge" },
+  { label: "GitHub", href: "https://github.com/dommvr/lunar-forge" },
 ];
 
 export function SiteFooter({
@@ -44,9 +44,9 @@ export function SiteFooter({
           <span className={styles.name}>LunarForge</span>
         </div>
         <p className={styles.blurb}>
-          A Python coding agent that inspects projects, plans and edits safely,
-          runs approved commands locally or in Docker, and emits a structured
-          event stream for any interface.
+          A Python coding agent that inspects projects, makes permission-gated
+          edits, runs approved commands locally or in Docker, and emits a
+          structured event stream for any interface.
         </p>
         <div className={styles.release}>{RELEASE}</div>
       </div>

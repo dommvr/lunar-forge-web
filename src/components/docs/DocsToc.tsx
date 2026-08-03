@@ -10,7 +10,13 @@ import styles from "@/app/docs/docs.module.css";
  * Headings are observed with IntersectionObserver; the active entry gets the
  * orange left bar.
  */
-export function DocsToc({ entries }: { entries: TocEntry[] }) {
+export function DocsToc({
+  entries,
+  slug,
+}: {
+  entries: TocEntry[];
+  slug?: string;
+}) {
   const [active, setActive] = useState(entries[0]?.id ?? "");
 
   useEffect(() => {
@@ -57,13 +63,17 @@ export function DocsToc({ entries }: { entries: TocEntry[] }) {
       <div className={styles.tocMeta}>
         <a
           className={styles.tocMetaLink}
-          href="https://github.com/lunarforge/lunarforge"
+          href={
+            slug
+              ? `https://github.com/dommvr/lunar-forge-web/blob/main/content/docs/${slug}.mdx`
+              : "https://github.com/dommvr/lunar-forge-web"
+          }
         >
           Edit this page
         </a>
         <a
           className={styles.tocMetaLink}
-          href="https://github.com/lunarforge/lunarforge/issues"
+          href="https://github.com/dommvr/lunar-forge-web/issues"
         >
           Report an issue
         </a>

@@ -1,0 +1,43 @@
+---
+title: Troubleshooting
+description: Diagnose installation, configuration, Docker, optional UI, browser, MCP, and session failures.
+section: Reference
+sectionOrder: 6
+order: 3
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+keywords: [errors, Docker unavailable, API key, Playwright, config]
+---
+
+## CLI is not found
+
+Activate the virtual environment used for installation and run `python -m pip show lunar-forge`. Reinstall the source checkout with `python -m pip install -e .`, then confirm `lunar-forge --help`.
+
+## Provider authentication fails
+
+Check `model.api_key_env` and set that named environment variable in the process that starts LunarForge. Do not add `model.api_key` to YAML; the loader rejects raw keys.
+
+## Configuration is ignored
+
+Confirm the target project root. Precedence is CLI, project `.agent/config.yaml`, user `~/.lunar-forge/config.yaml`, environment overrides, then defaults. A higher-priority value may be winning.
+
+## Docker cannot start
+
+Verify Docker Desktop or a compatible engine is running and that the `lunar-forge-sandbox` image is available as required by the core workflow. LunarForge does not turn a failed Docker request into local execution.
+
+## Textual or browser features are missing
+
+Install `.[tui]` for chat and `.[browser]` for local Playwright validation. They are optional extras. Browser assets may need their own documented Playwright setup.
+
+## MCP or plugins expose no tools
+
+Both systems require a global enable switch and per-server or per-plugin enablement. Run `lunar-forge mcp list --project <path>` or `lunar-forge plugins list --project <path>` for bounded diagnostics.
+
+## A resumed action did not continue
+
+That is expected. Resume restores safe conversational context, not active process state. Historical tools are inert and approvals are never reused.
+
+<Callout kind="tip">
+When reporting a problem, include the core version, command shape with secrets removed, runtime and permission modes, platform, and the bounded error event or message.
+</Callout>

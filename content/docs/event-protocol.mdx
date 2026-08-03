@@ -1,0 +1,54 @@
+---
+title: Event protocol
+description: The versioned, bounded, redacted, JSON-safe event envelope and every core 0.1.0 event name.
+section: Reference
+sectionOrder: 6
+order: 1
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+featured: true
+keywords: [AgentEvent, EventType, schema_version, sequence, JSON]
+---
+
+## Envelope
+
+`AgentEvent` is the stable UI-neutral record yielded by the public agent stream. It contains no Rich or Textual objects.
+
+```json
+{
+  "schema_version": 1,
+  "event_id": "event_a17f",
+  "session_id": "session_b82c",
+  "turn_id": "turn_01",
+  "timestamp": "2026-07-29T12:00:00.000Z",
+  "type": "turn.started",
+  "payload": {},
+  "sequence": 1,
+  "parent_event_id": null
+}
+```
+
+`schema_version` must equal 1 in core 0.1.0. Sequence is a non-negative integer. Identifiers, payload strings, nesting, collections, and serialized payload size are bounded. Known secrets and ANSI styling are removed, unsupported objects become safe markers, and hidden reasoning is not included.
+
+## Event types
+
+Session and turn: `session.started`, `session.resumed`, `turn.started`, `turn.finished`, `turn.cancelled`, `status.updated`.
+
+Assistant and model: `assistant.message.delta`, `assistant.message.completed`, `model.call.started`, `model.call.finished`, `model.usage`.
+
+Tools and permissions: `tool.started`, `tool.finished`, `tool.failed`, `permission.requested`, `permission.resolved`.
+
+Workflows: `validation.started`, `validation.finished`, `browser.started`, `browser.finished`, `checkpoint.created`, `git.proposal`, `git.commit.created`, `git.commit.skipped`, `memory.compaction.started`, `memory.compaction.finished`, `rollback.started`, `rollback.finished`, `error`.
+
+## Ordering and parentage
+
+`EventFactory` assigns monotonically increasing sequence values within the factory's stream. `parent_event_id` can connect derived lifecycle records to their initiating event. A transport wrapper should preserve order and use sequence for replay offsets rather than infer state from timestamps.
+
+## Transport guidance
+
+Use `AgentEvent.to_dict()` or `to_json()` and corresponding deserialization helpers. Do not scrape the CLI renderer. A future server may carry the records over WebSocket or SSE, but that transport is not part of core 0.1.0.
+
+<Callout kind="note">
+Payload fields vary by event type and are intentionally bounded. Consumers should tolerate additional safe keys within a schema version and handle the `error` event explicitly.
+</Callout>

@@ -1,0 +1,35 @@
+---
+title: Local execution safety
+description: Understand the policy protections and OS-level limits of local command execution.
+section: Execution
+sectionOrder: 3
+order: 2
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+keywords: [local mode, project trust, command safety, isolation]
+---
+
+## What local mode does
+
+Approved local commands run with the project root as their working directory. LunarForge uses argument-vector subprocess execution, blocks known-dangerous command patterns, adds targeted warnings based on the operation and project trust, and records bounded results.
+
+Built-in file tools remain project-confined, and every guarded command still passes through the central permission policy.
+
+## What local mode cannot do
+
+Local execution is not an OS sandbox. A child process has the current user's permissions and may access resources that process can access. Working-directory selection does not confine a program that deliberately reads elsewhere.
+
+<Callout kind="danger">
+Do not use local mode for an untrusted repository, generated install script, or command you do not understand. Prefer Docker and keep network disabled.
+</Callout>
+
+## Project trust warnings
+
+`runtime.project_trust` accepts `auto`, `trusted`, `untrusted`, or `unknown`. It controls warning detail and is not an authorization switch. Hard refusals and approval requirements remain authoritative.
+
+Use `--plan` for read/search-only inspection or `--no-command` when edits are acceptable but command execution is not. Prompt wording alone is not a reliable substitute for these modes.
+
+## Secrets and output
+
+Provider keys are named by environment-variable configuration rather than stored in project YAML. Structured events and session records sanitize known credential fields and bound strings and collections, but you should still avoid commands that print secrets.

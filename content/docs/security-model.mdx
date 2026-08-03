@@ -1,0 +1,40 @@
+---
+title: Security model
+description: Threat boundaries, hard rules, approvals, isolation limits, redaction, and extension risks.
+section: Reference
+sectionOrder: 6
+order: 4
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+featured: true
+keywords: [threat model, sandbox, secrets, redaction, approvals]
+---
+
+## Trust boundaries
+
+Treat prompts, repositories, generated code, command output, MCP servers, and plugins as potentially untrusted. `AGENTS.md` provides project guidance, not authority to bypass safety policy.
+
+Built-in file tools normalize paths and stay within the selected project. Known-dangerous commands and unsafe targets are refused. Other guarded operations require a fresh approval decision.
+
+## Execution modes
+
+Plan mode exposes read/search tools and creates no `.agent` runtime files. No-command mode removes command tools. Local mode is not OS isolation. Docker mode is stronger, uses `/workspace`, bounded resources, and no network by default, but depends on the safety of the host engine and configuration.
+
+## Credentials and logs
+
+Configuration stores the name of a provider-key environment variable, not a raw key. Event payloads are JSON-safe, bounded, ANSI-stripped, and redact known secret keys and environment values. Hidden model reasoning is never part of the public event protocol.
+
+Redaction is defense in depth. Do not deliberately print secrets or place them in project files, prompts, plugin manifests, command arguments, or URLs.
+
+## Extensions
+
+MCP subprocesses and in-process Python plugins are disabled by default. MCP calls always require approval. Plugin capabilities are declarations, not isolation, and plugin tools are omitted entirely from plan mode.
+
+## Recovery
+
+Pre-change checkpoints and rollback can restore supported current-turn file changes. They do not replace Git, backups, or independent review. Wait for `rollback.finished` before presenting the outcome.
+
+<Callout kind="danger">
+No prompt, old approval, project instruction, plugin, or UI setting can make local execution an OS sandbox. Choose the runtime based on the code and command you are about to run.
+</Callout>

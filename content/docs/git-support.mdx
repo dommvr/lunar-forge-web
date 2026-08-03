@@ -1,0 +1,35 @@
+---
+title: Git support
+description: Inspect repository state, summarize diffs, and gate every commit proposal explicitly.
+section: Extending
+sectionOrder: 5
+order: 3
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+keywords: [git status, git diff, commit approval, proposal]
+---
+
+## Read-only Git context
+
+LunarForge can inspect bounded Git status and diff information to understand existing changes and evaluate commit readiness. Read-only Git helpers do not grant authority to alter the repository.
+
+Existing changes belong to the user. The agent should distinguish pre-existing work from changes made during the current session.
+
+## Guarded commits
+
+Commit creation is never implicit. A commit workflow first prepares a bounded proposal and emits `git.proposal`; the actual `git_commit` operation requires a `git_commit` approval request.
+
+Completion is represented by `git.commit.created` or `git.commit.skipped`. Consumers must not show a successful commit before the created event arrives.
+
+```bash
+lunar-forge --project ./my-app "Review the current diff and offer a commit if it is ready."
+```
+
+## Scope limits
+
+Core Git support is local. It does not push, open pull requests, manage hosted credentials, or clone private repositories as part of the agent loop.
+
+<Callout kind="warning">
+An approval applies to one proposed commit action. It does not authorize later commits, remote operations, or unrelated repository changes.
+</Callout>

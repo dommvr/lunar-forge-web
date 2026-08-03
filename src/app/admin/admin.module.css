@@ -1,0 +1,245 @@
+.shell {
+  min-height: 100svh;
+  background: var(--bg);
+}
+
+.header {
+  position: sticky;
+  z-index: 20;
+  top: 0;
+  display: flex;
+  height: var(--nav-h);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+  background: #0e1012ee;
+  backdrop-filter: blur(14px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.brand:hover {
+  color: var(--text);
+}
+
+.mark {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: 600 14px/1 var(--font-mono);
+}
+
+.section {
+  padding: 2px 7px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-full);
+  color: var(--text-muted);
+  font: 11px/1.4 var(--font-mono);
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  min-height: calc(100svh - var(--nav-h));
+}
+
+.sidebar {
+  position: sticky;
+  top: var(--nav-h);
+  height: calc(100svh - var(--nav-h));
+  padding: 28px 18px;
+  border-right: 1px solid var(--border);
+  background: var(--surface-sunken);
+}
+
+.sidebar nav {
+  display: grid;
+  gap: 3px;
+}
+
+.navLink,
+.activeLink {
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.navLink:hover,
+.activeLink {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.sidebar p {
+  position: absolute;
+  right: 18px;
+  bottom: 24px;
+  left: 18px;
+  color: var(--text-faint);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.main {
+  width: min(100%, 1120px);
+  padding: 48px;
+}
+
+.heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.eyebrow {
+  margin-bottom: 6px;
+  color: var(--accent);
+  font: 600 11px/1.5 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.heading h1 {
+  font-size: 32px;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.heading p {
+  max-width: 670px;
+  margin-top: 9px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.mfaBadge {
+  flex: none;
+  padding: 5px 9px;
+  border: 1px solid var(--success-ring);
+  border-radius: var(--r-full);
+  background: var(--success-bg);
+  color: var(--status-ready-fg);
+  font: 11px/1.4 var(--font-mono);
+}
+
+.notice {
+  margin-top: 28px;
+  padding: 12px 14px;
+  border: 1px solid var(--accent-ring);
+  border-radius: var(--r-sm);
+  background: #13110f;
+  color: #c9a581;
+  font-size: 13px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.card {
+  min-height: 150px;
+  scroll-margin-top: calc(var(--nav-h) + var(--space-4));
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.cardTop h2 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.cardTop span {
+  color: var(--text-faint);
+  font: 10.5px/1.4 var(--font-mono);
+}
+
+.card p {
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+@media (max-width: 800px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    overflow-x: auto;
+    padding: 10px 14px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar nav {
+    display: flex;
+  }
+
+  .sidebar p {
+    display: none;
+  }
+
+  .main {
+    padding: 30px 20px;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .header {
+    height: var(--nav-h-mobile);
+    padding: 0 14px;
+  }
+
+  .account > span,
+  .section {
+    display: none;
+  }
+
+  .body {
+    min-height: calc(100svh - var(--nav-h-mobile));
+  }
+
+  .heading {
+    flex-direction: column;
+  }
+}

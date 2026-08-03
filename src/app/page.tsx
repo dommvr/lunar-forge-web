@@ -28,20 +28,18 @@ const TONE_CLASS = {
   muted: styles.toneMuted,
 } as const;
 
-const PYTHON_SNIPPET = `# pip install lunarforge
-from lunarforge import Agent, Approval
+const PYTHON_SNIPPET = `# From a LunarForge checkout: python -m pip install -e .
+from lunar_forge import AgentRequest, run_agent_events
 
-agent = Agent(
-    project="./my-app",
-    runtime="docker",
-    effort="high",
+request = AgentRequest(
+    project_root="./my-app",
+    message="Run validation and fix one failure",
+    runtime_mode="docker",
+    reasoning_effort="high",
 )
 
-for event in agent.run("Run validation and fix one failure"):
-    if event.type == "approval.requested":
-        agent.respond(event.id, Approval.APPROVE)
-    else:
-        print(event.to_json())  # JSON-safe, UI-neutral`;
+for event in run_agent_events(request):
+    print(event.to_json())  # bounded, redacted, JSON-safe`;
 
 export default function LandingPage() {
   return (
@@ -54,7 +52,7 @@ export default function LandingPage() {
           <div className={styles.heroCopy}>
             <p className={styles.pill}>
               <span className={styles.dotGreen} aria-hidden="true" />
-              v0.8 · milestone 3 — sandbox preview
+              v0.1.0 · stable core API — hosted integration in progress
             </p>
             <h1 className={styles.h1}>
               A safe, extensible coding agent for real projects.
@@ -87,7 +85,7 @@ export default function LandingPage() {
             <figcaption className={styles.transcriptHead}>
               <span className={styles.session}>
                 <span className={styles.dotGreen} aria-hidden="true" />
-                lunarforge · session 8f3c2a
+                lunar-forge · session 8f3c2a
               </span>
               <span className={styles.tags}>
                 <span className={styles.tag}>docker</span>
@@ -169,8 +167,8 @@ export default function LandingPage() {
               </h2>
             </div>
             <p className={styles.sectionAside}>
-              Every capability emits structured events, so the CLI, the Textual
-              chat, and the web UI show the same truth.
+              Core activity emits structured events, so the CLI, Textual chat,
+              and future web integration can render the same public contract.
             </p>
           </div>
           <CapabilityGrid items={capabilities} />
@@ -224,9 +222,9 @@ export default function LandingPage() {
         <section className={styles.section}>
           <div className={styles.stack}>
             <p className={styles.eyebrow}>How it works</p>
-            <h2 className={styles.h2}>
-              One engine, one event stream, three interfaces.
-            </h2>
+              <h2 className={styles.h2}>
+                One engine, one event stream, multiple interfaces.
+              </h2>
           </div>
           <ol className={styles.flow}>
             {flowSteps.map((f, i) => (
@@ -292,45 +290,46 @@ export default function LandingPage() {
             </div>
             <div>
               <CodeBlock label="python" copyText={PYTHON_SNIPPET} density="roomy">
-                <div className={code.dim}># pip install lunarforge</div>
+                <div className={code.dim}>
+                  # From a LunarForge checkout: python -m pip install -e .
+                </div>
                 <div>
-                  <span className={code.kw}>from</span> lunarforge{" "}
-                  <span className={code.kw}>import</span> Agent, Approval
+                  <span className={code.kw}>from</span> lunar_forge{" "}
+                  <span className={code.kw}>import</span> AgentRequest,
+                  run_agent_events
                 </div>
                 <div>&nbsp;</div>
-                <div>agent = Agent(</div>
+                <div>request = AgentRequest(</div>
                 <div>
-                  {"    "}project=<span className={code.str}>&quot;./my-app&quot;</span>,
+                  {"    "}project_root=
+                  <span className={code.str}>&quot;./my-app&quot;</span>,
                 </div>
                 <div>
-                  {"    "}runtime=<span className={code.str}>&quot;docker&quot;</span>,
+                  {"    "}message=
+                  <span className={code.str}>
+                    &quot;Run validation and fix one failure&quot;
+                  </span>
+                  ,
                 </div>
                 <div>
-                  {"    "}effort=<span className={code.str}>&quot;high&quot;</span>,
+                  {"    "}runtime_mode=
+                  <span className={code.str}>&quot;docker&quot;</span>,
+                </div>
+                <div>
+                  {"    "}reasoning_effort=
+                  <span className={code.str}>&quot;high&quot;</span>,
                 </div>
                 <div>)</div>
                 <div>&nbsp;</div>
                 <div>
                   <span className={code.kw}>for</span> event{" "}
-                  <span className={code.kw}>in</span> agent.run(
-                  <span className={code.str}>
-                    &quot;Run validation and fix one failure&quot;
+                  <span className={code.kw}>in</span> run_agent_events(request):
+                </div>
+                <div>
+                  {"    "}print(event.to_json()){"  "}
+                  <span className={code.dim}>
+                    # bounded, redacted, JSON-safe
                   </span>
-                  ):
-                </div>
-                <div>
-                  {"    "}
-                  <span className={code.kw}>if</span> event.type =={" "}
-                  <span className={code.str}>&quot;approval.requested&quot;</span>:
-                </div>
-                <div>{"        "}agent.respond(event.id, Approval.APPROVE)</div>
-                <div>
-                  {"    "}
-                  <span className={code.kw}>else</span>:
-                </div>
-                <div>
-                  {"        "}print(event.to_json()){"  "}
-                  <span className={code.dim}># JSON-safe, UI-neutral</span>
                 </div>
               </CodeBlock>
             </div>
@@ -343,8 +342,9 @@ export default function LandingPage() {
             Point it at a repository. Approve the first command.
           </h2>
           <p className={styles.ctaBody}>
-            The browser sandbox runs a disposable session — no install, no
-            repository access, same event stream.
+            The browser route currently replays a deterministic UI fixture. The
+            hosted runtime will connect this preserved interface to the same
+            structured core events.
           </p>
           <div className={styles.ctaActions}>
             <ButtonLink href="/sandbox" variant="primary" size="cta">

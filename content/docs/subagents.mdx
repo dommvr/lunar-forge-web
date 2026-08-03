@@ -1,0 +1,39 @@
+---
+title: Subagents
+description: Enable the deterministic specialist sequence and its bounded parallel phases.
+section: Sessions
+sectionOrder: 4
+order: 3
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+keywords: [planner, coder, tester, reviewer, parallel subagents]
+---
+
+## Opt in explicitly
+
+Single-agent execution is the default. Enable specialist routing with `--subagents` or configuration. Parallel phases require the additional parallel opt-in.
+
+```yaml
+subagents:
+  enabled: true
+  parallel: true
+```
+
+```bash
+lunar-forge --parallel-subagents --project ./my-app "Add a pricing page"
+```
+
+## Deterministic roles
+
+Existing-project mutation work follows a finite Planner → Coder → Tester → Reviewer shape. Task-aware routing skips roles that are not needed. Sensitive requests may add the read-only Security role. New-project work uses a serialized Scaffolder before testing and review.
+
+Each role receives an explicit tool allowlist. Coder remains serialized; mutation tools are not handed to parallel roles. Read-only and post-edit pairs may run concurrently when enabled.
+
+## Safety and events
+
+Restricted registry views still delegate permitted calls to the shared central registry, so paths, approvals, redaction, session changes, and output bounds stay single-sourced. Session lifecycle events include role and phase metadata.
+
+<Callout kind="note">
+This is deterministic role handoff, not autonomous background-agent execution. Parallel groups are fixed and synchronous, and final reporting follows declared phase order rather than thread completion order.
+</Callout>

@@ -1,0 +1,35 @@
+---
+title: BYOK and privacy
+description: Planned bring-your-own-key handling, owner-funded controls, deletion, and retention boundaries.
+section: Hosted sandbox
+sectionOrder: 7
+order: 2
+status: Planned — not released
+version: "Web roadmap"
+verified: "2026-08-02"
+keywords: [BYOK, privacy, credentials, retention, planned]
+---
+
+## Release status
+
+BYOK and owner-funded model modes are planned for the hosted sandbox and are not implemented in the current frontend fixture.
+
+## Planned BYOK handling
+
+Initial BYOK providers are OpenAI and Anthropic. A key will remain only in browser component memory, be resent for each turn, and require re-entry after reload. It will not be written to `localStorage`, `sessionStorage`, IndexedDB, cookies, analytics, URLs, error reports, Neon, Redis, Cloud Logging, E2B metadata, E2B environment variables, or task payloads.
+
+FastAPI will forward the key only to the private worker invocation. The worker will hold it in process memory for that turn and logging will redact known credential fields. Events and responses must never echo it.
+
+<Callout kind="note">
+This is a design requirement, not a deployed guarantee today. The feature should not be presented as available until storage, logging, exception, and browser-persistence tests pass.
+</Callout>
+
+## Planned owner-funded mode
+
+The owner key will live in Google Secret Manager and be injected only into the private worker. It will never be returned to the frontend or placed in the E2B sandbox environment. Per-user and global hard limits plus an admin kill switch protect it.
+
+## Planned deletion and retention
+
+At sandbox expiry or deletion, detailed prompts, project files, events, command output, artifacts, credentials, preview tokens, and the E2B sandbox will be removed. Bounded metadata such as identity references, timestamps, usage totals, error codes, approval metadata, and cleanup outcomes is planned for 30-day retention.
+
+The retained audit record will not include prompts, source files, secrets, hidden reasoning, or full command output.

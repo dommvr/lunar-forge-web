@@ -1,6 +1,6 @@
 /** Data for the /compare route. Mirrors `project/Comparison.dc.html`. */
 
-export const RUN_DATE = "2026-07-24";
+export const RUN_DATE = "sample fixture";
 
 export type Agent = {
   id: "lunarforge" | "claude-code" | "codex";
@@ -23,7 +23,7 @@ export const agents: Agent[] = [
     id: "lunarforge",
     name: "LunarForge",
     mark: "L",
-    badge: "this project",
+    badge: "sample data",
     badgeTone: "accent",
     featured: true,
     wallClock: "6:12",
@@ -32,7 +32,7 @@ export const agents: Agent[] = [
     tokensOut: "9.4k",
     tests: "18 / 18 green",
     testsTone: "success",
-    note: "Ran in Docker. Five approval gates, all answered in-session; no edits by hand, no scope creep outside the two touched modules.",
+    note: "Illustrative scenario: Docker execution, five approval gates, no hand edits, and no scope creep outside the touched modules.",
   },
   {
     id: "claude-code",
@@ -47,7 +47,7 @@ export const agents: Agent[] = [
     tokensOut: "11.2k",
     tests: "18 / 18 green",
     testsTone: "success",
-    note: "Ran on the host with an allowlist. Quickest to a green suite; one intervention when it started refactoring an unrelated serializer.",
+    note: "Illustrative scenario: host execution, a green suite, and one intervention for an unrelated serializer refactor.",
   },
   {
     id: "codex",
@@ -62,7 +62,7 @@ export const agents: Agent[] = [
     tokensOut: "8.1k",
     tests: "16 / 18",
     testsTone: "warning",
-    note: "Ran in its own container. Smallest diff and lowest spend, but stopped with two failing cases on the legacy offset path.",
+    note: "Illustrative scenario: container execution, the smallest diff, and two remaining failures on the legacy offset path.",
   },
 ];
 
@@ -224,43 +224,43 @@ export const qualitative: { n: string; title: string; body: string }[] = (
     [
       "01",
       "Approval boundaries",
-      "LunarForge and Codex paused before every command. Claude Code ran nine commands under an allowlist — faster in practice, and the reason its wall clock is lowest.",
+      "A real run record should make approval settings explicit so wall-clock differences can be interpreted rather than treated as equivalent.",
     ],
     [
       "02",
       "Where the code runs",
-      "Only LunarForge and Codex executed inside a container. On the host run, a bad command has nothing between it and your machine.",
+      "A real comparison should distinguish host execution from container execution because the safety boundaries are materially different.",
     ],
     [
       "03",
       "Staying inside scope",
-      "One run edited a module the prompt never mentioned. It was a good change, but it was not the change that was asked for.",
+      "A useful review records out-of-scope edits even when they are technically sound.",
     ],
     [
       "04",
       "What you can replay",
-      "A JSON event stream can be diffed, logged and replayed in CI. A chat transcript cannot, which is why this page has numbers at all.",
+      "LunarForge AgentEvent records are JSON-safe; any future harness should retain enough structured evidence to reproduce its calculations.",
     ],
   ] as [string, string, string][]
 ).map(([n, title, body]) => ({ n, title, body }));
 
 export const methodology = [
-  "Same repository at the same commit, restored from a clean checkout before each run.",
-  "Identical prompt, pasted verbatim; no follow-up steering except where an intervention is recorded.",
-  "Same frontier model and pricing applied to all three token counts.",
-  "Wall clock measured from first tool call to last, approval wait time excluded.",
-  "Pass criterion fixed in advance: pytest -q green with no hand edits.",
+  "Use the same repository commit and restore a clean checkout before each run.",
+  "Use one verbatim prompt and record every follow-up intervention.",
+  "Pin the same model and pricing basis before comparing token costs.",
+  "Define wall-clock boundaries and approval-wait handling in advance.",
+  "Fix the validation pass criterion before any agent starts.",
 ];
 
 export const caveats = [
-  "One task on one codebase. Results move with repo size, language and prompt style.",
-  "Approval settings are configurable in all three tools — the defaults were used, not the fastest possible setup.",
-  "Cost is modelled from token counts at list pricing, not billed usage.",
-  "This page is published by the LunarForge project. Read it as a claim to check, not a verdict.",
+  "All values on this route are illustrative design fixtures, not measured benchmark results.",
+  "No run log or benchmark harness is included in the current repository baseline.",
+  "One task would not establish general performance even after a real run.",
+  "Approval settings, runtime isolation, and provider accounting require explicit normalization.",
 ];
 
 export const taskFacts: { label: string; value: string }[] = [
-  { label: "Repository", value: "threadwell/api · 41k LOC" },
+  { label: "Repository", value: "fictional fixture · 41k LOC" },
   { label: "Stack", value: "FastAPI · SQLAlchemy · pytest" },
   { label: "Model", value: "Same frontier model, all runs" },
   { label: "Pass criterion", value: "pytest -q green, no edits by hand" },

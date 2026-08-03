@@ -2,8 +2,21 @@ node_modules/
 .next/
 out/
 build/
+coverage/
+playwright-report/
+test-results/
 next-env.d.ts
 *.tsbuildinfo
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+backend/.venv/
+backend/dist/
+backend/*.egg-info/
 
 .env*.local
 .DS_Store

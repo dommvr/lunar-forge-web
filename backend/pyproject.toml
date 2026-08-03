@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lunar-forge-web-backend"
+version = "0.1.0"
+description = "Private API and turn-worker contracts for LunarForge Web."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "aiosqlite>=0.21,<1",
+  "alembic>=1.16,<2",
+  "asyncpg>=0.30,<1",
+  "email-validator>=2.2,<3",
+  "fastapi>=0.116,<1",
+  "httpx>=0.28,<1",
+  "pydantic>=2.11,<3",
+  "pydantic-settings>=2.10,<3",
+  "pyjwt[crypto]>=2.10,<3",
+  "sqlalchemy[asyncio]>=2.0.41,<3",
+  "uvicorn[standard]>=0.35,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx2>=2,<3",
+  "pytest>=8.4,<10",
+  "pytest-asyncio>=1.0,<2",
+]
+
+[project.scripts]
+lunar-forge-web-api = "lunar_forge_web.api.main:run"
+lunar-forge-web-worker = "lunar_forge_web.worker.main:run"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lunar_forge_web"]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-config --strict-markers"
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["lunar_forge_web"]

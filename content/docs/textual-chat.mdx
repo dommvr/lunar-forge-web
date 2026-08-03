@@ -1,0 +1,47 @@
+---
+title: Textual chat
+description: Install and use the optional continuous terminal interface and its safe session controls.
+section: Using the agent
+sectionOrder: 2
+order: 2
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+keywords: [Textual, chat, slash commands, multiline]
+---
+
+## Install and start
+
+Textual is optional; the one-shot CLI and public Python API do not depend on it.
+
+```bash
+python -m pip install -e ".[tui]"
+lunar-forge chat --project ./my-app
+```
+
+The chat UI consumes the same structured events and approval provider contract as the one-shot interface. Multiple turns share one project-local JSONL session until you finish or switch projects.
+
+## Interaction model
+
+Enter sends a prompt. Multiline paste is supported, including a Windows clipboard fallback where available. Shift+Enter is not an advertised newline shortcut. Verify pasted content before sending; submitted prompts become session content.
+
+Temporary progress describes the public phase and current bounded operation. It does not expose hidden reasoning. Approval dialogs keep a fixed Deny/Approve footer while long details scroll.
+
+## Slash commands
+
+The implemented surface includes help and status, clearing and finishing, project switching, sessions and resume, working-memory compaction, runtime and permission settings, subagent controls, MCP and plugin diagnostics, Git workflows, and usage display. Type `/` in chat to inspect the installed command list.
+
+```text
+/status
+/compact
+/sessions
+/resume latest
+/runtime
+/permissions
+/subagents
+/git status
+```
+
+<Callout kind="note">
+`/clear` changes the visible transcript; session and safety behavior remain governed by the core runtime. Resume always uses inert history and fresh approval decisions.
+</Callout>

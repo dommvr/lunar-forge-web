@@ -1,0 +1,37 @@
+---
+title: Hosted sandbox
+description: Planned authenticated LunarForge Web execution architecture and its release boundary.
+section: Hosted sandbox
+sectionOrder: 7
+order: 1
+status: Planned — not released
+version: "Web roadmap"
+verified: "2026-08-02"
+keywords: [E2B, Cloud Run, Supabase, hosted UI, planned]
+---
+
+## Release status
+
+The hosted sandbox is planned and is not released. The current `/sandbox` route is a deterministic frontend fixture: it does not authenticate a user, create an E2B sandbox, execute LunarForge, stream backend events, or retain a project.
+
+<Callout kind="warning">
+Do not use the current UI as evidence that cloud isolation, network controls, preview tickets, cleanup, or quotas are active. Those controls require backend integration and validation.
+</Callout>
+
+## Planned architecture
+
+The approved initial design uses a Next.js frontend on Vercel, a FastAPI API and private turn worker on Google Cloud Run, Supabase Auth, Neon PostgreSQL metadata, Upstash Redis event/control streams, Google Secret Manager, and E2B as the first runtime provider.
+
+The browser will render core `AgentEvent` records and will never parse terminal output. One-time Redis-backed tickets will authenticate WebSocket connections; long-lived Supabase JWTs will not appear in WebSocket query strings.
+
+## Planned access and lifecycle
+
+The sandbox will be invite-only. Ownership checks remain server-side. One active sandbox per user and a 30-minute inactivity lifetime are initial policy targets. Activity, not passive heartbeats, may extend the lifetime.
+
+Starter templates and public HTTPS Git repositories are the initial project sources. Uploads, private GitHub access, and an admin-only separate Docker worker are later phases.
+
+## Planned isolation
+
+E2B network access is denied by default. Dependency installation, Git operations requiring network, browser/dev-server startup, and other risky effects require explicit approval. If provider-enforced per-operation egress cannot be implemented safely, the feature remains unavailable rather than being simulated in the UI.
+
+Authenticated previews will use a separate origin and short-lived ticket, not the main application origin or a browser-visible E2B token.

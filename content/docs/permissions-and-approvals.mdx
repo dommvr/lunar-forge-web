@@ -1,0 +1,99 @@
+---
+title: Permissions and approvals
+description: The approval gate, policy settings, CLI decisions, events, and resumed-session behavior.
+section: Execution
+sectionOrder: 3
+order: 1
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+featured: true
+keywords: [permission.requested, permission.resolved, ApprovalRequest, yes mode]
+---
+
+## How the gate works
+
+Guarded work produces an `ApprovalRequest` before it proceeds. The request has a collision-resistant ID plus a bounded `kind`, title, summary, details, risk, mode, and operation-specific fields. A UI-independent approval provider returns one matching `ApprovalDecision`.
+
+Supported request kinds in core 0.1.0 are `command`, `write`, `git_commit`, `browser_server`, `mcp_tool`, and `plugin_tool`. A decision authorizes only that request.
+
+<Callout kind="note">
+Default mode asks before every file mutation and command. Unsafe paths and known-dangerous commands are refused rather than turned into approval prompts.
+</Callout>
+
+## Configuring policy
+
+Project settings live in `.agent/config.yaml`; user defaults live in `~/.lunar-forge/config.yaml`. CLI flags take precedence. `AGENTS.md` can describe workflow, but it cannot weaken hard safety checks.
+
+```yaml
+runtime:
+  mode: docker
+  allow_network: false
+
+permissions:
+  mode: default
+
+model:
+  reasoning:
+    effort: high
+```
+
+<Callout kind="warning">
+`permissions.mode: yes` auto-approves only eligible low-risk writes that are not dependency installs. Commands and dependency installation still need a decision.
+</Callout>
+
+## Options reference
+
+| Option | Values | Default | Meaning |
+| --- | --- | --- | --- |
+| `permissions.mode` | `default`, `yes`, `no-command`, `plan`, `docker` | `default` | Selects the public permission policy. |
+| `runtime.mode` | `local`, `docker`, `no-command` | `local` | Selects command execution or removes command tools. |
+| `runtime.allow_network` | Boolean | `false` | Docker only; switches networking from none to bridge. Approval still applies. |
+| `runtime.project_trust` | `auto`, `trusted`, `untrusted`, `unknown` | `auto` | Changes local warning detail; never authorizes work. |
+| `model.reasoning.effort` | `low`, `medium`, `high`, `xhigh`, `max` | `medium` | Passed only when supported by the configured model/API. |
+
+## Approving from the CLI
+
+1. Start a task with `lunar-forge --project <path> "<task>"`, or resume with `lunar-forge resume <session> --project <path>`.
+2. Read the complete bounded operation details. Pressing Enter, unavailable input, or cancellation uses the request's safe default, normally denial.
+3. Enter `y` or `yes` to approve. The decision is written to the redacted project-local session record.
+
+```text
+$ lunar-forge --docker --project ./my-app "run validation and fix one failure"
+Run Docker command: pytest -q
+This runs inside lunar-forge-sandbox with the project mounted at /workspace.
+Allow? [y/N] y
+```
+
+### Event payload
+
+The public stream uses `permission.requested` and `permission.resolved`. Legacy session records are adapted into the same versioned envelope.
+
+```json
+{
+  "schema_version": 1,
+  "event_id": "event_7c1e",
+  "session_id": "session_8f3c2a",
+  "turn_id": "turn_02",
+  "timestamp": "2026-07-29T12:00:00.000Z",
+  "type": "permission.requested",
+  "payload": {
+    "id": "approval_7c1e",
+    "request_id": "approval_7c1e",
+    "kind": "command",
+    "title": "Run command",
+    "summary": "pytest -q",
+    "details": "Run Docker command: pytest -q",
+    "risk": "medium",
+    "mode": "docker",
+    "default": false,
+    "command": "pytest -q"
+  },
+  "sequence": 12,
+  "parent_event_id": null
+}
+```
+
+### Resumed sessions
+
+Resume loads bounded conversation context into a new linked session. Historical tools are not replayed and prior approvals are not reused. Any new guarded operation must produce a fresh request and decision.

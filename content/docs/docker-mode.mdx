@@ -1,0 +1,35 @@
+---
+title: Docker mode
+description: Run approved commands in the core sandbox image with bounded mounts and network off by default.
+section: Execution
+sectionOrder: 3
+order: 3
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+keywords: [Docker, lunar-forge-sandbox, workspace, network]
+---
+
+## Runtime shape
+
+Docker mode runs approved commands in the `lunar-forge-sandbox` image. The selected project is mounted at `/workspace`. Core targets a 2 GiB memory limit and 2 CPUs, with network disabled by default.
+
+```bash
+lunar-forge --docker --project ./my-app "Run the tests and summarize failures"
+```
+
+Docker Desktop or another compatible engine must already be installed and running. LunarForge does not silently fall back to local execution when Docker is unavailable.
+
+## Network access
+
+`--allow-network` or `runtime.allow_network: true` changes Docker networking from none to bridge. It does not bypass command approval. Core 0.1.0 does not offer a per-domain egress allowlist.
+
+<Callout kind="warning">
+Network access broadens the container's reach. Review dependency installers and remote endpoints before approval; keep networking off when the task does not need it.
+</Callout>
+
+## Boundary and limitations
+
+Docker is recommended for unfamiliar projects and dependency installs. It is a stronger boundary than local mode, but not a guarantee against every Docker-engine, image, mount, or host misconfiguration.
+
+The hosted E2B runtime described in this site's [hosted sandbox plan](/docs/hosted-sandbox) is separate and not released. Core Docker is local and controlled through the installed CLI or Textual UI.

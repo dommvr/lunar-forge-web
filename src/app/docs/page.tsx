@@ -20,9 +20,9 @@ export default function DocsOverviewPage() {
         <div className={styles.kicker}>Documentation</div>
         <h1 className={styles.h1}>LunarForge documentation</h1>
         <p className={styles.intro}>
-          Install the agent, point it at a project, and understand exactly what
-          it is allowed to do. Start with the quick start, then read the safety
-          model before running anything unfamiliar.
+          Install the core agent, point it at a project, and understand exactly
+          what it is allowed to do. Navigation and search below are generated
+          from the MDX content in this portal.
         </p>
 
         <div className={styles.startCards}>
@@ -33,8 +33,7 @@ export default function DocsOverviewPage() {
             <span className={styles.startCardLabel}>START HERE</span>
             <span className={styles.startCardTitle}>Quick start</span>
             <span className={styles.startCardBody}>
-              Install, run your first task in Docker, and approve a command —
-              about five minutes.
+              Inspect in plan mode, then opt into guarded local or Docker work.
             </span>
           </Link>
           <Link href="/docs/security-model" className={styles.startCard}>

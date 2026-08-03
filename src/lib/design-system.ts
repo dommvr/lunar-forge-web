@@ -355,7 +355,7 @@ export const interactionNotes: [string, string][][] = [
     ],
     [
       "Approval flow",
-      "An approval.requested event pauses the run, disables the composer, and renders the panel inline at the end of the transcript. Focus moves to Deny (the safe default). Long commands scroll inside the details region; the action row never scrolls away. On mobile it is a bottom sheet pinned above the keyboard.",
+      "A permission.requested event pauses the run, disables the composer, and renders the panel inline at the end of the transcript. Focus moves to Deny (the safe default). Long commands scroll inside the details region; the action row never scrolls away. On mobile it is a bottom sheet pinned above the keyboard.",
     ],
   ],
   [

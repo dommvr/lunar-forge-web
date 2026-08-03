@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     template: "%s · LunarForge",
   },
   description:
-    "LunarForge inspects your repository, follows root and nested AGENTS.md instructions, plans changes, edits files inside project boundaries, and runs only the commands you approve — locally or in Docker.",
+    "LunarForge inspects your repository, follows root and nested AGENTS.md instructions, plans changes, makes permission-gated edits inside project boundaries, and runs approved commands locally or in Docker.",
 };
 
 export const viewport: Viewport = {

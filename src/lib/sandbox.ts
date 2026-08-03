@@ -20,7 +20,7 @@ export function projectTree(changed: boolean): FileNode[] {
       ["·", "Nav.tsx", 2, ""],
       ["·", "AGENTS.md", 1, ""],
       ["·", "package.json", 1, changed ? "M" : ""],
-      ["·", "lunarforge.yaml", 1, ""],
+      ["·", ".agent/config.yaml", 1, ""],
       ["·", "README.md", 1, ""],
     ] as [FileNode["icon"], string, number, FileNode["tag"]][]
   ).map(([icon, name, level, tag]) => ({ icon, name, level, tag }));
@@ -44,21 +44,21 @@ export const examplePrompts = [
 export type MetaChip = { k: string; v: string; hot?: boolean };
 
 export const readyMeta: MetaChip[] = [
-  { k: "session", v: "8f3c2a" },
-  { k: "runtime", v: "docker" },
-  { k: "model", v: "provider-neutral" },
-  { k: "effort", v: "medium" },
-  { k: "network", v: "off" },
-  { k: "time left", v: "29:41" },
+  { k: "session", v: "fixture" },
+  { k: "runtime", v: "scripted" },
+  { k: "model", v: "not connected" },
+  { k: "effort", v: "n/a" },
+  { k: "network", v: "not connected" },
+  { k: "time left", v: "preview" },
 ];
 
 export const activeMeta: MetaChip[] = [
-  { k: "session", v: "8f3c2a" },
-  { k: "runtime", v: "docker" },
-  { k: "model", v: "provider-neutral" },
-  { k: "effort", v: "medium" },
-  { k: "network", v: "off" },
-  { k: "time left", v: "18:24", hot: true },
+  { k: "session", v: "fixture" },
+  { k: "runtime", v: "scripted" },
+  { k: "model", v: "not connected" },
+  { k: "effort", v: "n/a" },
+  { k: "network", v: "not connected" },
+  { k: "time left", v: "preview", hot: true },
 ];
 
 export type ActivityEvent = {
@@ -70,32 +70,32 @@ export type ActivityEvent = {
 
 export const activityLog: ActivityEvent[] = [
   {
-    name: "sandbox.ready",
-    detail: "container started · image node-22",
+    name: "session.started",
+    detail: "deterministic UI fixture",
     time: "0.0s",
     tone: "success",
   },
   {
-    name: "project.mounted",
-    detail: "/workspace/sample-app · 24 files",
+    name: "status.updated",
+    detail: "sample project fixture loaded",
     time: "0.4s",
     tone: "success",
   },
   {
-    name: "agents.loaded",
-    detail: "AGENTS.md · 1 nested file",
+    name: "tool.started",
+    detail: "read_file · AGENTS.md",
     time: "0.6s",
     tone: "success",
   },
   {
-    name: "session.created",
-    detail: "8f3c2a · resumable",
+    name: "tool.finished",
+    detail: "read_file · ok",
     time: "0.7s",
     tone: "muted",
   },
   {
-    name: "stream.open",
-    detail: "structured events attached",
+    name: "status.updated",
+    detail: "fixture ready · no backend attached",
     time: "0.8s",
     tone: "muted",
   },
@@ -126,12 +126,12 @@ export const toolRows: ToolRow[] = [
 ];
 
 export const APPROVAL_COMMAND =
-  "npm run validate -- --reporter=json --max-warnings=0 --project /workspace/sample-app --output /workspace/.lunarforge/validation-8f3c2a.json";
+  "npm run validate -- --reporter=json --max-warnings=0 --project /workspace/sample-app --output /workspace/.agent/validation-8f3c2a.json";
 
 export const approvalMeta: { k: string; v: string }[] = [
   { k: "runtime", v: "docker · node-22 · no network" },
   { k: "cwd", v: "/workspace/sample-app" },
-  { k: "writes", v: ".lunarforge/ (session artifacts)" },
+  { k: "writes", v: ".agent/ (session artifacts)" },
   { k: "requested by", v: "main agent · step 4 of 5" },
 ];
 

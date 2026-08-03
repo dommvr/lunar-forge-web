@@ -1,0 +1,1081 @@
+{
+  "schemaVersion": 1,
+  "pages": [
+    {
+      "slug": "introduction",
+      "title": "Introduction",
+      "description": "What LunarForge is, what the current core ships, and where its safety boundaries sit.",
+      "section": "Getting started",
+      "sectionOrder": 1,
+      "order": 1,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": true,
+      "keywords": [
+        "coding agent",
+        "CLI",
+        "Textual",
+        "structured events"
+      ],
+      "headings": [
+        {
+          "id": "what-lunarforge-is",
+          "title": "What LunarForge is",
+          "level": 0
+        },
+        {
+          "id": "one-engine-multiple-interfaces",
+          "title": "One engine, multiple interfaces",
+          "level": 0
+        },
+        {
+          "id": "safety-in-plain-language",
+          "title": "Safety in plain language",
+          "level": 0
+        },
+        {
+          "id": "current-scope",
+          "title": "Current scope",
+          "level": 0
+        }
+      ],
+      "searchText": "What LunarForge is LunarForge is a Python coding agent for inspecting, planning, editing, and validating one selected local project. It applies AGENTS.md instructions, keeps built-in file operations inside the project root, and gates guarded work through explicit permissions. The current core release provides a one-shot CLI, an optional Textual terminal chat, redacted JSONL sessions, deterministic specialist subagents, and a typed event API for other interfaces. The hosted browser sandbox shown on this site is a design fixture today. Authentication, cloud execution, persistence, and realtime transport are planned in LunarForge Web; they are not features of core 0.1.0. One engine, multiple interfaces The CLI and terminal chat use the same agent loop, event records, approval providers, and session format. Future wrappers should consume the public lunar_forge API rather than import terminal renderers or private runtime helpers. Safety in plain language Local mode is a policy boundary, not an operating-system sandbox. Approved commands run with the current user's permissions. Docker mode is a stronger boundary, using the lunar-forge-sandbox image, a /workspace mount, and no network by default, but it cannot eliminate every host or container-engine risk. Hard path and command refusals remain in force regardless of prompts, project instructions, old approvals, plugins, or UI. Current scope Core 0.1.0 supports one project root at a time. It is not a hosted service, background daemon, semantic index, vector database, billing system, or multi-repository workspace. Read the quick start, then choose the execution mode appropriate for the project."
+    },
+    {
+      "slug": "installation",
+      "title": "Installation",
+      "description": "Install LunarForge core from source with Python 3.11 or newer and optional extras.",
+      "section": "Getting started",
+      "sectionOrder": 1,
+      "order": 2,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": false,
+      "keywords": [
+        "pip",
+        "Python 3.11",
+        "tui extra",
+        "browser extra"
+      ],
+      "headings": [
+        {
+          "id": "requirements",
+          "title": "Requirements",
+          "level": 0
+        },
+        {
+          "id": "install-from-the-repository",
+          "title": "Install from the repository",
+          "level": 0
+        },
+        {
+          "id": "configure-a-provider-key",
+          "title": "Configure a provider key",
+          "level": 0
+        },
+        {
+          "id": "verify-the-install",
+          "title": "Verify the install",
+          "level": 0
+        }
+      ],
+      "searchText": "Requirements LunarForge requires Python 3.11 or newer. Docker is optional and needed only for Docker execution. Textual chat and local Playwright validation are optional extras. Install from the repository The current core documentation supports an editable source install. From a clone of the core repository: On POSIX shells, activate the environment with source .venv/bin/activate. Install development dependencies with python -m pip install -e \".[dev]\". Install the Textual interface with .[tui], and local browser validation with .[browser]. The distribution and CLI are spelled lunar-forge; Python imports use lunar_forge. The current core README does not publish a PyPI installation command, so these docs do not claim one. Configure a provider key Set the environment variable named by model.api_key_env. The default name is OPENAI_API_KEY. Never put a raw key in .agent/config.yaml. The configuration loader rejects model.api_key; it accepts only the name in model.api_key_env. Verify the install Use lunar-forge --help to confirm the console entry point. A safe first request is the plan-only command in the quick start, which exposes read and search tools but creates no .agent runtime files."
+    },
+    {
+      "slug": "quick-start",
+      "title": "Quick start",
+      "description": "Inspect a project, make a plan-only request, and opt into guarded execution.",
+      "section": "Getting started",
+      "sectionOrder": 1,
+      "order": 3,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": true,
+      "keywords": [
+        "first task",
+        "plan",
+        "Docker",
+        "approvals"
+      ],
+      "headings": [
+        {
+          "id": "inspect-without-changing-files",
+          "title": "Inspect without changing files",
+          "level": 0
+        },
+        {
+          "id": "run-an-editing-task",
+          "title": "Run an editing task",
+          "level": 0
+        },
+        {
+          "id": "prefer-docker-for-unfamiliar-work",
+          "title": "Prefer Docker for unfamiliar work",
+          "level": 0
+        },
+        {
+          "id": "continue-in-terminal-chat",
+          "title": "Continue in terminal chat",
+          "level": 0
+        }
+      ],
+      "searchText": "Inspect without changing files Choose an existing project and start with plan mode: --plan exposes only read and search tools. It does not edit files, run commands, or create .agent runtime data. Run an editing task Default permission mode asks before file mutations and commands: Review every request. Pressing Enter at the CLI prompt selects the safe No default. Approving a write or command authorizes that bounded operation, not later operations. Prefer Docker for unfamiliar work Docker commands run in lunar-forge-sandbox with the project mounted at /workspace. Network is disabled unless --allow-network is also supplied, and command approval is still required. Read permissions and approvals before enabling permissions.mode: yes; it auto-approves only eligible low-risk writes, never commands or dependency installation. Continue in terminal chat If you installed the tui extra, start a multi-turn session with: Resume loads bounded historical conversation context into a new linked session. Old tool calls stay inert and old approvals are never reused."
+    },
+    {
+      "slug": "configuration",
+      "title": "Configuration",
+      "description": "Configuration files, environment overrides, precedence, and safe model settings.",
+      "section": "Getting started",
+      "sectionOrder": 1,
+      "order": 4,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": false,
+      "keywords": [
+        ".agent/config.yaml",
+        "environment",
+        "precedence",
+        "reasoning effort"
+      ],
+      "headings": [
+        {
+          "id": "precedence",
+          "title": "Precedence",
+          "level": 0
+        },
+        {
+          "id": "model-settings",
+          "title": "Model settings",
+          "level": 0
+        },
+        {
+          "id": "runtime-and-permission-settings",
+          "title": "Runtime and permission settings",
+          "level": 0
+        },
+        {
+          "id": "environment-overrides",
+          "title": "Environment overrides",
+          "level": 0
+        }
+      ],
+      "searchText": "Precedence Configuration is merged from lowest to highest priority: built-in defaults, LUNAR_FORGE_ environment variables, /.lunar-forge/config.yaml, /.agent/config.yaml, then CLI flags. Model settings model.api accepts chat or responses. Reasoning effort accepts low, medium, high, xhigh, or max, but a provider/API combination may not support every value. LunarForge warns and continues without sending unsupported reasoning settings. model.api_key_env contains an environment-variable name, not a credential. Raw model.api_key values are rejected. Runtime and permission settings runtime.mode accepts local, docker, or no-command. runtime.allow_network is meaningful only with Docker. runtime.project_trust accepts auto, trusted, untrusted, or unknown and changes warning detail; it never grants authority. Permission modes include default, yes, no-command, plan, and the Docker compatibility mode exposed by the public request API. Use CLI flags for one-run overrides. Environment overrides Supported names include LUNAR_FORGE_MODEL, LUNAR_FORGE_MODEL_API, LUNAR_FORGE_REASONING_EFFORT, LUNAR_FORGE_API_KEY_ENV, LUNAR_FORGE_RUNTIME_MODE, LUNAR_FORGE_ALLOW_NETWORK, LUNAR_FORGE_PERMISSION_MODE, and enablement flags for subagents, MCP, and plugins. MCP server definitions use separate /.lunar-forge/mcp.yaml and .agent/mcp.yaml files. Plugin declarations use .agent/plugins.yaml. Their global enable switches still live in the main config."
+    },
+    {
+      "slug": "cli-usage",
+      "title": "CLI usage",
+      "description": "Current one-shot, chat, session, diagnostics, and utility command surfaces.",
+      "section": "Using the agent",
+      "sectionOrder": 2,
+      "order": 1,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": false,
+      "keywords": [
+        "lunar-forge",
+        "flags",
+        "chat",
+        "resume",
+        "commands"
+      ],
+      "headings": [
+        {
+          "id": "one-shot-tasks",
+          "title": "One-shot tasks",
+          "level": 0
+        },
+        {
+          "id": "chat-and-resume",
+          "title": "Chat and resume",
+          "level": 0
+        },
+        {
+          "id": "diagnostics-and-utilities",
+          "title": "Diagnostics and utilities",
+          "level": 0
+        }
+      ],
+      "searchText": "One-shot tasks The console command is lunar-forge. Pass a task directly and use --project when the target is not the current directory. Common execution flags include --plan, --yes, --no-command, --docker, and Docker-only --allow-network. --subagents and --parallel-subagents enable the optional deterministic role sequence. Chat and resume Textual chat requires the tui extra. One-shot resume and chat resume create a new linked session with safe historical context; neither replays tools nor reuses approvals. Diagnostics and utilities The core also exposes bounded diagnostic and utility commands for validation, browser validation, MCP, plugins, Git status/commit workflows, checkpoints, rollback, and new-project starters. Use lunar-forge --help and command-specific --help as the authoritative flag inventory for the installed build. “Do not edit files” blocks mutation tools but does not automatically block commands. Use --plan, --no-command, or explicit wording that also forbids commands when that boundary matters."
+    },
+    {
+      "slug": "textual-chat",
+      "title": "Textual chat",
+      "description": "Install and use the optional continuous terminal interface and its safe session controls.",
+      "section": "Using the agent",
+      "sectionOrder": 2,
+      "order": 2,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": false,
+      "keywords": [
+        "Textual",
+        "chat",
+        "slash commands",
+        "multiline"
+      ],
+      "headings": [
+        {
+          "id": "install-and-start",
+          "title": "Install and start",
+          "level": 0
+        },
+        {
+          "id": "interaction-model",
+          "title": "Interaction model",
+          "level": 0
+        },
+        {
+          "id": "slash-commands",
+          "title": "Slash commands",
+          "level": 0
+        }
+      ],
+      "searchText": "Install and start Textual is optional; the one-shot CLI and public Python API do not depend on it. The chat UI consumes the same structured events and approval provider contract as the one-shot interface. Multiple turns share one project-local JSONL session until you finish or switch projects. Interaction model Enter sends a prompt. Multiline paste is supported, including a Windows clipboard fallback where available. Shift+Enter is not an advertised newline shortcut. Verify pasted content before sending; submitted prompts become session content. Temporary progress describes the public phase and current bounded operation. It does not expose hidden reasoning. Approval dialogs keep a fixed Deny/Approve footer while long details scroll. Slash commands The implemented surface includes help and status, clearing and finishing, project switching, sessions and resume, working-memory compaction, runtime and permission settings, subagent controls, MCP and plugin diagnostics, Git workflows, and usage display. Type / in chat to inspect the installed command list. /clear changes the visible transcript; session and safety behavior remain governed by the core runtime. Resume always uses inert history and fresh approval decisions."
+    },
+    {
+      "slug": "projects-and-agents-md",
+      "title": "Projects and AGENTS.md",
+      "description": "Select a project root and understand how root and nested project instructions apply.",
+      "section": "Using the agent",
+      "sectionOrder": 2,
+      "order": 3,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": false,
+      "keywords": [
+        "project root",
+        "AGENTS.md",
+        "nested instructions",
+        "scope"
+      ],
+      "headings": [
+        {
+          "id": "select-one-project-root",
+          "title": "Select one project root",
+          "level": 0
+        },
+        {
+          "id": "instruction-scope",
+          "title": "Instruction scope",
+          "level": 0
+        },
+        {
+          "id": "plan-mode",
+          "title": "Plan mode",
+          "level": 0
+        },
+        {
+          "id": "new-projects",
+          "title": "New projects",
+          "level": 0
+        }
+      ],
+      "searchText": "Select one project root LunarForge works on one project root per run. Use the current directory or pass --project explicitly: Built-in path helpers resolve requested files against that root and reject escapes. Session state, checkpoints, and project configuration live under the selected project's .agent directory unless the mode forbids runtime writes. Instruction scope LunarForge loads AGENTS.md guidance for the project. Root guidance applies broadly; a more deeply nested instruction file can refine work for files beneath its directory. Instructions describe project conventions and validation expectations. Project instructions do not override hard path confinement, command refusals, permission modes, or approval requirements. Treat an unfamiliar repository's instructions as untrusted content. Plan mode --plan is the safest way to inspect a new project. It exposes read/search tools, omits mutation and command tools, and does not create .agent runtime files. Record the project's initial Git status before broad edits. LunarForge can summarize status and diffs, but existing user changes still belong to the user and should not be overwritten. New projects The new workflow offers six declarative starters in core 0.1.0. New-project scaffolding remains permission-gated and confined to the chosen target. It is separate from the future hosted starter templates described in hosted sandbox."
+    },
+    {
+      "slug": "file-and-project-tools",
+      "title": "File and project tools",
+      "description": "Bounded inspection, exact edits, structured readers, checkpoints, and project confinement.",
+      "section": "Using the agent",
+      "sectionOrder": 2,
+      "order": 4,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": false,
+      "keywords": [
+        "read_file",
+        "search",
+        "apply patch",
+        "safe paths",
+        "checkpoints"
+      ],
+      "headings": [
+        {
+          "id": "inspection-tools",
+          "title": "Inspection tools",
+          "level": 0
+        },
+        {
+          "id": "precise-edits",
+          "title": "Precise edits",
+          "level": 0
+        },
+        {
+          "id": "commands-are-separate",
+          "title": "Commands are separate",
+          "level": 0
+        },
+        {
+          "id": "plan-only-inspection",
+          "title": "Plan-only inspection",
+          "level": 0
+        }
+      ],
+      "searchText": "Inspection tools Core provides bounded file listing, text search, file reads, structured configuration readers, symbol listing, dependency and CI summaries, Git status, and changed-file context. Outputs are size-limited before entering model context. Read tools still respect the selected project boundary. Absolute paths, .. escapes, and unsafe targets are rejected by shared path handling. Precise edits Editing tools prefer exact, reviewable changes over full-file replacement. Before a tracked file mutation, LunarForge can create a project-local checkpoint so current-turn rollback has material to restore. Default permission mode asks before each mutation. permissions.mode: yes may auto-approve an eligible low-risk write, but it never makes dependency installation or commands automatic. Commands are separate File confinement does not sandbox local commands. A command approved in local mode runs as the current OS user with the project root as its working directory. Choose Docker mode for a stronger execution boundary. Checkpoints are a rollback aid, not a substitute for version control or backups. Rollback reports what was restored, retained, or could not be reverted; do not infer success before the finished event. Plan-only inspection Plan mode exposes only the safe context suite. It omits edit, command, browser, plugin, MCP mutation, and Git commit tools, and it avoids creating .agent state."
+    },
+    {
+      "slug": "permissions-and-approvals",
+      "title": "Permissions and approvals",
+      "description": "The approval gate, policy settings, CLI decisions, events, and resumed-session behavior.",
+      "section": "Execution",
+      "sectionOrder": 3,
+      "order": 1,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": true,
+      "keywords": [
+        "permission.requested",
+        "permission.resolved",
+        "ApprovalRequest",
+        "yes mode"
+      ],
+      "headings": [
+        {
+          "id": "how-the-gate-works",
+          "title": "How the gate works",
+          "level": 0
+        },
+        {
+          "id": "configuring-policy",
+          "title": "Configuring policy",
+          "level": 0
+        },
+        {
+          "id": "options-reference",
+          "title": "Options reference",
+          "level": 0
+        },
+        {
+          "id": "approving-from-the-cli",
+          "title": "Approving from the CLI",
+          "level": 0
+        },
+        {
+          "id": "event-payload",
+          "title": "Event payload",
+          "level": 1
+        },
+        {
+          "id": "resumed-sessions",
+          "title": "Resumed sessions",
+          "level": 1
+        }
+      ],
+      "searchText": "How the gate works Guarded work produces an ApprovalRequest before it proceeds. The request has a collision-resistant ID plus a bounded kind, title, summary, details, risk, mode, and operation-specific fields. A UI-independent approval provider returns one matching ApprovalDecision. Supported request kinds in core 0.1.0 are command, write, git_commit, browser_server, mcp_tool, and plugin_tool. A decision authorizes only that request. Default mode asks before every file mutation and command. Unsafe paths and known-dangerous commands are refused rather than turned into approval prompts. Configuring policy Project settings live in .agent/config.yaml; user defaults live in /.lunar-forge/config.yaml. CLI flags take precedence. AGENTS.md can describe workflow, but it cannot weaken hard safety checks. permissions.mode: yes auto-approves only eligible low-risk writes that are not dependency installs. Commands and dependency installation still need a decision. Options reference | Option | Values | Default | Meaning | | --- | --- | --- | --- | | permissions.mode | default, yes, no-command, plan, docker | default | Selects the public permission policy. | | runtime.mode | local, docker, no-command | local | Selects command execution or removes command tools. | | runtime.allow_network | Boolean | false | Docker only; switches networking from none to bridge. Approval still applies. | | runtime.project_trust | auto, trusted, untrusted, unknown | auto | Changes local warning detail; never authorizes work. | | model.reasoning.effort | low, medium, high, xhigh, max | medium | Passed only when supported by the configured model/API. | Approving from the CLI 1. Start a task with lunar-forge --project \" \", or resume with lunar-forge resume --project . 2. Read the complete bounded operation details. Pressing Enter, unavailable input, or cancellation uses the request's safe default, normally denial. 3. Enter y or yes to approve. The decision is written to the redacted project-local session record. Event payload The public stream uses permission.requested and permission.resolved. Legacy session records are adapted into the same versioned envelope. Resumed sessions Resume loads bounded conversation context into a new linked session. Historical tools are not replayed and prior approvals are not reused. Any new guarded operation must produce a fresh request and decision."
+    },
+    {
+      "slug": "local-execution-safety",
+      "title": "Local execution safety",
+      "description": "Understand the policy protections and OS-level limits of local command execution.",
+      "section": "Execution",
+      "sectionOrder": 3,
+      "order": 2,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": false,
+      "keywords": [
+        "local mode",
+        "project trust",
+        "command safety",
+        "isolation"
+      ],
+      "headings": [
+        {
+          "id": "what-local-mode-does",
+          "title": "What local mode does",
+          "level": 0
+        },
+        {
+          "id": "what-local-mode-cannot-do",
+          "title": "What local mode cannot do",
+          "level": 0
+        },
+        {
+          "id": "project-trust-warnings",
+          "title": "Project trust warnings",
+          "level": 0
+        },
+        {
+          "id": "secrets-and-output",
+          "title": "Secrets and output",
+          "level": 0
+        }
+      ],
+      "searchText": "What local mode does Approved local commands run with the project root as their working directory. LunarForge uses argument-vector subprocess execution, blocks known-dangerous command patterns, adds targeted warnings based on the operation and project trust, and records bounded results. Built-in file tools remain project-confined, and every guarded command still passes through the central permission policy. What local mode cannot do Local execution is not an OS sandbox. A child process has the current user's permissions and may access resources that process can access. Working-directory selection does not confine a program that deliberately reads elsewhere. Do not use local mode for an untrusted repository, generated install script, or command you do not understand. Prefer Docker and keep network disabled. Project trust warnings runtime.project_trust accepts auto, trusted, untrusted, or unknown. It controls warning detail and is not an authorization switch. Hard refusals and approval requirements remain authoritative. Use --plan for read/search-only inspection or --no-command when edits are acceptable but command execution is not. Prompt wording alone is not a reliable substitute for these modes. Secrets and output Provider keys are named by environment-variable configuration rather than stored in project YAML. Structured events and session records sanitize known credential fields and bound strings and collections, but you should still avoid commands that print secrets."
+    },
+    {
+      "slug": "docker-mode",
+      "title": "Docker mode",
+      "description": "Run approved commands in the core sandbox image with bounded mounts and network off by default.",
+      "section": "Execution",
+      "sectionOrder": 3,
+      "order": 3,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": false,
+      "keywords": [
+        "Docker",
+        "lunar-forge-sandbox",
+        "workspace",
+        "network"
+      ],
+      "headings": [
+        {
+          "id": "runtime-shape",
+          "title": "Runtime shape",
+          "level": 0
+        },
+        {
+          "id": "network-access",
+          "title": "Network access",
+          "level": 0
+        },
+        {
+          "id": "boundary-and-limitations",
+          "title": "Boundary and limitations",
+          "level": 0
+        }
+      ],
+      "searchText": "Runtime shape Docker mode runs approved commands in the lunar-forge-sandbox image. The selected project is mounted at /workspace. Core targets a 2 GiB memory limit and 2 CPUs, with network disabled by default. Docker Desktop or another compatible engine must already be installed and running. LunarForge does not silently fall back to local execution when Docker is unavailable. Network access --allow-network or runtime.allow_network: true changes Docker networking from none to bridge. It does not bypass command approval. Core 0.1.0 does not offer a per-domain egress allowlist. Network access broadens the container's reach. Review dependency installers and remote endpoints before approval; keep networking off when the task does not need it. Boundary and limitations Docker is recommended for unfamiliar projects and dependency installs. It is a stronger boundary than local mode, but not a guarantee against every Docker-engine, image, mount, or host misconfiguration. The hosted E2B runtime described in this site's hosted sandbox plan is separate and not released. Core Docker is local and controlled through the installed CLI or Textual UI."
+    },
+    {
+      "slug": "validation",
+      "title": "Validation",
+      "description": "Run bounded Python and Node checks through the core validation workflow.",
+      "section": "Execution",
+      "sectionOrder": 3,
+      "order": 4,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": false,
+      "keywords": [
+        "pytest",
+        "npm test",
+        "validation",
+        "checks"
+      ],
+      "headings": [
+        {
+          "id": "project-aware-checks",
+          "title": "Project-aware checks",
+          "level": 0
+        },
+        {
+          "id": "ask-for-existing-checks",
+          "title": "Ask for existing checks",
+          "level": 0
+        },
+        {
+          "id": "structured-events",
+          "title": "Structured events",
+          "level": 0
+        },
+        {
+          "id": "read-results-carefully",
+          "title": "Read results carefully",
+          "level": 0
+        }
+      ],
+      "searchText": "Project-aware checks LunarForge provides a validation workflow that selects bounded Python and Node checks from project evidence. It can detect common test and build metadata, execute through the selected runtime, and report exit status and bounded output. Validation is a command operation. It requires approval in default and yes modes, and it is unavailable in plan or no-command modes. Ask for existing checks The request can use Docker without network for already-installed dependencies. If dependencies are absent, installation is a separate guarded operation and may require Docker networking. Structured events Validation produces the normal tool lifecycle plus validation.started and validation.finished public events. Consumers should use the event envelope, not parse terminal formatting. Ask the agent to report exactly which checks ran. A green subset is not evidence that every project check passed. Read results carefully Bounded output may be truncated. The final result preserves success/failure and an error summary, but a human may need to rerun a failing command directly for complete diagnostics."
+    },
+    {
+      "slug": "browser-validation",
+      "title": "Browser validation",
+      "description": "Validate a local web page with the optional Playwright workflow and explicit server approval.",
+      "section": "Execution",
+      "sectionOrder": 3,
+      "order": 5,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": false,
+      "keywords": [
+        "Playwright",
+        "browser-validate",
+        "screenshots",
+        "dev server"
+      ],
+      "headings": [
+        {
+          "id": "install-the-optional-extra",
+          "title": "Install the optional extra",
+          "level": 0
+        },
+        {
+          "id": "validate-a-running-page",
+          "title": "Validate a running page",
+          "level": 0
+        },
+        {
+          "id": "event-contract",
+          "title": "Event contract",
+          "level": 0
+        },
+        {
+          "id": "network-considerations",
+          "title": "Network considerations",
+          "level": 0
+        }
+      ],
+      "searchText": "Install the optional extra Local browser validation requires the browser extra and compatible Playwright browser assets. Validate a running page The dedicated command accepts a project, URL, optional server command, selectors, and other bounded checks. The checked-in core demo uses: Starting a browser/dev server is approval-gated. Screenshots and console findings are bounded before reporting. Event contract Browser work emits normal tool events plus browser.started and browser.finished. The finished payload may include a bounded artifact path. Future UIs should render these structured records instead of scraping CLI text. This local workflow is distinct from the planned isolated preview gateway for the hosted sandbox. Core 0.1.0 does not expose a public preview URL or cloud browser service. Network considerations A local page can make external requests with the current environment's network access. In Docker mode, network remains disabled unless explicitly enabled. Browser evidence is only as trustworthy as the page, runtime, and checks you selected."
+    },
+    {
+      "slug": "sessions-and-resume",
+      "title": "Sessions and resume",
+      "description": "Project-local JSONL records, bounded discovery, and inert historical context.",
+      "section": "Sessions",
+      "sectionOrder": 4,
+      "order": 1,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": false,
+      "keywords": [
+        ".agent/sessions",
+        "JSONL",
+        "resume",
+        "SessionRef"
+      ],
+      "headings": [
+        {
+          "id": "session-records",
+          "title": "Session records",
+          "level": 0
+        },
+        {
+          "id": "discover-sessions",
+          "title": "Discover sessions",
+          "level": 0
+        },
+        {
+          "id": "safe-resume",
+          "title": "Safe resume",
+          "level": 0
+        },
+        {
+          "id": "project-binding",
+          "title": "Project binding",
+          "level": 0
+        }
+      ],
+      "searchText": "Session records LunarForge stores redacted JSONL sessions under .agent/sessions/ for normal execution modes. Records contain bounded public activity needed for history, resume, usage, checkpoints, and approvals. Plan mode does not create .agent runtime files. Discover sessions The public list_sessions(project_root) API returns SessionRef values without reading the logs. A reference includes a session ID, selector, project-relative path, and size. Safe resume resume_session(project_root, session) returns a bounded ResumedSession. It contains sanitized conversation messages and counts for historical events and summaries. Resume is context recovery, not process recovery. It creates new activity linked to an older session; old commands do not run again and old decisions do not grant authority. Project binding Session selectors are resolved within the selected project. A session copied from another project is rejected as incompatible rather than silently resumed."
+    },
+    {
+      "slug": "working-memory-compaction",
+      "title": "Working-memory compaction",
+      "description": "Keep long Textual conversations usable with bounded public summaries.",
+      "section": "Sessions",
+      "sectionOrder": 4,
+      "order": 2,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": false,
+      "keywords": [
+        "compact",
+        "context",
+        "summary",
+        "token threshold"
+      ],
+      "headings": [
+        {
+          "id": "why-compaction-exists",
+          "title": "Why compaction exists",
+          "level": 0
+        },
+        {
+          "id": "automatic-thresholds",
+          "title": "Automatic thresholds",
+          "level": 0
+        },
+        {
+          "id": "manual-compaction",
+          "title": "Manual compaction",
+          "level": 0
+        },
+        {
+          "id": "resume-interaction",
+          "title": "Resume interaction",
+          "level": 0
+        }
+      ],
+      "searchText": "Why compaction exists Long chat histories can exceed a useful model context. The Textual workflow can replace older conversational material with a concise public summary while retaining recent messages. Compaction never exposes or stores hidden reasoning. It operates on bounded, user-visible conversation and tool-result context. Automatic thresholds The main configuration includes ui.chat.compact_at_tokens and ui.chat.compact_to_tokens. Core defaults are 120,000 and 12,000 respectively, and the target must be lower than the trigger. Manual compaction Use /compact in Textual chat. The workflow reports a clean no-op when there is not enough eligible context, and emits memory.compaction.started and memory.compaction.finished around actual work. Compaction improves working context; it is not deletion of the underlying project or a promise to erase prior session records. Hosted retention behavior is a separate, planned policy. Resume interaction Compacted summaries can be part of the bounded context returned on resume. The ResumedSession.compacted_summary_count field reports how many summaries were loaded."
+    },
+    {
+      "slug": "subagents",
+      "title": "Subagents",
+      "description": "Enable the deterministic specialist sequence and its bounded parallel phases.",
+      "section": "Sessions",
+      "sectionOrder": 4,
+      "order": 3,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": false,
+      "keywords": [
+        "planner",
+        "coder",
+        "tester",
+        "reviewer",
+        "parallel subagents"
+      ],
+      "headings": [
+        {
+          "id": "opt-in-explicitly",
+          "title": "Opt in explicitly",
+          "level": 0
+        },
+        {
+          "id": "deterministic-roles",
+          "title": "Deterministic roles",
+          "level": 0
+        },
+        {
+          "id": "safety-and-events",
+          "title": "Safety and events",
+          "level": 0
+        }
+      ],
+      "searchText": "Opt in explicitly Single-agent execution is the default. Enable specialist routing with --subagents or configuration. Parallel phases require the additional parallel opt-in. Deterministic roles Existing-project mutation work follows a finite Planner → Coder → Tester → Reviewer shape. Task-aware routing skips roles that are not needed. Sensitive requests may add the read-only Security role. New-project work uses a serialized Scaffolder before testing and review. Each role receives an explicit tool allowlist. Coder remains serialized; mutation tools are not handed to parallel roles. Read-only and post-edit pairs may run concurrently when enabled. Safety and events Restricted registry views still delegate permitted calls to the shared central registry, so paths, approvals, redaction, session changes, and output bounds stay single-sourced. Session lifecycle events include role and phase metadata. This is deterministic role handoff, not autonomous background-agent execution. Parallel groups are fixed and synchronous, and final reporting follows declared phase order rather than thread completion order."
+    },
+    {
+      "slug": "mcp",
+      "title": "MCP",
+      "description": "Configure disabled-by-default local MCP servers with explicit environment references and approvals.",
+      "section": "Extending",
+      "sectionOrder": 5,
+      "order": 1,
+      "status": "Experimental in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": false,
+      "keywords": [
+        "Model Context Protocol",
+        "mcp.yaml",
+        "stdio",
+        "external tools"
+      ],
+      "headings": [
+        {
+          "id": "two-explicit-opt-ins",
+          "title": "Two explicit opt-ins",
+          "level": 0
+        },
+        {
+          "id": "process-and-credential-rules",
+          "title": "Process and credential rules",
+          "level": 0
+        },
+        {
+          "id": "inspect-before-use",
+          "title": "Inspect before use",
+          "level": 0
+        }
+      ],
+      "searchText": "Two explicit opt-ins MCP support is experimental and disabled by default. Enable the runtime switch in .agent/config.yaml or user config, then enable each server in .agent/mcp.yaml or /.lunar-forge/mcp.yaml. Process and credential rules Enabled servers run as local stdio subprocesses with shell=False. Environment entries must use $NAME references; raw credentials in commands, arguments, or config are rejected. Unrelated provider credentials are not forwarded automatically. Discovered tools use dotted internal identities such as mcp.playwright.browser_navigate and provider-safe aliases such as mcp_playwright_browser_navigate. Every MCP call requires approval, including read-only calls in plan mode. Inspect before use The diagnostic loads configuration and performs bounded discovery without a model key. Running it can start servers when both opt-ins are enabled; an npx -y command may download a package. MCP tools are external effects. Review the executable, arguments, declared environment names, and resulting permission request before approval."
+    },
+    {
+      "slug": "plugins",
+      "title": "Plugins",
+      "description": "Add explicitly configured local Python tools through bounded manifests and the normal approval system.",
+      "section": "Extending",
+      "sectionOrder": 5,
+      "order": 2,
+      "status": "Experimental in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": false,
+      "keywords": [
+        "plugins.yaml",
+        "manifest",
+        "Python entrypoint",
+        "tool permissions"
+      ],
+      "headings": [
+        {
+          "id": "enable-a-local-plugin",
+          "title": "Enable a local plugin",
+          "level": 0
+        },
+        {
+          "id": "loading-boundary",
+          "title": "Loading boundary",
+          "level": 0
+        },
+        {
+          "id": "diagnose-configuration",
+          "title": "Diagnose configuration",
+          "level": 0
+        }
+      ],
+      "searchText": "Enable a local plugin Plugins are experimental and disabled by default. Set plugins.enabled: true in main configuration, then declare each manifest in the project's .agent/plugins.yaml. A manifest declares its name, version, description, model-facing schema, bundle-local Python entry point, and filesystem, command, and network capabilities. Loading boundary Manifest paths must remain inside the selected project or its nearest containing Git repository. Discovery validates configured manifests without importing handlers. The module is loaded only after the registered tool passes normal permission handling. Tools declaring writes, commands, or networking always require approval. Plan mode omits all plugin tools because in-process Python cannot enforce a manifest's read-only claim. Diagnose configuration The JSON report is bounded and does not require a model, API key, approval prompt, or plugin-code import. Capability declarations are a trust contract, not an OS sandbox. Enable only local Python code you have reviewed. Plugin dependency isolation and worker processes are not implemented in core 0.1.0."
+    },
+    {
+      "slug": "git-support",
+      "title": "Git support",
+      "description": "Inspect repository state, summarize diffs, and gate every commit proposal explicitly.",
+      "section": "Extending",
+      "sectionOrder": 5,
+      "order": 3,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": false,
+      "keywords": [
+        "git status",
+        "git diff",
+        "commit approval",
+        "proposal"
+      ],
+      "headings": [
+        {
+          "id": "read-only-git-context",
+          "title": "Read-only Git context",
+          "level": 0
+        },
+        {
+          "id": "guarded-commits",
+          "title": "Guarded commits",
+          "level": 0
+        },
+        {
+          "id": "scope-limits",
+          "title": "Scope limits",
+          "level": 0
+        }
+      ],
+      "searchText": "Read-only Git context LunarForge can inspect bounded Git status and diff information to understand existing changes and evaluate commit readiness. Read-only Git helpers do not grant authority to alter the repository. Existing changes belong to the user. The agent should distinguish pre-existing work from changes made during the current session. Guarded commits Commit creation is never implicit. A commit workflow first prepares a bounded proposal and emits git.proposal; the actual git_commit operation requires a git_commit approval request. Completion is represented by git.commit.created or git.commit.skipped. Consumers must not show a successful commit before the created event arrives. Scope limits Core Git support is local. It does not push, open pull requests, manage hosted credentials, or clone private repositories as part of the agent loop. An approval applies to one proposed commit action. It does not authorize later commits, remote operations, or unrelated repository changes."
+    },
+    {
+      "slug": "event-protocol",
+      "title": "Event protocol",
+      "description": "The versioned, bounded, redacted, JSON-safe event envelope and every core 0.1.0 event name.",
+      "section": "Reference",
+      "sectionOrder": 6,
+      "order": 1,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": true,
+      "keywords": [
+        "AgentEvent",
+        "EventType",
+        "schema_version",
+        "sequence",
+        "JSON"
+      ],
+      "headings": [
+        {
+          "id": "envelope",
+          "title": "Envelope",
+          "level": 0
+        },
+        {
+          "id": "event-types",
+          "title": "Event types",
+          "level": 0
+        },
+        {
+          "id": "ordering-and-parentage",
+          "title": "Ordering and parentage",
+          "level": 0
+        },
+        {
+          "id": "transport-guidance",
+          "title": "Transport guidance",
+          "level": 0
+        }
+      ],
+      "searchText": "Envelope AgentEvent is the stable UI-neutral record yielded by the public agent stream. It contains no Rich or Textual objects. schema_version must equal 1 in core 0.1.0. Sequence is a non-negative integer. Identifiers, payload strings, nesting, collections, and serialized payload size are bounded. Known secrets and ANSI styling are removed, unsupported objects become safe markers, and hidden reasoning is not included. Event types Session and turn: session.started, session.resumed, turn.started, turn.finished, turn.cancelled, status.updated. Assistant and model: assistant.message.delta, assistant.message.completed, model.call.started, model.call.finished, model.usage. Tools and permissions: tool.started, tool.finished, tool.failed, permission.requested, permission.resolved. Workflows: validation.started, validation.finished, browser.started, browser.finished, checkpoint.created, git.proposal, git.commit.created, git.commit.skipped, memory.compaction.started, memory.compaction.finished, rollback.started, rollback.finished, error. Ordering and parentage EventFactory assigns monotonically increasing sequence values within the factory's stream. parent_event_id can connect derived lifecycle records to their initiating event. A transport wrapper should preserve order and use sequence for replay offsets rather than infer state from timestamps. Transport guidance Use AgentEvent.to_dict() or to_json() and corresponding deserialization helpers. Do not scrape the CLI renderer. A future server may carry the records over WebSocket or SSE, but that transport is not part of core 0.1.0. Payload fields vary by event type and are intentionally bounded. Consumers should tolerate additional safe keys within a schema version and handle the error event explicitly."
+    },
+    {
+      "slug": "public-python-api",
+      "title": "Public Python API",
+      "description": "The stable root exports, module-only approval protocol, request fields, sessions, and event iterator.",
+      "section": "Reference",
+      "sectionOrder": 6,
+      "order": 2,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": false,
+      "keywords": [
+        "AgentRequest",
+        "AgentEvent",
+        "ApprovalDecision",
+        "run_agent_events",
+        "public_api"
+      ],
+      "headings": [
+        {
+          "id": "root-package-exports",
+          "title": "Root package exports",
+          "level": 0
+        },
+        {
+          "id": "agentrequest",
+          "title": "AgentRequest",
+          "level": 0
+        },
+        {
+          "id": "run-events",
+          "title": "Run events",
+          "level": 0
+        },
+        {
+          "id": "approvalprovider",
+          "title": "ApprovalProvider",
+          "level": 0
+        },
+        {
+          "id": "sessions",
+          "title": "Sessions",
+          "level": 0
+        }
+      ],
+      "searchText": "Root package exports lunar_forge.__init__ exports exactly these public names in core 0.1.0: | Export | Purpose | | --- | --- | | AgentEvent | Versioned structured event envelope. | | AgentRequest | Validated request for one event-stream run. | | ApprovalDecision | Transport-neutral decision for one request. | | ApprovalRequest | Bounded description of one guarded action. | | ResumedSession | Inert, bounded historical context. | | SessionRef | Safe project-local session reference. | | __version__ | Package version, currently 0.1.0. | | list_sessions | Discover bounded session references. | | load_config | Load merged core configuration. | | resume_session | Load safe historical context. | | run_agent_events | Yield the structured agent stream. | AgentRequest Required fields are project_root and a non-empty message. Optional fields are runtime_mode, permission_mode, allow_network, model, reasoning_effort, resume, offer_commit, commit_message, show_usage, and bounded ui_metadata. Runtime modes are local, docker, and no-command. Public permission modes are default, yes, no-command, plan, and docker. allow_network=True requires Docker. Run events The function returns a synchronous iterator and delegates to the same core engine as the current interfaces. Pass an approval provider when the wrapper can resolve guarded work. ApprovalProvider ApprovalProvider is exported from lunar_forge.public_api, not from the root package. It is a runtime-checkable synchronous protocol with request_approval(request) -> ApprovalDecision. This distinction is deliberate and documented here exactly as implemented. Server wrappers should otherwise prefer root exports and must not import Rich renderers, Textual widgets, private agent helpers, or terminal-output parsers. Sessions list_sessions() returns references without reading logs. resume_session() validates project binding and returns bounded messages plus counts; tool_calls_replayed and approvals_reused are always false in the current contract."
+    },
+    {
+      "slug": "troubleshooting",
+      "title": "Troubleshooting",
+      "description": "Diagnose installation, configuration, Docker, optional UI, browser, MCP, and session failures.",
+      "section": "Reference",
+      "sectionOrder": 6,
+      "order": 3,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": false,
+      "keywords": [
+        "errors",
+        "Docker unavailable",
+        "API key",
+        "Playwright",
+        "config"
+      ],
+      "headings": [
+        {
+          "id": "cli-is-not-found",
+          "title": "CLI is not found",
+          "level": 0
+        },
+        {
+          "id": "provider-authentication-fails",
+          "title": "Provider authentication fails",
+          "level": 0
+        },
+        {
+          "id": "configuration-is-ignored",
+          "title": "Configuration is ignored",
+          "level": 0
+        },
+        {
+          "id": "docker-cannot-start",
+          "title": "Docker cannot start",
+          "level": 0
+        },
+        {
+          "id": "textual-or-browser-features-are-missing",
+          "title": "Textual or browser features are missing",
+          "level": 0
+        },
+        {
+          "id": "mcp-or-plugins-expose-no-tools",
+          "title": "MCP or plugins expose no tools",
+          "level": 0
+        },
+        {
+          "id": "a-resumed-action-did-not-continue",
+          "title": "A resumed action did not continue",
+          "level": 0
+        }
+      ],
+      "searchText": "CLI is not found Activate the virtual environment used for installation and run python -m pip show lunar-forge. Reinstall the source checkout with python -m pip install -e ., then confirm lunar-forge --help. Provider authentication fails Check model.api_key_env and set that named environment variable in the process that starts LunarForge. Do not add model.api_key to YAML; the loader rejects raw keys. Configuration is ignored Confirm the target project root. Precedence is CLI, project .agent/config.yaml, user /.lunar-forge/config.yaml, environment overrides, then defaults. A higher-priority value may be winning. Docker cannot start Verify Docker Desktop or a compatible engine is running and that the lunar-forge-sandbox image is available as required by the core workflow. LunarForge does not turn a failed Docker request into local execution. Textual or browser features are missing Install .[tui] for chat and .[browser] for local Playwright validation. They are optional extras. Browser assets may need their own documented Playwright setup. MCP or plugins expose no tools Both systems require a global enable switch and per-server or per-plugin enablement. Run lunar-forge mcp list --project or lunar-forge plugins list --project for bounded diagnostics. A resumed action did not continue That is expected. Resume restores safe conversational context, not active process state. Historical tools are inert and approvals are never reused. When reporting a problem, include the core version, command shape with secrets removed, runtime and permission modes, platform, and the bounded error event or message."
+    },
+    {
+      "slug": "security-model",
+      "title": "Security model",
+      "description": "Threat boundaries, hard rules, approvals, isolation limits, redaction, and extension risks.",
+      "section": "Reference",
+      "sectionOrder": 6,
+      "order": 4,
+      "status": "Available in core",
+      "version": "0.1.0",
+      "verified": "2026-07-29",
+      "featured": true,
+      "keywords": [
+        "threat model",
+        "sandbox",
+        "secrets",
+        "redaction",
+        "approvals"
+      ],
+      "headings": [
+        {
+          "id": "trust-boundaries",
+          "title": "Trust boundaries",
+          "level": 0
+        },
+        {
+          "id": "execution-modes",
+          "title": "Execution modes",
+          "level": 0
+        },
+        {
+          "id": "credentials-and-logs",
+          "title": "Credentials and logs",
+          "level": 0
+        },
+        {
+          "id": "extensions",
+          "title": "Extensions",
+          "level": 0
+        },
+        {
+          "id": "recovery",
+          "title": "Recovery",
+          "level": 0
+        }
+      ],
+      "searchText": "Trust boundaries Treat prompts, repositories, generated code, command output, MCP servers, and plugins as potentially untrusted. AGENTS.md provides project guidance, not authority to bypass safety policy. Built-in file tools normalize paths and stay within the selected project. Known-dangerous commands and unsafe targets are refused. Other guarded operations require a fresh approval decision. Execution modes Plan mode exposes read/search tools and creates no .agent runtime files. No-command mode removes command tools. Local mode is not OS isolation. Docker mode is stronger, uses /workspace, bounded resources, and no network by default, but depends on the safety of the host engine and configuration. Credentials and logs Configuration stores the name of a provider-key environment variable, not a raw key. Event payloads are JSON-safe, bounded, ANSI-stripped, and redact known secret keys and environment values. Hidden model reasoning is never part of the public event protocol. Redaction is defense in depth. Do not deliberately print secrets or place them in project files, prompts, plugin manifests, command arguments, or URLs. Extensions MCP subprocesses and in-process Python plugins are disabled by default. MCP calls always require approval. Plugin capabilities are declarations, not isolation, and plugin tools are omitted entirely from plan mode. Recovery Pre-change checkpoints and rollback can restore supported current-turn file changes. They do not replace Git, backups, or independent review. Wait for rollback.finished before presenting the outcome. No prompt, old approval, project instruction, plugin, or UI setting can make local execution an OS sandbox. Choose the runtime based on the code and command you are about to run."
+    },
+    {
+      "slug": "hosted-sandbox",
+      "title": "Hosted sandbox",
+      "description": "Planned authenticated LunarForge Web execution architecture and its release boundary.",
+      "section": "Hosted sandbox",
+      "sectionOrder": 7,
+      "order": 1,
+      "status": "Planned — not released",
+      "version": "Web roadmap",
+      "verified": "2026-08-02",
+      "featured": false,
+      "keywords": [
+        "E2B",
+        "Cloud Run",
+        "Supabase",
+        "hosted UI",
+        "planned"
+      ],
+      "headings": [
+        {
+          "id": "release-status",
+          "title": "Release status",
+          "level": 0
+        },
+        {
+          "id": "planned-architecture",
+          "title": "Planned architecture",
+          "level": 0
+        },
+        {
+          "id": "planned-access-and-lifecycle",
+          "title": "Planned access and lifecycle",
+          "level": 0
+        },
+        {
+          "id": "planned-isolation",
+          "title": "Planned isolation",
+          "level": 0
+        }
+      ],
+      "searchText": "Release status The hosted sandbox is planned and is not released. The current /sandbox route is a deterministic frontend fixture: it does not authenticate a user, create an E2B sandbox, execute LunarForge, stream backend events, or retain a project. Do not use the current UI as evidence that cloud isolation, network controls, preview tickets, cleanup, or quotas are active. Those controls require backend integration and validation. Planned architecture The approved initial design uses a Next.js frontend on Vercel, a FastAPI API and private turn worker on Google Cloud Run, Supabase Auth, Neon PostgreSQL metadata, Upstash Redis event/control streams, Google Secret Manager, and E2B as the first runtime provider. The browser will render core AgentEvent records and will never parse terminal output. One-time Redis-backed tickets will authenticate WebSocket connections; long-lived Supabase JWTs will not appear in WebSocket query strings. Planned access and lifecycle The sandbox will be invite-only. Ownership checks remain server-side. One active sandbox per user and a 30-minute inactivity lifetime are initial policy targets. Activity, not passive heartbeats, may extend the lifetime. Starter templates and public HTTPS Git repositories are the initial project sources. Uploads, private GitHub access, and an admin-only separate Docker worker are later phases. Planned isolation E2B network access is denied by default. Dependency installation, Git operations requiring network, browser/dev-server startup, and other risky effects require explicit approval. If provider-enforced per-operation egress cannot be implemented safely, the feature remains unavailable rather than being simulated in the UI. Authenticated previews will use a separate origin and short-lived ticket, not the main application origin or a browser-visible E2B token."
+    },
+    {
+      "slug": "byok-and-privacy",
+      "title": "BYOK and privacy",
+      "description": "Planned bring-your-own-key handling, owner-funded controls, deletion, and retention boundaries.",
+      "section": "Hosted sandbox",
+      "sectionOrder": 7,
+      "order": 2,
+      "status": "Planned — not released",
+      "version": "Web roadmap",
+      "verified": "2026-08-02",
+      "featured": false,
+      "keywords": [
+        "BYOK",
+        "privacy",
+        "credentials",
+        "retention",
+        "planned"
+      ],
+      "headings": [
+        {
+          "id": "release-status",
+          "title": "Release status",
+          "level": 0
+        },
+        {
+          "id": "planned-byok-handling",
+          "title": "Planned BYOK handling",
+          "level": 0
+        },
+        {
+          "id": "planned-owner-funded-mode",
+          "title": "Planned owner-funded mode",
+          "level": 0
+        },
+        {
+          "id": "planned-deletion-and-retention",
+          "title": "Planned deletion and retention",
+          "level": 0
+        }
+      ],
+      "searchText": "Release status BYOK and owner-funded model modes are planned for the hosted sandbox and are not implemented in the current frontend fixture. Planned BYOK handling Initial BYOK providers are OpenAI and Anthropic. A key will remain only in browser component memory, be resent for each turn, and require re-entry after reload. It will not be written to localStorage, sessionStorage, IndexedDB, cookies, analytics, URLs, error reports, Neon, Redis, Cloud Logging, E2B metadata, E2B environment variables, or task payloads. FastAPI will forward the key only to the private worker invocation. The worker will hold it in process memory for that turn and logging will redact known credential fields. Events and responses must never echo it. This is a design requirement, not a deployed guarantee today. The feature should not be presented as available until storage, logging, exception, and browser-persistence tests pass. Planned owner-funded mode The owner key will live in Google Secret Manager and be injected only into the private worker. It will never be returned to the frontend or placed in the E2B sandbox environment. Per-user and global hard limits plus an admin kill switch protect it. Planned deletion and retention At sandbox expiry or deletion, detailed prompts, project files, events, command output, artifacts, credentials, preview tokens, and the E2B sandbox will be removed. Bounded metadata such as identity references, timestamps, usage totals, error codes, approval metadata, and cleanup outcomes is planned for 30-day retention. The retained audit record will not include prompts, source files, secrets, hidden reasoning, or full command output."
+    },
+    {
+      "slug": "hosted-sandbox-limits",
+      "title": "Hosted-sandbox limits",
+      "description": "Planned private-demo quotas, timeouts, bounded output, and capability reporting.",
+      "section": "Hosted sandbox",
+      "sectionOrder": 7,
+      "order": 3,
+      "status": "Planned — not released",
+      "version": "Web roadmap",
+      "verified": "2026-08-02",
+      "featured": false,
+      "keywords": [
+        "quotas",
+        "cost cap",
+        "timeout",
+        "E2B limits",
+        "planned"
+      ],
+      "headings": [
+        {
+          "id": "release-status",
+          "title": "Release status",
+          "level": 0
+        },
+        {
+          "id": "initial-owner-funded-policy",
+          "title": "Initial owner-funded policy",
+          "level": 0
+        },
+        {
+          "id": "runtime-targets",
+          "title": "Runtime targets",
+          "level": 0
+        },
+        {
+          "id": "network-and-project-limits",
+          "title": "Network and project limits",
+          "level": 0
+        }
+      ],
+      "searchText": "Release status These are target policies for the first private hosted demo, not limits enforced by the current site. Initial owner-funded policy | Limit | Planned value | | --- | --- | | Provider | OpenAI, one server-approved model | | Maximum reasoning effort | high | | Turns per user per day | 20 | | Active sandboxes per user | 1 | | Maximum turn duration | 15 minutes | | Per-user daily estimated cost | USD 3 | | Global daily estimated cost | USD 10 | Runtime targets The E2B target is a provider-supported equivalent of 1–2 CPUs, 2–4 GB memory, a 2–5 GB workspace limit, bounded processes where supported, a 15-minute turn timeout, and a 30-minute inactivity lifetime. Command output, event replay, artifacts, and API bodies will be bounded. Actual provider capabilities must be reported honestly. A UI label is not enforcement, and the runtime adapter must not claim a limit the provider cannot apply. Network and project limits Network is denied by default. Public Git clones will be HTTPS-only, shallow by default, time- and size-bounded, and protected against local, SSH, credential-bearing, redirect-to-private-network, and unsafe submodule inputs. No hosted quota, cost cap, sandbox timeout, or egress rule is active until the backend phase ships and its integration tests pass. The deterministic /sandbox route consumes no model or cloud budget."
+    }
+  ]
+}

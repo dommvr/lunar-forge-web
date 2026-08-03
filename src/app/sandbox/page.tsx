@@ -5,7 +5,7 @@ import { SandboxApp } from "./SandboxApp";
 export const metadata: Metadata = {
   title: "Sandbox",
   description:
-    "A disposable, time-boxed LunarForge session in the browser. Commands run inside the container and still pause for your approval.",
+    "The LunarForge browser sandbox connected to deterministic FastAPI services and schema-v1 events.",
 };
 
 export default function SandboxPage() {

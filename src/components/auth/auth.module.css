@@ -1,0 +1,243 @@
+.page {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  justify-items: center;
+  overflow: hidden;
+  padding: 28px var(--space-4) var(--space-4);
+  background:
+    linear-gradient(180deg, #0e1012 0, var(--bg) 45%),
+    var(--bg);
+}
+
+.glow {
+  position: absolute;
+  top: -220px;
+  width: 680px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #e8783a14 0, transparent 68%);
+  pointer-events: none;
+}
+
+.brand {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  justify-self: start;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.brand:hover {
+  color: var(--text);
+}
+
+.mark {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: var(--r-sm);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.card {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  width: min(100%, 440px);
+  padding: 36px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface-1);
+  box-shadow: var(--elev-hero);
+}
+
+.eyebrow {
+  margin-bottom: var(--space-2);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.card h1 {
+  color: var(--text);
+  font-size: clamp(26px, 5vw, 32px);
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.intro {
+  margin-top: 10px;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.form {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+  color: var(--text-bright);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.field input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--field-border);
+  border-radius: var(--r-sm);
+  background: var(--surface-sunken);
+  color: var(--text);
+  font: 14px/1.4 var(--font-sans);
+}
+
+.field input:hover {
+  border-color: var(--border-strong);
+}
+
+.field input:focus {
+  border-color: var(--accent);
+}
+
+.formMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--text-faint);
+  font-size: 12.5px;
+}
+
+.formMeta a {
+  color: var(--text-muted);
+}
+
+.formMeta a:hover {
+  color: var(--accent-hover);
+}
+
+.error,
+.success,
+.status {
+  margin-top: var(--space-4);
+  padding: 11px 13px;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.form .error,
+.form .success {
+  margin-top: 0;
+}
+
+.error {
+  border: 1px solid var(--error-ring);
+  background: var(--error-bg);
+  color: #d98a82;
+}
+
+.success {
+  border: 1px solid var(--success-ring);
+  background: var(--success-bg);
+  color: #88bd9a;
+}
+
+.status {
+  border: 1px solid var(--border);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+}
+
+.hint {
+  color: var(--text-faint);
+  font-size: 12.5px;
+}
+
+.enrollment {
+  display: grid;
+  gap: var(--space-3);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.qrFrame {
+  width: max-content;
+  padding: 10px;
+  border-radius: var(--r-md);
+  background: white;
+}
+
+.qrFrame img {
+  display: block;
+}
+
+.secret summary {
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.secret code {
+  display: block;
+  overflow-wrap: anywhere;
+  margin-top: var(--space-2);
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface-sunken);
+  color: var(--text-bright);
+  font: 12px/1.5 var(--font-mono);
+}
+
+.legal {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: var(--space-4);
+  color: var(--text-faint);
+  font-size: 12.5px;
+}
+
+.legal a {
+  color: inherit;
+}
+
+.legal a:hover {
+  color: var(--text-muted);
+}
+
+@media (max-width: 560px) {
+  .page {
+    padding: 20px var(--space-3);
+  }
+
+  .card {
+    padding: 28px 22px;
+  }
+
+  .formMeta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+}

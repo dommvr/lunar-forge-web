@@ -1,0 +1,49 @@
+---
+title: MCP
+description: Configure disabled-by-default local MCP servers with explicit environment references and approvals.
+section: Extending
+sectionOrder: 5
+order: 1
+status: Experimental in core
+version: "0.1.0"
+verified: "2026-07-29"
+keywords: [Model Context Protocol, mcp.yaml, stdio, external tools]
+---
+
+## Two explicit opt-ins
+
+MCP support is experimental and disabled by default. Enable the runtime switch in `.agent/config.yaml` or user config, then enable each server in `.agent/mcp.yaml` or `~/.lunar-forge/mcp.yaml`.
+
+```yaml
+mcp:
+  enabled: true
+```
+
+```yaml
+servers:
+  playwright:
+    command: npx.cmd
+    args:
+      - -y
+      - "@playwright/mcp@latest"
+      - "--isolated"
+    enabled: true
+```
+
+## Process and credential rules
+
+Enabled servers run as local stdio subprocesses with `shell=False`. Environment entries must use `${NAME}` references; raw credentials in commands, arguments, or config are rejected. Unrelated provider credentials are not forwarded automatically.
+
+Discovered tools use dotted internal identities such as `mcp.playwright.browser_navigate` and provider-safe aliases such as `mcp_playwright_browser_navigate`. Every MCP call requires approval, including read-only calls in plan mode.
+
+## Inspect before use
+
+```bash
+lunar-forge mcp list --project ./my-app
+```
+
+The diagnostic loads configuration and performs bounded discovery without a model key. Running it can start servers when both opt-ins are enabled; an `npx -y` command may download a package.
+
+<Callout kind="warning">
+MCP tools are external effects. Review the executable, arguments, declared environment names, and resulting permission request before approval.
+</Callout>

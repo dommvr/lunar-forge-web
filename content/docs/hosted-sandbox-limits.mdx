@@ -1,0 +1,41 @@
+---
+title: Hosted-sandbox limits
+description: Planned private-demo quotas, timeouts, bounded output, and capability reporting.
+section: Hosted sandbox
+sectionOrder: 7
+order: 3
+status: Planned — not released
+version: "Web roadmap"
+verified: "2026-08-02"
+keywords: [quotas, cost cap, timeout, E2B limits, planned]
+---
+
+## Release status
+
+These are target policies for the first private hosted demo, not limits enforced by the current site.
+
+## Initial owner-funded policy
+
+| Limit | Planned value |
+| --- | --- |
+| Provider | OpenAI, one server-approved model |
+| Maximum reasoning effort | `high` |
+| Turns per user per day | 20 |
+| Active sandboxes per user | 1 |
+| Maximum turn duration | 15 minutes |
+| Per-user daily estimated cost | USD 3 |
+| Global daily estimated cost | USD 10 |
+
+## Runtime targets
+
+The E2B target is a provider-supported equivalent of 1–2 CPUs, 2–4 GB memory, a 2–5 GB workspace limit, bounded processes where supported, a 15-minute turn timeout, and a 30-minute inactivity lifetime. Command output, event replay, artifacts, and API bodies will be bounded.
+
+Actual provider capabilities must be reported honestly. A UI label is not enforcement, and the runtime adapter must not claim a limit the provider cannot apply.
+
+## Network and project limits
+
+Network is denied by default. Public Git clones will be HTTPS-only, shallow by default, time- and size-bounded, and protected against local, SSH, credential-bearing, redirect-to-private-network, and unsafe submodule inputs.
+
+<Callout kind="warning">
+No hosted quota, cost cap, sandbox timeout, or egress rule is active until the backend phase ships and its integration tests pass. The deterministic `/sandbox` route consumes no model or cloud budget.
+</Callout>

@@ -1,0 +1,35 @@
+---
+title: File and project tools
+description: Bounded inspection, exact edits, structured readers, checkpoints, and project confinement.
+section: Using the agent
+sectionOrder: 2
+order: 4
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+keywords: [read_file, search, apply patch, safe paths, checkpoints]
+---
+
+## Inspection tools
+
+Core provides bounded file listing, text search, file reads, structured configuration readers, symbol listing, dependency and CI summaries, Git status, and changed-file context. Outputs are size-limited before entering model context.
+
+Read tools still respect the selected project boundary. Absolute paths, `..` escapes, and unsafe targets are rejected by shared path handling.
+
+## Precise edits
+
+Editing tools prefer exact, reviewable changes over full-file replacement. Before a tracked file mutation, LunarForge can create a project-local checkpoint so current-turn rollback has material to restore.
+
+Default permission mode asks before each mutation. `permissions.mode: yes` may auto-approve an eligible low-risk write, but it never makes dependency installation or commands automatic.
+
+## Commands are separate
+
+File confinement does not sandbox local commands. A command approved in local mode runs as the current OS user with the project root as its working directory. Choose [Docker mode](/docs/docker-mode) for a stronger execution boundary.
+
+<Callout kind="warning">
+Checkpoints are a rollback aid, not a substitute for version control or backups. Rollback reports what was restored, retained, or could not be reverted; do not infer success before the finished event.
+</Callout>
+
+## Plan-only inspection
+
+Plan mode exposes only the safe context suite. It omits edit, command, browser, plugin, MCP mutation, and Git commit tools, and it avoids creating `.agent` state.

@@ -1,0 +1,63 @@
+---
+title: Configuration
+description: Configuration files, environment overrides, precedence, and safe model settings.
+section: Getting started
+sectionOrder: 1
+order: 4
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+keywords: [.agent/config.yaml, environment, precedence, reasoning effort]
+---
+
+## Precedence
+
+Configuration is merged from lowest to highest priority: built-in defaults, `LUNAR_FORGE_*` environment variables, `~/.lunar-forge/config.yaml`, `<project>/.agent/config.yaml`, then CLI flags.
+
+```yaml
+model:
+  provider: litellm
+  api: chat
+  model: openai/gpt-5.5
+  api_key_env: OPENAI_API_KEY
+  reasoning:
+    effort: medium
+
+runtime:
+  mode: local
+  allow_network: false
+  project_trust: auto
+
+permissions:
+  mode: default
+
+subagents:
+  enabled: false
+  parallel: false
+
+mcp:
+  enabled: false
+
+plugins:
+  enabled: false
+```
+
+## Model settings
+
+`model.api` accepts `chat` or `responses`. Reasoning effort accepts `low`, `medium`, `high`, `xhigh`, or `max`, but a provider/API combination may not support every value. LunarForge warns and continues without sending unsupported reasoning settings.
+
+`model.api_key_env` contains an environment-variable name, not a credential. Raw `model.api_key` values are rejected.
+
+## Runtime and permission settings
+
+`runtime.mode` accepts `local`, `docker`, or `no-command`. `runtime.allow_network` is meaningful only with Docker. `runtime.project_trust` accepts `auto`, `trusted`, `untrusted`, or `unknown` and changes warning detail; it never grants authority.
+
+Permission modes include `default`, `yes`, `no-command`, `plan`, and the Docker compatibility mode exposed by the public request API. Use CLI flags for one-run overrides.
+
+## Environment overrides
+
+Supported names include `LUNAR_FORGE_MODEL`, `LUNAR_FORGE_MODEL_API`, `LUNAR_FORGE_REASONING_EFFORT`, `LUNAR_FORGE_API_KEY_ENV`, `LUNAR_FORGE_RUNTIME_MODE`, `LUNAR_FORGE_ALLOW_NETWORK`, `LUNAR_FORGE_PERMISSION_MODE`, and enablement flags for subagents, MCP, and plugins.
+
+<Callout kind="note">
+MCP server definitions use separate `~/.lunar-forge/mcp.yaml` and `.agent/mcp.yaml` files. Plugin declarations use `.agent/plugins.yaml`. Their global enable switches still live in the main config.
+</Callout>

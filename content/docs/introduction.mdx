@@ -1,0 +1,49 @@
+---
+title: Introduction
+description: What LunarForge is, what the current core ships, and where its safety boundaries sit.
+section: Getting started
+sectionOrder: 1
+order: 1
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+featured: true
+keywords: [coding agent, CLI, Textual, structured events]
+---
+
+## What LunarForge is
+
+LunarForge is a Python coding agent for inspecting, planning, editing, and validating one selected local project. It applies `AGENTS.md` instructions, keeps built-in file operations inside the project root, and gates guarded work through explicit permissions.
+
+The current core release provides a one-shot CLI, an optional Textual terminal chat, redacted JSONL sessions, deterministic specialist subagents, and a typed event API for other interfaces.
+
+<Callout kind="note">
+The hosted browser sandbox shown on this site is a design fixture today. Authentication, cloud execution, persistence, and realtime transport are planned in LunarForge Web; they are not features of core 0.1.0.
+</Callout>
+
+## One engine, multiple interfaces
+
+The CLI and terminal chat use the same agent loop, event records, approval providers, and session format. Future wrappers should consume the public `lunar_forge` API rather than import terminal renderers or private runtime helpers.
+
+```python
+from lunar_forge import AgentRequest, run_agent_events
+
+request = AgentRequest(
+    project_root=".",
+    message="Explain this project without changing files.",
+    permission_mode="plan",
+)
+
+for event in run_agent_events(request):
+    print(event.type, event.payload)
+```
+
+## Safety in plain language
+
+Local mode is a policy boundary, not an operating-system sandbox. Approved commands run with the current user's permissions. Docker mode is a stronger boundary, using the `lunar-forge-sandbox` image, a `/workspace` mount, and no network by default, but it cannot eliminate every host or container-engine risk.
+
+Hard path and command refusals remain in force regardless of prompts, project instructions, old approvals, plugins, or UI.
+
+## Current scope
+
+Core 0.1.0 supports one project root at a time. It is not a hosted service, background daemon, semantic index, vector database, billing system, or multi-repository workspace. Read the [quick start](/docs/quick-start), then choose the [execution mode](/docs/local-execution-safety) appropriate for the project.

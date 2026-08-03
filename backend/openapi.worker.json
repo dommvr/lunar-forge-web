@@ -1,0 +1,436 @@
+{
+  "components": {
+    "schemas": {
+      "AgentEventContract": {
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Event Id",
+            "type": "string"
+          },
+          "parent_event_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Event Id"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "title": "Payload",
+            "type": "object"
+          },
+          "schema_version": {
+            "const": 1,
+            "default": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "sequence": {
+            "minimum": 0.0,
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "session_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "timestamp": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Timestamp",
+            "type": "string"
+          },
+          "turn_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Turn Id",
+            "type": "string"
+          },
+          "type": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "event_id",
+          "session_id",
+          "turn_id",
+          "sequence",
+          "timestamp",
+          "type",
+          "payload"
+        ],
+        "title": "AgentEventContract",
+        "type": "object"
+      },
+      "ErrorDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Message",
+            "type": "string"
+          },
+          "request_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Request Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "request_id"
+        ],
+        "title": "ErrorDetail",
+        "type": "object"
+      },
+      "ErrorEnvelope": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorEnvelope",
+        "type": "object"
+      },
+      "FundingMode": {
+        "enum": [
+          "owner_funded",
+          "byok"
+        ],
+        "title": "FundingMode",
+        "type": "string"
+      },
+      "HealthResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "environment": {
+            "enum": [
+              "local",
+              "test",
+              "production"
+            ],
+            "title": "Environment",
+            "type": "string"
+          },
+          "service": {
+            "enum": [
+              "api",
+              "worker"
+            ],
+            "title": "Service",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "default": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "service",
+          "environment"
+        ],
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "ReasoningEffort": {
+        "enum": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "title": "ReasoningEffort",
+        "type": "string"
+      },
+      "SessionSettings": {
+        "additionalProperties": false,
+        "properties": {
+          "funding_mode": {
+            "$ref": "#/components/schemas/FundingMode",
+            "default": "owner_funded"
+          },
+          "model": {
+            "default": "server-default",
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Model",
+            "type": "string"
+          },
+          "parallel_subagents_enabled": {
+            "default": false,
+            "title": "Parallel Subagents Enabled",
+            "type": "boolean"
+          },
+          "plan_mode": {
+            "default": false,
+            "title": "Plan Mode",
+            "type": "boolean"
+          },
+          "provider": {
+            "default": "openai",
+            "enum": [
+              "openai",
+              "anthropic"
+            ],
+            "title": "Provider",
+            "type": "string"
+          },
+          "reasoning_effort": {
+            "$ref": "#/components/schemas/ReasoningEffort",
+            "default": "medium"
+          },
+          "show_usage": {
+            "default": true,
+            "title": "Show Usage",
+            "type": "boolean"
+          },
+          "subagents_enabled": {
+            "default": true,
+            "title": "Subagents Enabled",
+            "type": "boolean"
+          }
+        },
+        "title": "SessionSettings",
+        "type": "object"
+      },
+      "TurnStatus": {
+        "enum": [
+          "queued",
+          "running",
+          "waiting_for_approval",
+          "completed",
+          "cancelled",
+          "failed"
+        ],
+        "title": "TurnStatus",
+        "type": "string"
+      },
+      "WorkerTurnRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "message": {
+            "maxLength": 50000,
+            "minLength": 1,
+            "title": "Message",
+            "type": "string"
+          },
+          "owner_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Owner Id",
+            "type": "string"
+          },
+          "sandbox_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Sandbox Id",
+            "type": "string"
+          },
+          "session_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Session Id",
+            "type": "string"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/SessionSettings"
+          },
+          "turn_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Turn Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sandbox_id",
+          "session_id",
+          "turn_id",
+          "owner_id",
+          "message"
+        ],
+        "title": "WorkerTurnRequest",
+        "type": "object"
+      },
+      "WorkerTurnResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/AgentEventContract"
+            },
+            "maxItems": 2000,
+            "title": "Events",
+            "type": "array"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TurnStatus"
+          },
+          "turn_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Turn Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "turn_id",
+          "status",
+          "events"
+        ],
+        "title": "WorkerTurnResponse",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "title": "LunarForge Private Turn Worker",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/internal/v1/turns:run": {
+      "post": {
+        "operationId": "run_turn_internal_v1_turns_run_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkerTurnRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkerTurnResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Authentication required."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Access denied."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Resource not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request."
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Run Turn",
+        "tags": [
+          "turns"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,49 @@
+---
+title: CLI usage
+description: Current one-shot, chat, session, diagnostics, and utility command surfaces.
+section: Using the agent
+sectionOrder: 2
+order: 1
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+keywords: [lunar-forge, flags, chat, resume, commands]
+---
+
+## One-shot tasks
+
+The console command is `lunar-forge`. Pass a task directly and use `--project` when the target is not the current directory.
+
+```bash
+lunar-forge "Explain this repository"
+lunar-forge --project ../my-app --plan "Plan a pricing page"
+lunar-forge --show-usage "Explain this repository"
+lunar-forge --reasoning-effort high "Review the uncommitted diff"
+```
+
+Common execution flags include `--plan`, `--yes`, `--no-command`, `--docker`, and Docker-only `--allow-network`. `--subagents` and `--parallel-subagents` enable the optional deterministic role sequence.
+
+## Chat and resume
+
+```bash
+lunar-forge chat --project ../my-app
+lunar-forge chat --resume latest --project ../my-app
+lunar-forge sessions --project ../my-app
+lunar-forge resume latest --project ../my-app
+```
+
+Textual chat requires the `tui` extra. One-shot resume and chat resume create a new linked session with safe historical context; neither replays tools nor reuses approvals.
+
+## Diagnostics and utilities
+
+The core also exposes bounded diagnostic and utility commands for validation, browser validation, MCP, plugins, Git status/commit workflows, checkpoints, rollback, and new-project starters. Use `lunar-forge --help` and command-specific `--help` as the authoritative flag inventory for the installed build.
+
+```bash
+lunar-forge mcp list --project ../my-app
+lunar-forge plugins list --project ../my-app
+lunar-forge browser-validate --project ../my-app --url http://localhost:5173
+```
+
+<Callout kind="warning">
+“Do not edit files” blocks mutation tools but does not automatically block commands. Use `--plan`, `--no-command`, or explicit wording that also forbids commands when that boundary matters.
+</Callout>

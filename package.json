@@ -5,19 +5,50 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "prebuild": "npm run docs:check",
     "start": "next start",
-    "lint": "next lint",
-    "validate": "tsc --noEmit && next build"
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "docs:generate": "node scripts/generate_docs_manifest.mjs",
+    "docs:check": "node scripts/generate_docs_manifest.mjs --check",
+    "docs:links": "node scripts/check_links.mjs",
+    "docs:sync": "python scripts/sync_core_docs.py",
+    "test:sync": "python -m unittest discover -s scripts/tests -p test_*.py",
+    "api:openapi": "uv run --project backend python scripts/export_openapi.py",
+    "api:openapi:check": "uv run --project backend python scripts/export_openapi.py --check",
+    "api:types": "node scripts/generate_api_client.mjs",
+    "api:generate": "npm run api:openapi && npm run api:types",
+    "api:check": "npm run api:openapi:check && node scripts/generate_api_client.mjs --check",
+    "validate": "npm run lint && npm run typecheck && npm test && npm run docs:links && npm run test:sync && npm run api:check && npm run build"
   },
   "dependencies": {
+    "@supabase/ssr": "0.12.4",
+    "@supabase/supabase-js": "2.111.0",
+    "github-slugger": "2.0.0",
+    "gray-matter": "4.0.3",
     "next": "15.5.4",
+    "next-mdx-remote": "5.0.0",
     "react": "19.1.1",
-    "react-dom": "19.1.1"
+    "react-dom": "19.1.1",
+    "rehype-slug": "6.0.0",
+    "remark-gfm": "4.0.1"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "3.3.6",
+    "@playwright/test": "1.55.1",
+    "@testing-library/jest-dom": "6.8.0",
+    "@testing-library/react": "16.3.0",
+    "@testing-library/user-event": "14.6.1",
     "@types/node": "22.18.0",
     "@types/react": "19.1.12",
     "@types/react-dom": "19.1.9",
-    "typescript": "5.9.2"
+    "eslint": "9.35.0",
+    "eslint-config-next": "15.5.4",
+    "jsdom": "26.1.0",
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.2",
+    "vitest": "3.2.4"
   }
 }

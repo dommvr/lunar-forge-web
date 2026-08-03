@@ -1,0 +1,81 @@
+---
+title: Public Python API
+description: The stable root exports, module-only approval protocol, request fields, sessions, and event iterator.
+section: Reference
+sectionOrder: 6
+order: 2
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+keywords: [AgentRequest, AgentEvent, ApprovalDecision, run_agent_events, public_api]
+---
+
+## Root package exports
+
+`lunar_forge.__init__` exports exactly these public names in core 0.1.0:
+
+| Export | Purpose |
+| --- | --- |
+| `AgentEvent` | Versioned structured event envelope. |
+| `AgentRequest` | Validated request for one event-stream run. |
+| `ApprovalDecision` | Transport-neutral decision for one request. |
+| `ApprovalRequest` | Bounded description of one guarded action. |
+| `ResumedSession` | Inert, bounded historical context. |
+| `SessionRef` | Safe project-local session reference. |
+| `__version__` | Package version, currently `0.1.0`. |
+| `list_sessions` | Discover bounded session references. |
+| `load_config` | Load merged core configuration. |
+| `resume_session` | Load safe historical context. |
+| `run_agent_events` | Yield the structured agent stream. |
+
+```python
+from lunar_forge import (
+    AgentEvent,
+    AgentRequest,
+    ApprovalDecision,
+    ApprovalRequest,
+    ResumedSession,
+    SessionRef,
+    list_sessions,
+    load_config,
+    resume_session,
+    run_agent_events,
+)
+```
+
+## AgentRequest
+
+Required fields are `project_root` and a non-empty `message`. Optional fields are `runtime_mode`, `permission_mode`, `allow_network`, `model`, `reasoning_effort`, `resume`, `offer_commit`, `commit_message`, `show_usage`, and bounded `ui_metadata`.
+
+Runtime modes are `local`, `docker`, and `no-command`. Public permission modes are `default`, `yes`, `no-command`, `plan`, and `docker`. `allow_network=True` requires Docker.
+
+## Run events
+
+```python
+from lunar_forge import AgentRequest, run_agent_events
+
+request = AgentRequest(
+    project_root=".",
+    message="Run the existing validation and summarize failures.",
+    runtime_mode="docker",
+)
+
+for event in run_agent_events(request):
+    handle(event.to_dict())
+```
+
+The function returns a synchronous iterator and delegates to the same core engine as the current interfaces. Pass an approval provider when the wrapper can resolve guarded work.
+
+## ApprovalProvider
+
+`ApprovalProvider` is exported from `lunar_forge.public_api`, not from the root package. It is a runtime-checkable synchronous protocol with `request_approval(request) -> ApprovalDecision`.
+
+```python
+from lunar_forge.public_api import ApprovalProvider
+```
+
+This distinction is deliberate and documented here exactly as implemented. Server wrappers should otherwise prefer root exports and must not import Rich renderers, Textual widgets, private agent helpers, or terminal-output parsers.
+
+## Sessions
+
+`list_sessions()` returns references without reading logs. `resume_session()` validates project binding and returns bounded messages plus counts; `tool_calls_replayed` and `approvals_reused` are always false in the current contract.

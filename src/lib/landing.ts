@@ -93,10 +93,10 @@ export const safetyModes: SafetyMode[] = [
   },
   {
     title: "Hosted sandbox",
-    badge: "demo only",
+    badge: "UI preview",
     tone: "neutral",
     description:
-      "A disposable, time-boxed session in the browser with no access to your machine. It exists so you can try the agent in one click — there is no managed or paid hosting, and there won't be. Real work runs locally or in Docker.",
+      "The current browser route is a deterministic UI preview; it does not run LunarForge yet. The planned hosted runtime will use disposable, time-boxed E2B sandboxes.",
     rows: [
       { k: "File writes", v: "ephemeral", tone: "muted" },
       { k: "Commands", v: "approval-gated", tone: "success" },
@@ -115,7 +115,7 @@ export const flowSteps: FlowStep[] = (
     ["Structured events", "JSON-safe, UI-neutral"],
     ["Tools + approval gates", "Nothing runs unapproved"],
     ["Validation", "Commands and browser checks"],
-    ["CLI · Textual · Web", "Same stream, three surfaces"],
+    ["CLI · Textual · wrappers", "One transport-neutral contract"],
   ] as [string, string][]
 ).map(([title, description], i) => ({ n: pad2(i), title, description }));
 
@@ -172,7 +172,7 @@ export const devPoints: DevPoint[] = (
   [
     [
       "Python package",
-      "pip install lunarforge. Import the agent, drive it from your own scripts and CI.",
+      "Install the lunar-forge distribution. Import lunar_forge, then drive its typed event API from scripts and CI.",
     ],
     [
       "Provider-neutral model layer",
@@ -199,14 +199,14 @@ export const footerColumns: { title: string; items: NavLink[] }[] = [
     items: [
       { label: "Docs", href: "/docs" },
       { label: "Sandbox", href: "/sandbox" },
-      { label: "Changelog", href: "/docs/changelog" },
+      { label: "Quick start", href: "/docs/quick-start" },
     ],
   },
   {
     title: "Source",
     items: [
-      { label: "GitHub", href: "https://github.com/lunarforge/lunarforge" },
-      { label: "License", href: "/docs/license" },
+      { label: "GitHub", href: "https://github.com/dommvr/lunar-forge" },
+      { label: "Introduction", href: "/docs/introduction" },
       { label: "Security", href: "/docs/security-model" },
     ],
   },
@@ -222,5 +222,5 @@ export const footerColumns: { title: string; items: NavLink[] }[] = [
 
 export type NavLink = { label: string; href: string };
 
-export const RELEASE = "v0.8.2 · milestone 3 — sandbox preview";
-export const RELEASE_SHORT = "v0.8.2 · milestone 3";
+export const RELEASE = "v0.1.0 · stable core API — hosted integration in progress";
+export const RELEASE_SHORT = "v0.1.0 · core API";

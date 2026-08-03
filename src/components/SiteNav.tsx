@@ -14,7 +14,7 @@ const LINKS = [
   { label: "Docs", href: "/docs" },
   { label: "Sandbox", href: "/sandbox" },
   { label: "Compare", href: "/compare" },
-  { label: "GitHub", href: "https://github.com/lunarforge/lunarforge" },
+  { label: "GitHub", href: "https://github.com/dommvr/lunar-forge" },
 ];
 
 function isActive(pathname: string, href: string) {

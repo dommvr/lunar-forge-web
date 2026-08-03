@@ -1,0 +1,39 @@
+---
+title: Projects and AGENTS.md
+description: Select a project root and understand how root and nested project instructions apply.
+section: Using the agent
+sectionOrder: 2
+order: 3
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+keywords: [project root, AGENTS.md, nested instructions, scope]
+---
+
+## Select one project root
+
+LunarForge works on one project root per run. Use the current directory or pass `--project` explicitly:
+
+```bash
+lunar-forge --project C:/work/example "Summarize the routing structure"
+```
+
+Built-in path helpers resolve requested files against that root and reject escapes. Session state, checkpoints, and project configuration live under the selected project's `.agent` directory unless the mode forbids runtime writes.
+
+## Instruction scope
+
+LunarForge loads `AGENTS.md` guidance for the project. Root guidance applies broadly; a more deeply nested instruction file can refine work for files beneath its directory. Instructions describe project conventions and validation expectations.
+
+Project instructions do not override hard path confinement, command refusals, permission modes, or approval requirements. Treat an unfamiliar repository's instructions as untrusted content.
+
+## Plan mode
+
+`--plan` is the safest way to inspect a new project. It exposes read/search tools, omits mutation and command tools, and does not create `.agent` runtime files.
+
+<Callout kind="tip">
+Record the project's initial Git status before broad edits. LunarForge can summarize status and diffs, but existing user changes still belong to the user and should not be overwritten.
+</Callout>
+
+## New projects
+
+The `new` workflow offers six declarative starters in core 0.1.0. New-project scaffolding remains permission-gated and confined to the chosen target. It is separate from the future hosted starter templates described in [hosted sandbox](/docs/hosted-sandbox).

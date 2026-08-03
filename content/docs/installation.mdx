@@ -1,0 +1,48 @@
+---
+title: Installation
+description: Install LunarForge core from source with Python 3.11 or newer and optional extras.
+section: Getting started
+sectionOrder: 1
+order: 2
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+keywords: [pip, Python 3.11, tui extra, browser extra]
+---
+
+## Requirements
+
+LunarForge requires Python 3.11 or newer. Docker is optional and needed only for Docker execution. Textual chat and local Playwright validation are optional extras.
+
+## Install from the repository
+
+The current core documentation supports an editable source install. From a clone of the core repository:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -e .
+lunar-forge --help
+```
+
+On POSIX shells, activate the environment with `source .venv/bin/activate`.
+
+Install development dependencies with `python -m pip install -e ".[dev]"`. Install the Textual interface with `.[tui]`, and local browser validation with `.[browser]`.
+
+<Callout kind="warning">
+The distribution and CLI are spelled `lunar-forge`; Python imports use `lunar_forge`. The current core README does not publish a PyPI installation command, so these docs do not claim one.
+</Callout>
+
+## Configure a provider key
+
+Set the environment variable named by `model.api_key_env`. The default name is `OPENAI_API_KEY`.
+
+```powershell
+$env:OPENAI_API_KEY = "your-key"
+```
+
+Never put a raw key in `.agent/config.yaml`. The configuration loader rejects `model.api_key`; it accepts only the name in `model.api_key_env`.
+
+## Verify the install
+
+Use `lunar-forge --help` to confirm the console entry point. A safe first request is the plan-only command in the [quick start](/docs/quick-start), which exposes read and search tools but creates no `.agent` runtime files.

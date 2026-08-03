@@ -1,0 +1,45 @@
+---
+title: Browser validation
+description: Validate a local web page with the optional Playwright workflow and explicit server approval.
+section: Execution
+sectionOrder: 3
+order: 5
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+keywords: [Playwright, browser-validate, screenshots, dev server]
+---
+
+## Install the optional extra
+
+Local browser validation requires the `browser` extra and compatible Playwright browser assets.
+
+```bash
+python -m pip install -e ".[browser]"
+```
+
+## Validate a running page
+
+The dedicated command accepts a project, URL, optional server command, selectors, and other bounded checks. The checked-in core demo uses:
+
+```bash
+lunar-forge browser-validate \
+  --project examples/projects/browser-demo \
+  --serve "npm run dev" \
+  --url http://localhost:5173 \
+  --check "#main-heading"
+```
+
+Starting a browser/dev server is approval-gated. Screenshots and console findings are bounded before reporting.
+
+## Event contract
+
+Browser work emits normal tool events plus `browser.started` and `browser.finished`. The finished payload may include a bounded artifact path. Future UIs should render these structured records instead of scraping CLI text.
+
+<Callout kind="note">
+This local workflow is distinct from the planned isolated preview gateway for the hosted sandbox. Core 0.1.0 does not expose a public preview URL or cloud browser service.
+</Callout>
+
+## Network considerations
+
+A local page can make external requests with the current environment's network access. In Docker mode, network remains disabled unless explicitly enabled. Browser evidence is only as trustworthy as the page, runtime, and checks you selected.

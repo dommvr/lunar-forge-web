@@ -1,0 +1,40 @@
+---
+title: Working-memory compaction
+description: Keep long Textual conversations usable with bounded public summaries.
+section: Sessions
+sectionOrder: 4
+order: 2
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+keywords: [compact, context, summary, token threshold]
+---
+
+## Why compaction exists
+
+Long chat histories can exceed a useful model context. The Textual workflow can replace older conversational material with a concise public summary while retaining recent messages.
+
+Compaction never exposes or stores hidden reasoning. It operates on bounded, user-visible conversation and tool-result context.
+
+## Automatic thresholds
+
+The main configuration includes `ui.chat.compact_at_tokens` and `ui.chat.compact_to_tokens`. Core defaults are 120,000 and 12,000 respectively, and the target must be lower than the trigger.
+
+```yaml
+ui:
+  chat:
+    compact_at_tokens: 120000
+    compact_to_tokens: 12000
+```
+
+## Manual compaction
+
+Use `/compact` in Textual chat. The workflow reports a clean no-op when there is not enough eligible context, and emits `memory.compaction.started` and `memory.compaction.finished` around actual work.
+
+<Callout kind="note">
+Compaction improves working context; it is not deletion of the underlying project or a promise to erase prior session records. Hosted retention behavior is a separate, planned policy.
+</Callout>
+
+## Resume interaction
+
+Compacted summaries can be part of the bounded context returned on resume. The `ResumedSession.compacted_summary_count` field reports how many summaries were loaded.

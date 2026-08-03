@@ -1,0 +1,55 @@
+---
+title: Quick start
+description: Inspect a project, make a plan-only request, and opt into guarded execution.
+section: Getting started
+sectionOrder: 1
+order: 3
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+featured: true
+keywords: [first task, plan, Docker, approvals]
+---
+
+## Inspect without changing files
+
+Choose an existing project and start with plan mode:
+
+```bash
+lunar-forge --plan --project ./my-app "Explain the routing structure and plan one accessibility improvement."
+```
+
+`--plan` exposes only read and search tools. It does not edit files, run commands, or create `.agent` runtime data.
+
+## Run an editing task
+
+Default permission mode asks before file mutations and commands:
+
+```bash
+lunar-forge --project ./my-app "Add the accessibility improvement and run the existing validation."
+```
+
+Review every request. Pressing Enter at the CLI prompt selects the safe `No` default. Approving a write or command authorizes that bounded operation, not later operations.
+
+## Prefer Docker for unfamiliar work
+
+```bash
+lunar-forge --docker --project ./my-app "Run the existing tests and summarize failures. Do not edit files."
+```
+
+Docker commands run in `lunar-forge-sandbox` with the project mounted at `/workspace`. Network is disabled unless `--allow-network` is also supplied, and command approval is still required.
+
+<Callout kind="tip">
+Read [permissions and approvals](/docs/permissions-and-approvals) before enabling `permissions.mode: yes`; it auto-approves only eligible low-risk writes, never commands or dependency installation.
+</Callout>
+
+## Continue in terminal chat
+
+If you installed the `tui` extra, start a multi-turn session with:
+
+```bash
+lunar-forge chat --project ./my-app
+lunar-forge chat --resume latest --project ./my-app
+```
+
+Resume loads bounded historical conversation context into a new linked session. Old tool calls stay inert and old approvals are never reused.

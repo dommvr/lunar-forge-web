@@ -23,7 +23,8 @@ function match(r: SearchResult, q: string) {
   const needle = q.toLowerCase();
   return (
     r.title.toLowerCase().includes(needle) ||
-    r.description.toLowerCase().includes(needle)
+    r.description.toLowerCase().includes(needle) ||
+    r.searchText?.toLowerCase().includes(needle)
   );
 }
 

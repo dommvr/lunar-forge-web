@@ -8,6 +8,112 @@
   overflow: hidden;
 }
 
+/* Funding controls extend the existing onboarding card without changing its grid. */
+.fundingCard {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.fundingCard legend {
+  margin-bottom: 8px;
+}
+
+.fundingOptions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.fundingOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  color: var(--text-bright);
+  cursor: pointer;
+}
+
+.fundingOption input {
+  margin-top: 3px;
+  accent-color: var(--accent);
+}
+
+.fundingOption span {
+  display: grid;
+  gap: 3px;
+}
+
+.fundingOption strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.fundingOption small,
+.byokFields p {
+  color: var(--text-muted);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.byokFields {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.byokFields label {
+  display: grid;
+  gap: 5px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+}
+
+.byokFields select,
+.byokFields input {
+  width: 100%;
+  min-height: 34px;
+  padding: 7px 9px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface-1);
+  color: var(--text-bright);
+  font: inherit;
+}
+
+.byokFields p {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+button.flag {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+button.flag:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (max-width: 767px) {
+  .fundingOptions,
+  .byokFields {
+    grid-template-columns: 1fr;
+  }
+
+  .byokFields p {
+    grid-column: 1;
+  }
+}
+
 /* ---------- Header ---------- */
 
 .header {
@@ -923,6 +1029,12 @@
 
 .mobileHeader {
   display: none;
+}
+
+.mobileHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .segmented {

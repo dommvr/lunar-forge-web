@@ -1,45 +1,45 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+import { LogoutButton } from "@/components/auth/LogoutButton";
 import { Button } from "@/components/ui/Button";
 import {
-  activityLog,
-  activeMeta,
   APPROVAL_COMMAND,
-  approvalMeta,
   examplePrompts,
   panelTabs,
   PRICING_PREVIEW,
   projectTree,
-  readyMeta,
   toolRows,
   usageRows,
   validationSteps,
-  type ActivityEvent,
   type PanelTab,
 } from "@/lib/sandbox";
 
+import {
+  useSandboxSession,
+  type FundingSelection,
+  type UseSandboxSessionOptions,
+} from "./hooks/useSandboxSession";
+import type { SandboxPhase } from "./state/sandboxReducer";
+
 import styles from "./sandbox.module.css";
 
-type Phase =
-  | "ready"
-  | "running"
-  | "gated"
-  | "validating"
-  | "done"
-  | "cancelled";
-
-type Message = { id: number; role: "user" | "agent"; text: string };
-
-const STATUS: Record<Phase, { label: string; tone: string }> = {
+const STATUS: Record<SandboxPhase, { label: string; tone: string }> = {
+  idle: { label: "No sandbox", tone: styles.toneMuted },
+  provisioning: { label: "Provisioning", tone: styles.toneWarning },
   ready: { label: "Ready", tone: styles.toneSuccess },
   running: { label: "Agent working", tone: styles.toneAccent },
   gated: { label: "Waiting for approval", tone: styles.toneWarning },
   validating: { label: "Running validation", tone: styles.toneAccent },
   done: { label: "Task completed", tone: styles.toneSuccess },
   cancelled: { label: "Task stopped", tone: styles.toneMuted },
+  expired: { label: "Sandbox expired", tone: styles.toneMuted },
+  limited: { label: "Rate limited", tone: styles.toneWarning },
+  offline: { label: "Reconnecting", tone: styles.toneWarning },
+  error: { label: "Recoverable error", tone: styles.toneError },
+  fatal: { label: "Sandbox error", tone: styles.toneError },
 };
 
 const KIND_CLASS = {
@@ -57,62 +57,50 @@ const CHECK_CLASS = {
 const clock = (seconds: number) =>
   `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 
-export function SandboxApp() {
-  const [phase, setPhase] = useState<Phase>("ready");
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [visibleTools, setVisibleTools] = useState(0);
-  const [progress, setProgress] = useState<string | null>(null);
-  const [checksDone, setChecksDone] = useState(0);
+export type SandboxAppProps = UseSandboxSessionOptions;
+
+export function SandboxApp(props: SandboxAppProps = {}) {
+  const controller = useSandboxSession(props);
+  const { state } = controller;
+  const phase = state.phase;
+  const messages = state.messages;
+  const visibleTools = state.visibleTools;
+  const progress = state.progress;
+  const checksDone = state.checksDone;
+  const events = state.activities;
+  const changed = state.changed;
   const [elapsed, setElapsed] = useState(0);
   const [draft, setDraft] = useState("");
   const [tab, setTab] = useState<PanelTab>("Activity");
   const [segment, setSegment] = useState<"Chat" | "Files" | "Events">("Chat");
-  const [events, setEvents] = useState<ActivityEvent[]>(activityLog);
-
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const [funding, setFunding] = useState<FundingSelection>({
+    fundingMode: "owner_funded",
+    provider: "openai",
+  });
+  /* Provider credentials intentionally live only in component memory. */
+  const [byokKey, setByokKey] = useState("");
   const transcriptRef = useRef<HTMLDivElement>(null);
   const denyRef = useRef<HTMLButtonElement>(null);
-  const nextId = useRef(0);
-
-  const clearTimers = useCallback(() => {
-    timers.current.forEach(clearTimeout);
-    timers.current = [];
-  }, []);
-
-  const after = useCallback((ms: number, fn: () => void) => {
-    timers.current.push(setTimeout(fn, ms));
-  }, []);
-
-  useEffect(() => clearTimers, [clearTimers]);
-
-  const say = useCallback((role: Message["role"], text: string) => {
-    nextId.current += 1;
-    /* Read the id here, not inside the updater: two say() calls batched in the
-     * same tick would otherwise both see the final ref value and collide. */
-    const id = nextId.current;
-    setMessages((m) => [...m, { id, role, text }]);
-  }, []);
-
-  const emit = useCallback((event: ActivityEvent) => {
-    setEvents((e) => [...e, event]);
-  }, []);
 
   const started = messages.length > 0;
-  const changed = visibleTools >= 3;
   const busy = phase === "running" || phase === "validating";
   const tree = useMemo(() => projectTree(changed), [changed]);
 
-  /* Elapsed clock while a task is in flight. */
+  /* This clock reports elapsed real time; it never drives a state transition. */
   useEffect(() => {
-    if (phase === "ready" || phase === "done" || phase === "cancelled") return;
-    const id = setInterval(() => setElapsed((s) => s + 1), 1000);
-    return () => clearInterval(id);
+    if (phase === "running") setElapsed(0);
   }, [phase]);
+
+  useEffect(() => {
+    if (!busy && phase !== "gated") return;
+    const id = setInterval(() => setElapsed((seconds) => seconds + 1), 1000);
+    return () => clearInterval(id);
+  }, [busy, phase]);
 
   /* Streaming text appends without layout shift; keep the tail in view. */
   useEffect(() => {
-    const el = transcriptRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    const element = transcriptRef.current;
+    if (element) element.scrollTop = element.scrollHeight;
   }, [messages, visibleTools, phase]);
 
   /* Focus moves to Deny — the safe default — when the gate opens. */
@@ -120,137 +108,26 @@ export function SandboxApp() {
     if (phase === "gated") denyRef.current?.focus();
   }, [phase]);
 
-  const run = useCallback(
-    (prompt: string) => {
-      clearTimers();
-      setElapsed(0);
-      setChecksDone(0);
-      setVisibleTools(0);
-      setPhase("running");
-      say("user", prompt);
-      emit({
-        name: "task.started",
-        detail: prompt.slice(0, 42),
-        time: "0.0s",
-        tone: "muted",
-      });
-      setProgress("Inspecting project · 12 files matched · reading AGENTS.md");
+  const run = (prompt: string) => {
+    if (!state.sessionId || busy || phase === "gated") return;
+    void controller.submit(prompt, funding);
+  };
 
-      after(700, () => {
-        setVisibleTools(1);
-        emit({
-          name: "tool.read",
-          detail: "AGENTS.md · root + app/",
-          time: "0.3s",
-          tone: "success",
-        });
-      });
-      after(1200, () => {
-        setVisibleTools(2);
-        setProgress("Planning changes · 3 edits");
-      });
-      after(2100, () => {
-        setVisibleTools(3);
-        emit({
-          name: "tool.edit",
-          detail: "components/Pricing.tsx · new file",
-          time: "1.2s",
-          tone: "success",
-        });
-        say(
-          "agent",
-          "I read AGENTS.md and the marketing route, added a three-tier pricing section with a mobile stack, and wired it into the page. Next I need to run the project's validation command.",
-        );
-      });
-      after(2900, () => {
-        setVisibleTools(4);
-        setPhase("gated");
-        setProgress(null);
-        emit({
-          name: "approval.requested",
-          detail: "command.run · risk medium",
-          time: "2.9s",
-          tone: "muted",
-        });
-      });
-    },
-    [after, clearTimers, emit, say],
-  );
-
-  const approve = useCallback(() => {
-    clearTimers();
-    setPhase("validating");
+  const approve = () => {
     setTab("Validation");
-    emit({
-      name: "approval.resolved",
-      detail: "approved · npm run validate",
-      time: "3.0s",
-      tone: "success",
-    });
-    setProgress("Running validation · step 1 of 5");
+    void controller.resolveApproval(true);
+  };
 
-    validationSteps.forEach((step, i) => {
-      after(700 * (i + 1), () => {
-        setChecksDone(i + 1);
-        setProgress(`Running validation · step ${i + 1} of ${validationSteps.length}`);
-      });
-    });
+  const deny = () => void controller.resolveApproval(false);
+  const stop = () => void controller.cancel();
 
-    after(700 * (validationSteps.length + 1), () => {
-      setPhase("done");
-      setProgress(null);
-      emit({
-        name: "task.completed",
-        detail: "3 files changed · validation passed",
-        time: "41s",
-        tone: "success",
-      });
-      say("agent", "Edited 3 files. Validation passed in 41s.");
-      say(
-        "agent",
-        "Staged summary — feat(marketing): responsive pricing section",
-      );
-    });
-  }, [after, clearTimers, emit, say]);
-
-  const deny = useCallback(() => {
-    clearTimers();
-    setPhase("cancelled");
-    setProgress(null);
-    emit({
-      name: "approval.resolved",
-      detail: "denied · task stopped",
-      time: "3.0s",
-      tone: "muted",
-    });
-    say(
-      "agent",
-      "Denied. The task is stopped and nothing was executed — the three file edits are kept so you can review them.",
-    );
-  }, [clearTimers, emit, say]);
-
-  const stop = useCallback(() => {
-    clearTimers();
-    setPhase("cancelled");
-    setProgress(null);
-    say(
-      "agent",
-      "Task stopped. Uncommitted edits from this task were rolled back: components/Pricing.tsx removed, app/page.tsx and package.json restored.",
-    );
-  }, [clearTimers, say]);
-
-  const reset = useCallback(() => {
-    clearTimers();
-    setPhase("ready");
-    setMessages([]);
-    setVisibleTools(0);
-    setProgress(null);
-    setChecksDone(0);
+  const reset = () => {
     setElapsed(0);
     setDraft("");
     setTab("Activity");
-    setEvents(activityLog);
-  }, [clearTimers]);
+    setByokKey("");
+    void controller.reset();
+  };
 
   const submit = () => {
     const text = draft.trim();
@@ -260,8 +137,28 @@ export function SandboxApp() {
   };
 
   const status = STATUS[phase];
-  const meta = phase === "ready" ? readyMeta : activeMeta;
+  const meta = [
+    { k: "session", v: state.sessionId?.slice(0, 12) ?? "starting" },
+    { k: "runtime", v: "fake · offline" },
+    {
+      k: "model",
+      v:
+        funding.fundingMode === "byok"
+          ? `${funding.provider} · BYOK`
+          : "server-default",
+    },
+    { k: "effort", v: "medium" },
+    { k: "network", v: "denied" },
+    { k: "time left", v: "30:00", hot: phase !== "ready" },
+  ];
   const gated = phase === "gated";
+  const currentApproval = state.approval;
+  const currentApprovalMeta = [
+    { k: "runtime", v: "fake · offline · no network" },
+    { k: "cwd", v: "/workspace/sample-app" },
+    { k: "writes", v: ".agent/ (session artifacts)" },
+    { k: "requested by", v: "fake core adapter" },
+  ];
 
   /* ---------- Fragments shared between desktop and mobile ---------- */
 
@@ -422,8 +319,8 @@ export function SandboxApp() {
 
         {tab === "Artifacts" ? (
           <div className={styles.emptyState}>
-            {phase === "done"
-              ? "validation-8f3c2a.json · 4.1 KB"
+            {state.artifacts.length > 0
+              ? `${state.artifacts[0].name} · 4.1 KB`
               : "No artifacts yet."}
             <br />
             Artifacts appear here after a task.
@@ -453,18 +350,24 @@ export function SandboxApp() {
     >
       <div className={styles.approvalHead}>
         <div>
-          <div className={styles.approvalTitle}>Run command in sandbox</div>
+          <div className={styles.approvalTitle}>
+            {currentApproval?.title ?? "Run command in sandbox"}
+          </div>
           <div className={styles.approvalSub}>
-            Executes the project&apos;s validation command inside the container.
-            No network access.
+            {currentApproval?.summary ??
+              "Executes the project's validation command. No network access."}
           </div>
         </div>
-        <span className={styles.riskChip}>risk: medium</span>
+        <span className={styles.riskChip}>
+          risk: {currentApproval?.risk ?? "medium"}
+        </span>
       </div>
       <div className={styles.approvalDetails}>
-        <div className={styles.approvalCommand}>{APPROVAL_COMMAND}</div>
+        <div className={styles.approvalCommand}>
+          {currentApproval?.details ?? APPROVAL_COMMAND}
+        </div>
         <div className={styles.approvalMeta}>
-          {approvalMeta.map((m) => (
+          {currentApprovalMeta.map((m) => (
             <div key={m.k} style={{ display: "contents" }}>
               <span className={styles.approvalMetaKey}>{m.k}</span>
               <span className={styles.approvalMetaValue}>{m.v}</span>
@@ -499,14 +402,86 @@ export function SandboxApp() {
           <div className={styles.onboarding}>
             <div>
               <div className={styles.onboardingTitle}>
-                A disposable session, ready to go
+                Fake-service sandbox, ready to go
               </div>
               <p className={styles.onboardingBody}>
-                A small Next.js sample project is loaded. Commands run inside
-                the sandbox container and still pause for your approval. Nothing
-                touches your machine.
+                A small sample project is loaded by the deterministic FastAPI
+                service. Events, approvals, files, and artifacts use the real
+                client contracts; execution stays offline and never touches
+                your machine.
               </p>
             </div>
+            <fieldset className={styles.fundingCard}>
+              <legend className={styles.panelLabel}>Funding and provider</legend>
+              <div className={styles.fundingOptions}>
+                <label className={styles.fundingOption}>
+                  <input
+                    type="radio"
+                    name="funding-mode"
+                    value="owner_funded"
+                    checked={funding.fundingMode === "owner_funded"}
+                    onChange={() => {
+                      setFunding({ fundingMode: "owner_funded", provider: "openai" });
+                      setByokKey("");
+                    }}
+                  />
+                  <span>
+                    <strong>Owner-funded</strong>
+                    <small>Server-approved OpenAI model and limits.</small>
+                  </span>
+                </label>
+                <label className={styles.fundingOption}>
+                  <input
+                    type="radio"
+                    name="funding-mode"
+                    value="byok"
+                    checked={funding.fundingMode === "byok"}
+                    onChange={() =>
+                      setFunding({ fundingMode: "byok", provider: "openai" })
+                    }
+                  />
+                  <span>
+                    <strong>Bring your own key</strong>
+                    <small>Fake service only; key stays in page memory.</small>
+                  </span>
+                </label>
+              </div>
+              {funding.fundingMode === "byok" ? (
+                <div className={styles.byokFields}>
+                  <label>
+                    <span>Provider</span>
+                    <select
+                      aria-label="BYOK provider"
+                      value={funding.provider}
+                      onChange={(event) =>
+                        setFunding({
+                          fundingMode: "byok",
+                          provider: event.target.value as "openai" | "anthropic",
+                        })
+                      }
+                    >
+                      <option value="openai">OpenAI</option>
+                      <option value="anthropic">Anthropic</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>Provider key</span>
+                    <input
+                      aria-label="Provider key"
+                      type="password"
+                      autoComplete="off"
+                      spellCheck={false}
+                      value={byokKey}
+                      onChange={(event) => setByokKey(event.target.value)}
+                      placeholder="Held in memory until you leave this page"
+                    />
+                  </label>
+                  <p>
+                    Not persisted or sent to the fake backend. Reloading clears it.
+                  </p>
+                </div>
+              ) : null}
+            </fieldset>
             <div>
               <div className={styles.panelLabel}>Try one of these</div>
               <div className={styles.promptGrid} style={{ marginTop: 8 }}>
@@ -515,6 +490,7 @@ export function SandboxApp() {
                     key={p}
                     type="button"
                     className={styles.promptButton}
+                    disabled={!state.sessionId || busy || gated}
                     onClick={() => run(p)}
                   >
                     <span className={styles.promptArrow}>→</span>
@@ -530,10 +506,10 @@ export function SandboxApp() {
           <div className={styles.message}>
             <div className={styles.speaker}>LunarForge:</div>
             <p className={styles.agentText}>
-              Sandbox provisioned in 3.1s. The project is at{" "}
+              Fake runtime ready. The sample project is shown at{" "}
               <code className={styles.inlineCode}>/workspace/sample-app</code>.
-              Ask me to explain it, change it, or run its checks — I will show
-              you each command before it runs.
+              Use the prompts to exercise ordered events, approval, rollback,
+              compaction, files, and artifacts without a real model.
             </p>
           </div>
         ) : null}
@@ -548,6 +524,13 @@ export function SandboxApp() {
             </p>
           </div>
         ))}
+
+        {state.errorMessage ? (
+          <div className={styles.message} role="alert">
+            <div className={styles.speaker}>LunarForge:</div>
+            <p className={styles.agentText}>{state.errorMessage}</p>
+          </div>
+        ) : null}
 
         {visibleTools > 0 ? (
           <div className={styles.toolList}>
@@ -585,14 +568,20 @@ export function SandboxApp() {
         <div className={styles.sheet}>
           <div className={styles.sheetHead}>
             <div>
-              <div className={styles.sheetTitle}>Run command in sandbox</div>
+              <div className={styles.sheetTitle}>
+                {currentApproval?.title ?? "Run command in sandbox"}
+              </div>
               <div className={styles.sheetSub}>
-                Runs the project&apos;s validation command. No network.
+                {currentApproval?.summary ?? "Runs validation. No network."}
               </div>
             </div>
-            <span className={styles.sheetRisk}>medium</span>
+            <span className={styles.sheetRisk}>
+              {currentApproval?.risk ?? "medium"}
+            </span>
           </div>
-          <div className={styles.sheetCommand}>{APPROVAL_COMMAND}</div>
+          <div className={styles.sheetCommand}>
+            {currentApproval?.details ?? APPROVAL_COMMAND}
+          </div>
           <div className={styles.sheetActions}>
             <Button variant="secondary" size="block" onClick={deny}>
               Deny
@@ -612,10 +601,21 @@ export function SandboxApp() {
             className={styles.input}
             rows={1}
             value={draft}
-            disabled={gated}
+            disabled={
+              gated ||
+              !state.sessionId ||
+              phase === "offline" ||
+              phase === "fatal" ||
+              phase === "expired" ||
+              phase === "limited"
+            }
             placeholder={
               gated
                 ? "Input paused while an approval is pending…"
+                : phase === "provisioning"
+                  ? "Provisioning the deterministic sandbox…"
+                  : phase === "offline"
+                    ? "Reconnecting to the event stream…"
                 : "Ask LunarForge to do something in this project…"
             }
             aria-label="Message LunarForge"
@@ -629,7 +629,14 @@ export function SandboxApp() {
           />
           <div className={styles.composerRow}>
             <div className={styles.composerFlags}>
-              <span className={styles.flag}>Compact context</span>
+              <button
+                type="button"
+                className={styles.flag}
+                onClick={() => void controller.compact()}
+                disabled={busy || gated || !state.sessionId}
+              >
+                Compact context
+              </button>
               {!gated ? <span className={styles.flag}>effort: medium</span> : null}
             </div>
             <div className={styles.composerSend}>
@@ -643,7 +650,14 @@ export function SandboxApp() {
               <Button
                 variant="primary"
                 onClick={submit}
-                disabled={gated || busy || draft.trim().length === 0}
+                disabled={
+                  gated ||
+                  busy ||
+                  !state.sessionId ||
+                  phase === "offline" ||
+                  phase === "fatal" ||
+                  draft.trim().length === 0
+                }
               >
                 Send
               </Button>
@@ -655,7 +669,10 @@ export function SandboxApp() {
   );
 
   return (
-    <div className={styles.app} id="main">
+    <div
+      className={`${styles.app} ${phase === "offline" ? styles.disconnected : ""}`}
+      id="main"
+    >
       <h1 className="srOnly">LunarForge sandbox</h1>
 
       {/* Desktop header */}
@@ -690,6 +707,7 @@ export function SandboxApp() {
           <Button variant="outline" onClick={reset}>
             Reset sandbox
           </Button>
+          <LogoutButton />
         </div>
       </header>
 
@@ -706,9 +724,12 @@ export function SandboxApp() {
               {status.label}
             </span>
           </div>
-          <Button variant="outline" size="sm" onClick={reset}>
-            Reset
-          </Button>
+          <div className={styles.mobileHeaderActions}>
+            <Button variant="outline" size="sm" onClick={reset}>
+              Reset
+            </Button>
+            <LogoutButton />
+          </div>
         </div>
         <div className={styles.mobileChips}>
           {meta.slice(0, 4).map((m) => (
@@ -746,7 +767,7 @@ export function SandboxApp() {
 
       {/* Mobile panels replace the grid below 768. */}
       {segment !== "Chat" ? (
-        <div className={styles.mobilePanel}>
+        <div className={styles.mobilePanel} data-testid="mobile-panel">
           {segment === "Files" ? filesPanel : detailsPanel}
         </div>
       ) : null}

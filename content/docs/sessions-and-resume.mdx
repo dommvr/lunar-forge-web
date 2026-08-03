@@ -1,0 +1,47 @@
+---
+title: Sessions and resume
+description: Project-local JSONL records, bounded discovery, and inert historical context.
+section: Sessions
+sectionOrder: 4
+order: 1
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+keywords: [.agent/sessions, JSONL, resume, SessionRef]
+---
+
+## Session records
+
+LunarForge stores redacted JSONL sessions under `.agent/sessions/` for normal execution modes. Records contain bounded public activity needed for history, resume, usage, checkpoints, and approvals.
+
+Plan mode does not create `.agent` runtime files.
+
+## Discover sessions
+
+```bash
+lunar-forge sessions --project ./my-app
+lunar-forge resume latest --project ./my-app
+```
+
+The public `list_sessions(project_root)` API returns `SessionRef` values without reading the logs. A reference includes a session ID, selector, project-relative path, and size.
+
+## Safe resume
+
+`resume_session(project_root, session)` returns a bounded `ResumedSession`. It contains sanitized conversation messages and counts for historical events and summaries.
+
+```python
+from lunar_forge import list_sessions, resume_session
+
+session = list_sessions("./my-app")[0]
+history = resume_session("./my-app", session)
+assert history.tool_calls_replayed is False
+assert history.approvals_reused is False
+```
+
+<Callout kind="warning">
+Resume is context recovery, not process recovery. It creates new activity linked to an older session; old commands do not run again and old decisions do not grant authority.
+</Callout>
+
+## Project binding
+
+Session selectors are resolved within the selected project. A session copied from another project is rejected as incompatible rather than silently resumed.

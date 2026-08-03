@@ -23,7 +23,7 @@ import styles from "./compare.module.css";
 export const metadata: Metadata = {
   title: "One task, three coding agents",
   description:
-    "A single reproducible task run against LunarForge, Claude Code and Codex, with wall-clock time, token usage, cost, diff size and validation outcome recorded per run.",
+    "An illustrative comparison-route fixture. Values are sample data and are not measured benchmark results.",
 };
 
 const BADGE_CLASS = {
@@ -46,21 +46,21 @@ export default function ComparePage() {
               three coding agents.
             </h1>
             <p className={styles.lede}>
-              One repository, one prompt, one validation command. We recorded
-              wall-clock time, token usage, cost, the diff each agent produced
-              and whether the test suite went green without human help.
-              Everything below is reproducible from the run log.
+              This route preserves the completed comparison design using
+              clearly labelled sample data. No benchmark run log or harness is
+              part of the current baseline; the values below are illustrative,
+              not measured product claims.
             </p>
             <div className={styles.headerActions}>
               <ButtonLink href="#methodology" variant="primary" size="lg">
                 Read the methodology
               </ButtonLink>
               <ButtonLink
-                href="https://github.com/lunarforge/lunarforge"
+                href="https://github.com/dommvr/lunar-forge"
                 variant="outline"
                 size="lg"
               >
-                Download run log (JSON)
+                View the core repository
               </ButtonLink>
             </div>
           </div>
@@ -95,7 +95,7 @@ export default function ComparePage() {
           <div className={styles.sectionHead}>
             <h2 className={styles.h2}>Results at a glance</h2>
             <span className={styles.sectionNote}>
-              3 runs · 1 attempt each · no retries
+              illustrative values · not benchmark results
             </span>
           </div>
           <div className={styles.scoreboard}>
@@ -161,9 +161,9 @@ export default function ComparePage() {
                   Where the time went
                 </h2>
                 <p className={styles.sectionIntro}>
-                  Wall clock split by phase, measured from the event stream.
-                  Approval waits are excluded — they depend on how fast a human
-                  answers.
+                  Sample wall-clock splits demonstrate the intended chart. A
+                  future benchmark must derive these values from retained run
+                  evidence and document how approval waits are handled.
                 </p>
               </div>
 
@@ -269,7 +269,7 @@ export default function ComparePage() {
           <div className={styles.sectionHead}>
             <h2 className={`${styles.h2} ${styles.h2Small}`}>Full run record</h2>
             <span className={styles.sectionNote}>
-              every field taken from the event log
+              sample fields for the completed table design
             </span>
           </div>
 
@@ -333,8 +333,9 @@ export default function ComparePage() {
                 What each agent actually produced
               </h2>
               <p className={styles.sectionIntro}>
-                The numbers only go so far — the diff matters. Reviewed by the
-                same engineer, blind to which agent wrote which patch.
+                These fictional diffs exercise the completed review layout. A
+                real comparison would require blinded review and published
+                source evidence.
               </p>
             </div>
           </div>
@@ -367,8 +368,8 @@ export default function ComparePage() {
                 Differences the stopwatch doesn’t catch
               </h2>
               <p className={styles.sectionIntro}>
-                Where the three tools genuinely diverge is not speed — it’s what
-                they let happen without asking.
+                The route is designed to surface operational differences that
+                raw timing alone would miss.
               </p>
             </div>
           </div>
@@ -392,7 +393,7 @@ export default function ComparePage() {
         >
           <div className={styles.methodGrid}>
             <div className={styles.methodColumn}>
-              <h2 className={styles.methodTitle}>Methodology</h2>
+              <h2 className={styles.methodTitle}>Example methodology</h2>
               <ul className={styles.methodList}>
                 {methodology.map((m) => (
                   <li key={m} className={styles.methodItem}>
@@ -417,9 +418,9 @@ export default function ComparePage() {
                 ))}
               </ul>
               <p className={styles.methodFoot}>
-                One task is an anecdote, not a benchmark. The run log and the
-                harness are in the repo — run it on your own repository before
-                you believe any of it.
+                This route is a presentation baseline only. Publish the harness,
+                raw evidence, and normalization rules before treating future
+                values as benchmark results.
               </p>
             </div>
           </div>
@@ -430,13 +431,14 @@ export default function ComparePage() {
           <div>
             <h2 className={styles.ctaTitle}>Run it against your own repo</h2>
             <p className={styles.ctaBody}>
-              The harness takes a prompt, a validation command and a Docker
-              image, and writes the same table you just read.
+              A future harness can take a prompt, validation command, and
+              isolated runtime, then populate this preserved table from real
+              run evidence.
             </p>
           </div>
           <div className={styles.ctaActions}>
             <ButtonLink href="/sandbox" variant="primary" size="lg">
-              Try the sandbox
+              View the sandbox preview
             </ButtonLink>
             <ButtonLink href="/docs" variant="outline" size="lg">
               Read the harness docs
@@ -446,7 +448,7 @@ export default function ComparePage() {
       </main>
       <SiteFooter
         variant="compact"
-        note={`Benchmark run ${RUN_DATE} · single attempt per agent · logs published unedited.`}
+        note={`Comparison ${RUN_DATE} · illustrative values · no run log published.`}
       />
     </>
   );

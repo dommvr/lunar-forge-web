@@ -279,8 +279,20 @@
 }
 
 .h2:hover .anchor,
+.h3:hover .anchor,
 .anchor:focus-visible {
   opacity: 1;
+}
+
+.h3 {
+  margin-top: 26px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  scroll-margin-top: 80px;
 }
 
 .p {
@@ -297,6 +309,115 @@
   background: var(--surface-3);
   box-shadow: inset 0 0 0 1px var(--border-strong);
   color: var(--text);
+}
+
+.bodyLink {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+}
+
+.bodyLink:hover {
+  text-decoration-color: currentColor;
+}
+
+/* MDX uses the original article typography and component proportions. */
+.mdx {
+  display: block;
+}
+
+.mdx > :first-child {
+  margin-top: 0;
+}
+
+.mdx > .h2 {
+  margin-top: 36px;
+  margin-bottom: 14px;
+}
+
+.mdx > .h2:first-child {
+  margin-top: 0;
+}
+
+.mdx > .h3 {
+  margin-bottom: 12px;
+}
+
+.mdx > .p,
+.mdx > .mdxList,
+.mdx > .procedure,
+.mdx > .table,
+.mdx > .blockquote,
+.mdx > div {
+  margin-bottom: 18px;
+}
+
+.mdxList {
+  padding-left: 22px;
+  color: var(--text-prose);
+  font-size: 15.5px;
+  line-height: 1.7;
+  list-style: disc;
+}
+
+.mdxListItem {
+  margin: 7px 0;
+}
+
+.mdx .procedure {
+  list-style: decimal;
+  padding-left: 24px;
+  color: var(--text-prose);
+  font-size: 15.5px;
+  line-height: 1.7;
+}
+
+.mdx .procedure > .mdxListItem {
+  padding: 10px 0 10px 6px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.blockquote {
+  padding: 2px 0 2px 18px;
+  border-left: 2px solid var(--accent);
+  color: var(--text-muted);
+}
+
+.markdownTable {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  background: var(--surface-nav);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.markdownTableHead {
+  background: #141618;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.markdownTableCell {
+  padding: 11px var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
+  vertical-align: top;
+  color: var(--text-prose);
+}
+
+.markdownTable tbody tr:last-child .markdownTableCell {
+  border-bottom: 0;
+}
+
+.mdxRule {
+  border: 0;
+  border-top: 1px solid var(--border-subtle);
+  margin: 30px 0;
 }
 
 /* Options table */
@@ -695,6 +816,9 @@
   }
   .h2 {
     font-size: 20px;
+  }
+  .h3 {
+    font-size: 17px;
   }
   .p {
     font-size: 15.5px;

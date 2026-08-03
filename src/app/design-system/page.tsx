@@ -29,9 +29,9 @@ export const metadata: Metadata = {
     "Tokens, components, and interaction notes — the implementation contract for the LunarForge frontend.",
 };
 
-const SHELL = `$ pip install lunarforge
-$ lunarforge init --runtime docker
-  ✓ wrote lunarforge.yaml`;
+const SHELL = `$ python -m pip install -e .
+$ lunar-forge --docker "Explain this project"
+  project config: .agent/config.yaml`;
 
 const TONE_COLOR: Record<StateTone, string> = {
   muted: "var(--text-muted)",
@@ -61,8 +61,8 @@ export default function DesignSystemPage() {
           </h1>
           <p className={styles.blurb}>
             Token names map to CSS custom properties; every value here is used
-            verbatim across the four routes. 8-point spacing, restrained radii,
-            borders instead of shadows except for overlays.
+            verbatim across the implemented routes. 8-point spacing,
+            restrained radii, borders instead of shadows except for overlays.
           </p>
         </header>
 
@@ -218,7 +218,7 @@ export default function DesignSystemPage() {
                 Invalid value
               </div>
               <p className={styles.fieldError}>
-                Session IDs are 6 hexadecimal characters.
+                Enter a valid project-local session selector.
               </p>
               <div className={`${styles.field} ${styles.fieldDisabled}`}>
                 Disabled · read-only
@@ -336,13 +336,15 @@ export default function DesignSystemPage() {
             <h2 className={styles.specimenTitle}>Code block</h2>
             <CodeBlock label="shell" copyText={SHELL} density="dense">
               <div>
-                <span className={code.ok}>$</span> pip install lunarforge
+                <span className={code.ok}>$</span> python -m pip install -e .
               </div>
               <div>
-                <span className={code.ok}>$</span> lunarforge init --runtime
-                docker
+                <span className={code.ok}>$</span> lunar-forge --docker{" "}
+                <span className={code.str}>&quot;Explain this project&quot;</span>
               </div>
-              <div className={code.dim}>{"  "}✓ wrote lunarforge.yaml</div>
+              <div className={code.dim}>
+                {"  "}project config: .agent/config.yaml
+              </div>
             </CodeBlock>
           </div>
 
@@ -466,8 +468,9 @@ export default function DesignSystemPage() {
               Interaction &amp; responsive notes
             </p>
             <p className={styles.blurb}>
-              Implementation contract for the Next.js frontend and the
-              FastAPI-backed sandbox.
+              Implementation contract for the Next.js frontend and the future
+              FastAPI-backed sandbox. Sandbox states remain deterministic UI
+              fixtures until that integration is connected.
             </p>
           </div>
 
@@ -505,9 +508,9 @@ export default function DesignSystemPage() {
           <div className={styles.intro}>
             <p className={styles.panelLabel}>Sandbox states</p>
             <p className={styles.blurb}>
-              Each state is rendered in the chat column; the header status pill
-              and input controls change with it. Panels keep their last known
-              content and dim when the backend is unreachable.
+              Target state fixtures rendered in the chat column; the header
+              status pill and input controls change with each state. They define
+              the integration contract and are not evidence of a live backend.
             </p>
           </div>
           <div className={styles.stateGrid}>

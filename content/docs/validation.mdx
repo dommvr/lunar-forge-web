@@ -1,0 +1,37 @@
+---
+title: Validation
+description: Run bounded Python and Node checks through the core validation workflow.
+section: Execution
+sectionOrder: 3
+order: 4
+status: Available in core
+version: "0.1.0"
+verified: "2026-07-29"
+keywords: [pytest, npm test, validation, checks]
+---
+
+## Project-aware checks
+
+LunarForge provides a validation workflow that selects bounded Python and Node checks from project evidence. It can detect common test and build metadata, execute through the selected runtime, and report exit status and bounded output.
+
+Validation is a command operation. It requires approval in default and yes modes, and it is unavailable in plan or no-command modes.
+
+## Ask for existing checks
+
+```bash
+lunar-forge --docker --project ./my-app "Run the existing validation and explain one failure. Do not edit files."
+```
+
+The request can use Docker without network for already-installed dependencies. If dependencies are absent, installation is a separate guarded operation and may require Docker networking.
+
+## Structured events
+
+Validation produces the normal tool lifecycle plus `validation.started` and `validation.finished` public events. Consumers should use the event envelope, not parse terminal formatting.
+
+<Callout kind="tip">
+Ask the agent to report exactly which checks ran. A green subset is not evidence that every project check passed.
+</Callout>
+
+## Read results carefully
+
+Bounded output may be truncated. The final result preserves success/failure and an error summary, but a human may need to rerun a failing command directly for complete diagnostics.
