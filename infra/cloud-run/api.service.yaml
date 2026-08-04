@@ -1,0 +1,29 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: lunar-forge-web-api
+spec:
+  template:
+    spec:
+      timeoutSeconds: 1000
+      serviceAccountName: REPLACE_API_SERVICE_ACCOUNT
+      containers:
+        - image: REPLACE_API_IMAGE
+          command: ["lunar-forge-web-api"]
+          ports:
+            - containerPort: 8080
+          env:
+            - name: LUNAR_FORGE_WEB_ENVIRONMENT
+              value: production
+            - name: LUNAR_FORGE_WEB_SERVICE_ROLE
+              value: api
+            - name: LUNAR_FORGE_WEB_TURN_EXECUTION_BACKEND
+              value: private_worker
+            - name: LUNAR_FORGE_WEB_RUNTIME_BACKEND
+              value: e2b
+            - name: LUNAR_FORGE_WEB_INFRASTRUCTURE_BACKEND
+              value: neon_upstash
+            - name: LUNAR_FORGE_WEB_WORKER_URL
+              value: REPLACE_WORKER_HTTPS_URL
+            - name: LUNAR_FORGE_WEB_WORKER_AUDIENCE
+              value: REPLACE_WORKER_HTTPS_URL

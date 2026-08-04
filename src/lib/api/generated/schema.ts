@@ -971,6 +971,8 @@ export interface components {
         TurnCreateRequest: {
             /** Message */
             message: string;
+            /** Provider Api Key */
+            provider_api_key?: string | null;
             settings?: components["schemas"]["SessionSettings"] | null;
         };
         /** TurnResponse */
@@ -980,10 +982,27 @@ export interface components {
              * Format: date-time
              */
             created_at?: string;
+            /** Error Code */
+            error_code?: string | null;
+            /**
+             * Estimated Cost Microusd
+             * @default 0
+             */
+            estimated_cost_microusd: number;
             /** Finished At */
             finished_at?: string | null;
             /** Id */
             id: string;
+            /**
+             * Input Tokens
+             * @default 0
+             */
+            input_tokens: number;
+            /**
+             * Output Tokens
+             * @default 0
+             */
+            output_tokens: number;
             /** Owner Id */
             owner_id: string;
             /** Session Id */

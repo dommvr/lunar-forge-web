@@ -51,7 +51,7 @@ def test_openapi_contains_versioned_contracts(settings, container):
         "/api/v1/realtime/tickets",
     }.issubset(api_schema["paths"])
     assert "/internal/v1/turns:run" in worker_schema["paths"]
-    assert "AgentEventContract" in worker_schema["components"]["schemas"]
+    assert "WorkerTurnResponse" in worker_schema["components"]["schemas"]
     json.dumps(api_schema, allow_nan=False)
     json.dumps(worker_schema, allow_nan=False)
 

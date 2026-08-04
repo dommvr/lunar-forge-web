@@ -22,6 +22,16 @@ _KEY_ASSIGNMENT = re.compile(
 _PROVIDER_KEY = re.compile(
     r"(?i)\b(?:sk-(?:ant-)?|gh[pousr]_|github_pat_)[a-z0-9_-]{8,}\b"
 )
+_SAFE_TELEMETRY_KEYS = frozenset(
+    {
+        "input_tokens",
+        "output_tokens",
+        "total_tokens",
+        "reasoning_tokens",
+        "token_count",
+        "estimated_tokens",
+    }
+)
 
 
 def redact_text(value: str) -> str:
@@ -46,7 +56,10 @@ def redact(value: Any, *, depth: int = 0) -> Any:
             safe_key = str(key)[:200]
             result[safe_key] = (
                 REDACTED
-                if _SENSITIVE_KEY.search(safe_key)
+                if (
+                    safe_key.lower() not in _SAFE_TELEMETRY_KEYS
+                    and _SENSITIVE_KEY.search(safe_key)
+                )
                 else redact(item, depth=depth + 1)
             )
         return result

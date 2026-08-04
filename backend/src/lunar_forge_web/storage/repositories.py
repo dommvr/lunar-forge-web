@@ -9,10 +9,14 @@ from uuid import uuid4
 
 from lunar_forge_web.domain.events import AgentEventContract
 from lunar_forge_web.domain.models import (
+    ApprovalResponse,
     SandboxResponse,
     SessionResponse,
+    SessionSettings,
+    TurnResponse,
     UserRecord,
 )
+from lunar_forge_web.domain.enums import ApprovalStatus, TurnStatus
 from lunar_forge_web.security.limits import (
     OWNER_FUNDED_GLOBAL_DAILY_COST_MICROUSD,
     OWNER_FUNDED_TURNS_PER_USER_PER_DAY,
@@ -25,6 +29,7 @@ from lunar_forge_web.storage.records import (
     QuotaReservation,
     QuotaSnapshot,
     UsageRecord,
+    TurnRecord,
 )
 
 
@@ -77,6 +82,39 @@ class EventRepository(Protocol):
         self, session_id: str, after_sequence: int, timeout: float
     ) -> bool: ...
     async def clear_session(self, session_id: str) -> None: ...
+
+
+class TurnRepository(Protocol):
+    async def create(
+        self,
+        turn: TurnResponse,
+        *,
+        sandbox_id: str,
+        prompt: str,
+        settings: SessionSettings,
+    ) -> TurnRecord: ...
+    async def get(self, turn_id: str) -> TurnRecord | None: ...
+    async def active_for_session(self, session_id: str) -> TurnRecord | None: ...
+    async def mark_running(self, turn_id: str, started_at: datetime) -> TurnRecord: ...
+    async def finish(
+        self,
+        turn_id: str,
+        *,
+        status: TurnStatus,
+        finished_at: datetime,
+        input_tokens: int,
+        output_tokens: int,
+        estimated_cost_microusd: int,
+        error_code: str | None,
+    ) -> TurnRecord: ...
+
+
+class ApprovalRepository(Protocol):
+    async def get(self, approval_id: str) -> ApprovalResponse | None: ...
+    async def put(self, approval: ApprovalResponse) -> None: ...
+    async def resolve(
+        self, approval_id: str, owner_id: str, approved: bool
+    ) -> ApprovalResponse: ...
 
 
 class AdminSettingsRepository(Protocol):
@@ -287,6 +325,155 @@ class InMemoryEventRepository:
         async with self._changed:
             self._events.pop(session_id, None)
             self._changed.notify_all()
+
+
+class InMemoryTurnRepository:
+    def __init__(self) -> None:
+        self._items: dict[str, TurnRecord] = {}
+        self._prompts: dict[str, str] = {}
+        self._lock = asyncio.Lock()
+
+    async def create(
+        self,
+        turn: TurnResponse,
+        *,
+        sandbox_id: str,
+        prompt: str,
+        settings: SessionSettings,
+    ) -> TurnRecord:
+        record = TurnRecord(
+            turn=turn,
+            sandbox_id=sandbox_id,
+            funding_mode=str(settings.funding_mode),
+            provider=settings.provider,
+            model=settings.model,
+            reasoning_effort=str(settings.reasoning_effort),
+        )
+        async with self._lock:
+            if turn.id in self._items:
+                raise RepositoryConflictError("Turn already exists.")
+            if any(
+                item.turn.session_id == turn.session_id
+                and item.turn.status
+                in {TurnStatus.QUEUED, TurnStatus.RUNNING, TurnStatus.WAITING_FOR_APPROVAL}
+                for item in self._items.values()
+            ):
+                raise RepositoryConflictError("A turn is already active for this session.")
+            self._items[turn.id] = record
+            self._prompts[turn.id] = prompt
+        return record
+
+    async def get(self, turn_id: str) -> TurnRecord | None:
+        async with self._lock:
+            return self._items.get(turn_id)
+
+    async def active_for_session(self, session_id: str) -> TurnRecord | None:
+        async with self._lock:
+            return next(
+                (
+                    item
+                    for item in self._items.values()
+                    if item.turn.session_id == session_id
+                    and item.turn.status
+                    in {
+                        TurnStatus.QUEUED,
+                        TurnStatus.RUNNING,
+                        TurnStatus.WAITING_FOR_APPROVAL,
+                    }
+                ),
+                None,
+            )
+
+    async def mark_running(self, turn_id: str, started_at: datetime) -> TurnRecord:
+        async with self._lock:
+            current = self._items.get(turn_id)
+            if current is None:
+                raise RepositoryStateError("Turn was not found.")
+            if current.turn.status not in {TurnStatus.QUEUED, TurnStatus.RUNNING}:
+                raise RepositoryStateError("Turn is not runnable.")
+            updated = TurnRecord(
+                turn=current.turn.model_copy(
+                    update={"status": TurnStatus.RUNNING, "started_at": started_at}
+                ),
+                sandbox_id=current.sandbox_id,
+                funding_mode=current.funding_mode,
+                provider=current.provider,
+                model=current.model,
+                reasoning_effort=current.reasoning_effort,
+            )
+            self._items[turn_id] = updated
+            return updated
+
+    async def finish(
+        self,
+        turn_id: str,
+        *,
+        status: TurnStatus,
+        finished_at: datetime,
+        input_tokens: int,
+        output_tokens: int,
+        estimated_cost_microusd: int,
+        error_code: str | None,
+    ) -> TurnRecord:
+        if status not in {TurnStatus.COMPLETED, TurnStatus.CANCELLED, TurnStatus.FAILED}:
+            raise ValueError("A terminal turn status is required.")
+        async with self._lock:
+            current = self._items.get(turn_id)
+            if current is None:
+                raise RepositoryStateError("Turn was not found.")
+            updated = TurnRecord(
+                turn=current.turn.model_copy(
+                    update={
+                        "status": status,
+                        "finished_at": finished_at,
+                        "input_tokens": input_tokens,
+                        "output_tokens": output_tokens,
+                        "estimated_cost_microusd": estimated_cost_microusd,
+                        "error_code": error_code,
+                    }
+                ),
+                sandbox_id=current.sandbox_id,
+                funding_mode=current.funding_mode,
+                provider=current.provider,
+                model=current.model,
+                reasoning_effort=current.reasoning_effort,
+            )
+            self._items[turn_id] = updated
+            self._prompts.pop(turn_id, None)
+            return updated
+
+
+class InMemoryApprovalRepository:
+    def __init__(self) -> None:
+        self._items: dict[str, ApprovalResponse] = {}
+        self._lock = asyncio.Lock()
+
+    async def get(self, approval_id: str) -> ApprovalResponse | None:
+        async with self._lock:
+            return self._items.get(approval_id)
+
+    async def put(self, approval: ApprovalResponse) -> None:
+        async with self._lock:
+            self._items.setdefault(approval.id, approval)
+
+    async def resolve(
+        self, approval_id: str, owner_id: str, approved: bool
+    ) -> ApprovalResponse:
+        async with self._lock:
+            current = self._items.get(approval_id)
+            if current is None or current.owner_id != owner_id:
+                raise RepositoryStateError("Approval was not found.")
+            if current.status != ApprovalStatus.PENDING.value:
+                raise RepositoryConflictError("Approval was already resolved.")
+            updated = current.model_copy(
+                update={
+                    "status": (
+                        ApprovalStatus.APPROVED if approved else ApprovalStatus.DENIED
+                    )
+                }
+            )
+            self._items[approval_id] = updated
+            return updated
 
 
 class InMemoryAdminSettingsRepository:

@@ -3,9 +3,23 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from difflib import unified_diff
 from io import BytesIO
 from uuid import uuid4
 from zipfile import ZIP_DEFLATED, ZipFile
+
+from lunar_forge import (
+    RuntimeCheckpoint as CoreRuntimeCheckpoint,
+    RuntimeCommandResult as CoreRuntimeCommandResult,
+    RuntimeFileInfo as CoreRuntimeFileInfo,
+    RuntimeNetworkPolicy,
+    RuntimeOperationResult as CoreRuntimeOperationResult,
+    RuntimePathType,
+    RuntimeRollbackResult,
+    RuntimeRollbackStatus,
+    RuntimeTextResult,
+    RuntimeWriteResult,
+)
 
 from lunar_forge_web.domain.enums import Availability
 from lunar_forge_web.domain.models import RuntimeCapability
@@ -27,6 +41,7 @@ class FakeRuntimeProvider:
         self._sandboxes: dict[str, RuntimeSandbox] = {}
         self._expires_at: dict[str, datetime] = {}
         self._files: dict[str, dict[str, bytes]] = {}
+        self._checkpoints: dict[tuple[str, str], dict[str, bytes]] = {}
 
     def capability(self) -> RuntimeCapability:
         return RuntimeCapability(
@@ -184,6 +199,168 @@ class FakeRuntimeProvider:
             sandbox,
             "fake public Git clone",
             timeout_seconds=120,
+        )
+
+    async def core_list_directory(
+        self, sandbox: RuntimeSandbox, path: str
+    ) -> tuple[CoreRuntimeFileInfo, ...]:
+        prefix = "" if path == "." else f"{path}/"
+        entries: dict[str, CoreRuntimeFileInfo] = {}
+        for file_path, content in self._files.get(sandbox.reference, {}).items():
+            if file_path.startswith(".lunar-forge/") or not file_path.startswith(prefix):
+                continue
+            remainder = file_path[len(prefix) :]
+            name, separator, _ = remainder.partition("/")
+            entry_path = f"{prefix}{name}" if prefix else name
+            entries[entry_path] = CoreRuntimeFileInfo(
+                entry_path,
+                RuntimePathType.DIRECTORY if separator else RuntimePathType.FILE,
+                size_bytes=None if separator else len(content),
+            )
+        return tuple(entries[key] for key in sorted(entries))
+
+    async def core_stat(
+        self, sandbox: RuntimeSandbox, path: str
+    ) -> CoreRuntimeFileInfo | None:
+        files = self._files.get(sandbox.reference, {})
+        if path in files and not path.startswith(".lunar-forge/"):
+            return CoreRuntimeFileInfo(path, RuntimePathType.FILE, len(files[path]))
+        prefix = "" if path == "." else f"{path}/"
+        if path == "." or any(item.startswith(prefix) for item in files):
+            return CoreRuntimeFileInfo(path, RuntimePathType.DIRECTORY)
+        return None
+
+    async def core_read_text(
+        self,
+        sandbox: RuntimeSandbox,
+        path: str,
+        *,
+        start_line: int,
+        end_line: int | None,
+        max_characters: int,
+    ) -> RuntimeTextResult:
+        content = (await self.read_file(sandbox, path)).content
+        selected = "".join(content.splitlines(keepends=True)[start_line - 1 : end_line])
+        return RuntimeTextResult(
+            path,
+            selected[:max_characters],
+            truncated=len(selected) > max_characters,
+            start_line=start_line,
+            end_line=end_line,
+        )
+
+    async def core_write_text(
+        self,
+        sandbox: RuntimeSandbox,
+        path: str,
+        content: str,
+        *,
+        overwrite: bool,
+    ) -> RuntimeWriteResult:
+        files = self._files.setdefault(sandbox.reference, {})
+        existing = files.get(path)
+        if existing is not None and not overwrite:
+            return RuntimeWriteResult(False, path, error="File already exists.")
+        before = existing.decode("utf-8", errors="replace") if existing else ""
+        files[path] = content.encode("utf-8")
+        diff = "".join(
+            unified_diff(
+                before.splitlines(keepends=True),
+                content.splitlines(keepends=True),
+                fromfile=f"a/{path}",
+                tofile=f"b/{path}",
+            )
+        )
+        return RuntimeWriteResult(
+            True,
+            path,
+            created=existing is None,
+            overwritten=existing is not None,
+            diff=diff,
+        )
+
+    async def core_create_directory(
+        self, sandbox: RuntimeSandbox, path: str
+    ) -> CoreRuntimeOperationResult:
+        del sandbox
+        return CoreRuntimeOperationResult(True, path)
+
+    async def core_delete_path(
+        self, sandbox: RuntimeSandbox, path: str, *, recursive: bool
+    ) -> CoreRuntimeOperationResult:
+        files = self._files.setdefault(sandbox.reference, {})
+        if path in files:
+            del files[path]
+            return CoreRuntimeOperationResult(True, path)
+        nested = [item for item in files if item.startswith(f"{path}/")]
+        if nested and not recursive:
+            return CoreRuntimeOperationResult(False, path, error="Directory is not empty.")
+        for item in nested:
+            del files[item]
+        return CoreRuntimeOperationResult(bool(nested), path, error=None if nested else "Path not found.")
+
+    async def core_move_path(
+        self,
+        sandbox: RuntimeSandbox,
+        source: str,
+        destination: str,
+        *,
+        overwrite: bool,
+    ) -> CoreRuntimeOperationResult:
+        files = self._files.setdefault(sandbox.reference, {})
+        if source not in files:
+            return CoreRuntimeOperationResult(False, source, destination=destination, error="Path not found.")
+        if destination in files and not overwrite:
+            return CoreRuntimeOperationResult(False, source, destination=destination, error="Destination exists.")
+        files[destination] = files.pop(source)
+        return CoreRuntimeOperationResult(True, source, destination=destination)
+
+    async def core_execute(
+        self,
+        sandbox: RuntimeSandbox,
+        command: str,
+        *,
+        timeout_ms: int,
+        max_output_characters: int,
+    ) -> CoreRuntimeCommandResult:
+        result = await self.run_command(
+            sandbox, command, timeout_seconds=max(1, min(900, timeout_ms // 1_000))
+        )
+        return CoreRuntimeCommandResult(
+            ok=result.exit_code == 0,
+            command=command,
+            exit_code=result.exit_code,
+            stdout=result.stdout[:max_output_characters],
+            stderr=result.stderr[:max_output_characters],
+        )
+
+    async def core_checkpoint_turn(
+        self, sandbox: RuntimeSandbox, turn_id: str
+    ) -> CoreRuntimeCheckpoint:
+        checkpoint_id = f"checkpoint_{turn_id}"
+        self._checkpoints[(sandbox.reference, checkpoint_id)] = dict(
+            self._files.get(sandbox.reference, {})
+        )
+        return CoreRuntimeCheckpoint(True, checkpoint_id=checkpoint_id)
+
+    async def core_rollback_turn(
+        self, sandbox: RuntimeSandbox, checkpoint_id: str
+    ) -> RuntimeRollbackResult:
+        before = self._checkpoints.pop((sandbox.reference, checkpoint_id), None)
+        if before is None:
+            return RuntimeRollbackResult(
+                RuntimeRollbackStatus.FAILED, errors=("Checkpoint was not found.",)
+            )
+        current = self._files.get(sandbox.reference, {})
+        restored = tuple(
+            path for path, content in before.items() if current.get(path) != content
+        )
+        removed = tuple(path for path in current if path not in before)
+        self._files[sandbox.reference] = dict(before)
+        return RuntimeRollbackResult(
+            RuntimeRollbackStatus.COMPLETED,
+            restored_files=restored,
+            removed_files=removed,
         )
 
 

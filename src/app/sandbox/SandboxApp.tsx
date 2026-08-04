@@ -110,7 +110,11 @@ export function SandboxApp(props: SandboxAppProps = {}) {
 
   const run = (prompt: string) => {
     if (!state.sessionId || busy || phase === "gated") return;
-    void controller.submit(prompt, funding);
+    void controller.submit(
+      prompt,
+      funding,
+      funding.fundingMode === "byok" ? byokKey : undefined,
+    );
   };
 
   const approve = () => {
@@ -442,7 +446,7 @@ export function SandboxApp(props: SandboxAppProps = {}) {
                   />
                   <span>
                     <strong>Bring your own key</strong>
-                    <small>Fake service only; key stays in page memory.</small>
+                    <small>Sent only with each private turn request.</small>
                   </span>
                 </label>
               </div>
@@ -477,7 +481,7 @@ export function SandboxApp(props: SandboxAppProps = {}) {
                     />
                   </label>
                   <p>
-                    Not persisted or sent to the fake backend. Reloading clears it.
+                    Kept only in page memory and worker memory for this turn. Reloading clears it.
                   </p>
                 </div>
               ) : null}

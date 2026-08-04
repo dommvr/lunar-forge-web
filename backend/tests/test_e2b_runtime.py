@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -98,6 +99,7 @@ class FakeFiles:
                 size=2,
             ),
         ]
+        self.directories = {"/home/user/project", "/home/user/project/src"}
 
     async def list(self, path: str, **_):
         if path.endswith("/.lunar-forge/artifacts"):
@@ -111,13 +113,34 @@ class FakeFiles:
         return bytearray(content)
 
     async def get_info(self, path: str):
-        return SimpleNamespace(size=len(self.data[path]))
+        if path in self.directories:
+            return SimpleNamespace(size=0, type=FileType.DIR)
+        if path not in self.data:
+            from e2b import FileNotFoundException
 
-    async def remove(self, path: str):
+            raise FileNotFoundException(path)
+        return SimpleNamespace(size=len(self.data[path]), type=FileType.FILE)
+
+    async def remove(self, path: str, **_):
         self.data.pop(path, None)
+        for nested in tuple(self.data):
+            if nested.startswith(path.rstrip("/") + "/"):
+                self.data.pop(nested, None)
+        self.directories.discard(path)
 
     async def exists(self, path: str):
-        return any(item.startswith(path.rstrip("/") + "/") for item in self.data)
+        return path in self.data or path in self.directories or any(
+            item.startswith(path.rstrip("/") + "/") for item in self.data
+        )
+
+    async def write(self, path: str, content: str, **_):
+        self.data[path] = content.encode("utf-8")
+
+    async def make_dir(self, path: str, **_):
+        self.directories.add(path)
+
+    async def rename(self, source: str, destination: str, **_):
+        self.data[destination] = self.data.pop(source)
 
 
 class FakeCommands:
@@ -126,6 +149,7 @@ class FakeCommands:
         self.calls: list[tuple[str, dict[str, object]]] = []
         self.started = asyncio.Event()
         self.last_handle: FakeHandle | None = None
+        self.checkpoints: dict[str, dict[str, bytes]] = {}
 
     async def run(self, command: str, **kwargs):
         self.calls.append((command, kwargs))
@@ -145,6 +169,26 @@ class FakeCommands:
         archive = re.search(r"/tmp/lf-project-[a-f0-9]+\.zip", command)
         if archive:
             self.files.data[archive.group(0)] = b"PK\x03\x04bounded"
+        checkpoint = re.search(r"/tmp/checkpoint_[a-f0-9]+", command)
+        if checkpoint and "shutil.copytree" in command and "filecmp" not in command:
+            self.checkpoints[checkpoint.group(0)] = dict(self.files.data)
+        if checkpoint and "filecmp" in command:
+            before = self.checkpoints[checkpoint.group(0)]
+            current = self.files.data
+            restored = [path.removeprefix("/home/user/project/") for path in before if current.get(path) != before[path]]
+            removed = [path.removeprefix("/home/user/project/") for path in current if path not in before and path.startswith("/home/user/project/")]
+            self.files.data = dict(before)
+            return FakeResult(
+                stdout=json.dumps(
+                    {
+                        "status": "completed",
+                        "restored_files": restored,
+                        "removed_files": removed,
+                        "skipped_files": [],
+                        "errors": [],
+                    }
+                )
+            )
         return FakeResult()
 
 
@@ -339,6 +383,39 @@ async def test_files_archive_and_artifacts_are_safe_and_bounded():
     assert [(item.name, item.media_type) for item in artifacts] == [
         ("report.json", "application/json")
     ]
+
+
+async def test_public_core_runtime_operations_and_confirmed_rollback():
+    client = FakeE2BClient()
+    selected, runtime = await create_runtime(client)
+
+    assert [item.path for item in await selected.core_list_directory(runtime, ".")] == [
+        "README.md",
+        "src",
+    ]
+    assert (await selected.core_stat(runtime, "README.md")).size_bytes == 6
+    assert (
+        await selected.core_read_text(
+            runtime,
+            "README.md",
+            start_line=1,
+            end_line=None,
+            max_characters=50_000,
+        )
+    ).content == "hello\n"
+    checkpoint = await selected.core_checkpoint_turn(runtime, "turn-test")
+    assert checkpoint.supported is True and checkpoint.checkpoint_id is not None
+    written = await selected.core_write_text(
+        runtime, "created.txt", "new\n", overwrite=False
+    )
+    assert written.created is True
+    moved = await selected.core_move_path(
+        runtime, "created.txt", "moved.txt", overwrite=False
+    )
+    assert moved.ok is True
+    rollback = await selected.core_rollback_turn(runtime, checkpoint.checkpoint_id)
+    assert rollback.status.value == "completed"
+    assert "moved.txt" in rollback.removed_files
 
 
 async def test_public_git_clone_uses_atomic_allowlist_and_restores_deny_all():

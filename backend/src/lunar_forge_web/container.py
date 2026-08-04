@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import AsyncEngine
@@ -16,14 +17,20 @@ from lunar_forge_web.config import (
     DeploymentEnvironment,
     InfrastructureBackend,
     RuntimeBackend,
+    ServiceRole,
     Settings,
+    TurnExecutionBackend,
 )
-from lunar_forge_web.core.adapter import AgentAdapter, FakeCoreAgentAdapter
+from lunar_forge_web.core.adapter import AgentAdapter, CoreAgentAdapter, FakeCoreAgentAdapter
+from lunar_forge_web.core.approvals import ApprovalControlStore, RedisApprovalBroker
+from lunar_forge_web.core.runtime import HostedWorkspaceRuntime
 from lunar_forge_web.domain.enums import Availability, UserRole
 from lunar_forge_web.domain.models import CapabilityItem, TemplateResponse, UserRecord
 from lunar_forge_web.runtime.base import RuntimeProvider
 from lunar_forge_web.runtime.e2b_provider import E2BRuntimeProvider
 from lunar_forge_web.runtime.fake import FakeRuntimeProvider
+from lunar_forge_web.services.sandbox_service import runtime_sandbox
+from lunar_forge_web.providers.credentials import create_turn_model_client
 from lunar_forge_web.security.tickets import (
     InMemoryWebSocketTicketStore,
     WebSocketTicketStore,
@@ -31,33 +38,41 @@ from lunar_forge_web.security.tickets import (
 from lunar_forge_web.storage.database import create_database_engine, create_session_factory
 from lunar_forge_web.storage.postgres import (
     PostgresAdminSettingsRepository,
+    PostgresApprovalRepository,
     PostgresCleanupRepository,
     PostgresQuotaRepository,
     PostgresSandboxRepository,
     PostgresSessionRepository,
+    PostgresTurnRepository,
     PostgresUserRepository,
 )
 from lunar_forge_web.storage.redis import (
+    InMemoryControlStore,
     RedisWebSocketTicketStore,
     UpstashRedisStore,
     create_redis_client,
 )
 from lunar_forge_web.storage.repositories import (
     AdminSettingsRepository,
+    ApprovalRepository,
     CleanupRepository,
     EventRepository,
     InMemoryAdminSettingsRepository,
+    InMemoryApprovalRepository,
     InMemoryEventRepository,
     InMemoryQuotaRepository,
     InMemorySandboxRepository,
     InMemorySessionRepository,
+    InMemoryTurnRepository,
     InMemoryUserRepository,
     QuotaRepository,
     SandboxRepository,
     SessionRepository,
+    TurnRepository,
     UserRepository,
 )
 from lunar_forge_web.storage.fake_state import InMemoryFakeFlowStore
+from lunar_forge_web.worker.client import CloudRunWorkerClient, WorkerClient
 
 
 @dataclass(slots=True)
@@ -67,6 +82,9 @@ class ApplicationContainer:
     sandboxes: SandboxRepository
     sessions: SessionRepository
     events: EventRepository
+    controls: ApprovalControlStore
+    turns: TurnRepository
+    approvals: ApprovalRepository
     tickets: WebSocketTicketStore
     admin_settings: AdminSettingsRepository
     quotas: QuotaRepository
@@ -76,6 +94,7 @@ class ApplicationContainer:
     jwt_verifier: TokenVerifier
     runtime: RuntimeProvider
     agent: AgentAdapter
+    worker_client: WorkerClient | None
     templates: tuple[TemplateResponse, ...]
     features: tuple[CapabilityItem, ...]
     fake_flows: InMemoryFakeFlowStore
@@ -83,6 +102,8 @@ class ApplicationContainer:
     async def close(self) -> None:
         if self.coordination is not None:
             await self.coordination.close()
+        if self.worker_client is not None:
+            await self.worker_client.close()
         if self.database_engine is not None:
             await self.database_engine.dispose()
 
@@ -141,8 +162,12 @@ def build_container(
     features = (
         CapabilityItem(
             id="structured-events",
-            status=Availability.FAKE,
-            description="Schema-v1 event envelopes are emitted by a deterministic fake agent.",
+            status=(
+                Availability.AVAILABLE
+                if settings.turn_execution_backend is TurnExecutionBackend.PRIVATE_WORKER
+                else Availability.FAKE
+            ),
+            description="Schema-v1 event envelopes are persisted to a bounded ordered stream.",
         ),
         CapabilityItem(
             id="websocket-tickets",
@@ -200,8 +225,12 @@ def build_container(
         ),
         CapabilityItem(
             id="real-model",
-            status=Availability.UNAVAILABLE,
-            description="No real model client is called in this phase.",
+            status=(
+                Availability.AVAILABLE
+                if settings.turn_execution_backend is TurnExecutionBackend.PRIVATE_WORKER
+                else Availability.UNAVAILABLE
+            ),
+            description="The private worker injects one in-memory model client per turn.",
         ),
     )
     users: UserRepository = InMemoryUserRepository()
@@ -221,6 +250,9 @@ def build_container(
     sandboxes: SandboxRepository = InMemorySandboxRepository()
     sessions: SessionRepository = InMemorySessionRepository()
     events: EventRepository = InMemoryEventRepository()
+    controls: ApprovalControlStore = InMemoryControlStore()
+    turns: TurnRepository = InMemoryTurnRepository()
+    approvals: ApprovalRepository = InMemoryApprovalRepository()
     tickets: WebSocketTicketStore = InMemoryWebSocketTicketStore(
         settings.websocket_ticket_ttl_seconds
     )
@@ -246,12 +278,49 @@ def build_container(
         sandboxes = PostgresSandboxRepository(factory)
         sessions = PostgresSessionRepository(factory)
         events = coordination
+        controls = coordination
         tickets = RedisWebSocketTicketStore(
             coordination, settings.websocket_ticket_ttl_seconds
         )
         admin_settings = PostgresAdminSettingsRepository(factory)
         quotas = PostgresQuotaRepository(factory, admin_settings)
         cleanup = PostgresCleanupRepository(factory)
+        turns = PostgresTurnRepository(factory)
+        approvals = PostgresApprovalRepository(factory)
+
+    agent: AgentAdapter = FakeCoreAgentAdapter()
+    if settings.service_role is ServiceRole.WORKER:
+        async def resolve_runtime(request):
+            sandbox = await sandboxes.get(request.sandbox_id)
+            if sandbox is None or sandbox.owner_id != request.owner_id:
+                raise PermissionError("Owned sandbox runtime was not found.")
+            selected = runtime_sandbox(sandbox)
+            await runtime.connect(selected)
+            return HostedWorkspaceRuntime(runtime, selected, asyncio.get_running_loop())
+
+        agent = CoreAgentAdapter(
+            events,
+            runtime_resolver=resolve_runtime,
+            model_client_resolver=lambda request: create_turn_model_client(
+                request, settings
+            ),
+            approval_broker=RedisApprovalBroker(controls),
+        )
+
+    worker_client: WorkerClient | None = None
+    if (
+        settings.service_role is ServiceRole.API
+        and settings.turn_execution_backend is TurnExecutionBackend.PRIVATE_WORKER
+        and settings.worker_url is not None
+        and settings.worker_audience is not None
+    ):
+        worker_client = CloudRunWorkerClient(
+            worker_url=settings.worker_url,
+            audience=settings.worker_audience,
+            shared_secret=settings.worker_shared_secret,
+            request_timeout_seconds=settings.worker_request_timeout_seconds,
+            identity_timeout_seconds=settings.worker_identity_token_timeout_seconds,
+        )
 
     return ApplicationContainer(
         settings=settings,
@@ -259,6 +328,9 @@ def build_container(
         sandboxes=sandboxes,
         sessions=sessions,
         events=events,
+        controls=controls,
+        turns=turns,
+        approvals=approvals,
         tickets=tickets,
         admin_settings=admin_settings,
         quotas=quotas,
@@ -267,7 +339,8 @@ def build_container(
         database_engine=database_engine,
         jwt_verifier=verifier,
         runtime=runtime,
-        agent=FakeCoreAgentAdapter(),
+        agent=agent,
+        worker_client=worker_client,
         templates=templates,
         features=features,
         fake_flows=InMemoryFakeFlowStore(),

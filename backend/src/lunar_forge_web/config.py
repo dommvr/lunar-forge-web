@@ -25,6 +25,16 @@ class RuntimeBackend(StrEnum):
     E2B = "e2b"
 
 
+class ServiceRole(StrEnum):
+    API = "api"
+    WORKER = "worker"
+
+
+class TurnExecutionBackend(StrEnum):
+    FAKE = "fake"
+    PRIVATE_WORKER = "private_worker"
+
+
 _LOCAL_WORKER_SECRET = "local-only-worker-secret"
 
 
@@ -40,6 +50,7 @@ class Settings(BaseSettings):
     )
 
     environment: DeploymentEnvironment = DeploymentEnvironment.LOCAL
+    service_role: ServiceRole = ServiceRole.API
     service_name: str = "lunar-forge-web-api"
     api_version: str = "v1"
     core_version: str = "0.1.0"
@@ -76,9 +87,24 @@ class Settings(BaseSettings):
     event_stream_ttl_seconds: int = Field(default=3_600, ge=1_800, le=86_400)
     control_stream_ttl_seconds: int = Field(default=3_600, ge=900, le=86_400)
     worker_shared_secret: SecretStr = SecretStr(_LOCAL_WORKER_SECRET)
+    worker_url: str | None = None
+    worker_audience: str | None = None
+    worker_request_timeout_seconds: float = Field(default=975.0, ge=960.0, le=3_600.0)
+    worker_identity_token_timeout_seconds: float = Field(default=10.0, ge=1.0, le=30.0)
+    turn_execution_backend: TurnExecutionBackend = TurnExecutionBackend.FAKE
     websocket_ticket_ttl_seconds: int = Field(default=60, ge=15, le=300)
+    websocket_heartbeat_seconds: float = Field(default=10.0, ge=0.05, le=60.0)
     preview_ticket_ttl_seconds: int = Field(default=60, ge=15, le=300)
     owner_funded_model: str = "server-default"
+    owner_funded_api_key: SecretStr | None = None
+    owner_funded_input_cost_microusd_per_million: int = Field(
+        default=0, ge=0, le=1_000_000_000
+    )
+    owner_funded_output_cost_microusd_per_million: int = Field(
+        default=0, ge=0, le=1_000_000_000
+    )
+    byok_openai_model: str = "openai/gpt-5.6-sol"
+    byok_anthropic_model: str = "anthropic/claude-sonnet-4-5"
     max_event_replay_items: int = Field(default=500, ge=1, le=2_000)
     max_request_body_bytes: int = Field(
         default=1_048_576,
@@ -158,9 +184,29 @@ class Settings(BaseSettings):
             raise ValueError("Production requires an environment-specific Redis key prefix.")
         if self.owner_funded_model == "server-default":
             raise ValueError("Production requires one explicit owner-funded model.")
+        if not self.owner_funded_model.startswith("openai/"):
+            raise ValueError("The production owner-funded model must be an OpenAI model ID.")
+        if min(
+            self.owner_funded_input_cost_microusd_per_million,
+            self.owner_funded_output_cost_microusd_per_million,
+        ) <= 0:
+            raise ValueError("Production requires explicit owner-funded token cost estimates.")
         secret = self.worker_shared_secret.get_secret_value()
         if secret == _LOCAL_WORKER_SECRET or len(secret) < 32:
             raise ValueError("Production worker secret must be at least 32 characters.")
+        if self.service_role is ServiceRole.API:
+            if self.turn_execution_backend is not TurnExecutionBackend.PRIVATE_WORKER:
+                raise ValueError("The production API must use the private worker backend.")
+            if self.worker_url is None or not self.worker_url.startswith("https://"):
+                raise ValueError("The production API requires an HTTPS worker URL.")
+            if self.worker_audience is None or not self.worker_audience.startswith("https://"):
+                raise ValueError("The production API requires an HTTPS worker audience.")
+        if self.service_role is ServiceRole.WORKER:
+            if (
+                self.owner_funded_api_key is None
+                or not self.owner_funded_api_key.get_secret_value()
+            ):
+                raise ValueError("The production worker requires the owner-funded secret.")
         return self
 
 

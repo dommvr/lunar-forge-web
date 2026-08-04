@@ -34,7 +34,7 @@ dev = [
 ]
 
 [tool.uv.sources]
-lunar-forge = { path = "../../lunar-forge", editable = false }
+lunar-forge = { path = "../../lunar-forge", editable = true }
 
 [project.scripts]
 lunar-forge-web-api = "lunar_forge_web.api.main:run"

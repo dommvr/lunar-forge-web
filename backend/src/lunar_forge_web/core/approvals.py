@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
+from datetime import datetime
 from threading import Event
 from typing import Protocol
 
@@ -30,6 +31,16 @@ class ApprovalBroker(Protocol):
 
 
 class ApprovalControlStore(Protocol):
+    async def publish_control(
+        self,
+        *,
+        session_id: str,
+        kind: str,
+        action_id: str,
+        payload: dict[str, object],
+        now: datetime | None = None,
+    ) -> str: ...
+
     async def replay_controls(
         self,
         session_id: str,

@@ -11,11 +11,19 @@ from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from lunar_forge_web.domain.enums import ApprovalStatus, SandboxStatus, SessionStatus
+from lunar_forge_web.domain.enums import (
+    ApprovalStatus,
+    SandboxStatus,
+    SessionStatus,
+    TurnStatus,
+)
 from lunar_forge_web.domain.models import (
+    ApprovalResponse,
     PreviewResponse,
     SandboxResponse,
     SessionResponse,
+    SessionSettings,
+    TurnResponse,
     UserRecord,
 )
 from lunar_forge_web.security.limits import (
@@ -47,6 +55,7 @@ from lunar_forge_web.storage.records import (
     QuotaReservation,
     QuotaSnapshot,
     UsageRecord,
+    TurnRecord,
 )
 from lunar_forge_web.storage.repositories import (
     QuotaLimitError,
@@ -93,6 +102,47 @@ def _session_contract(row: SessionRow) -> SessionResponse:
         created_at=_as_utc(row.created_at),
         last_sequence=row.last_sequence,
         compacted_summary_count=row.compacted_summary_count,
+    )
+
+
+def _turn_record(row: TurnRow, sandbox_id: str) -> TurnRecord:
+    return TurnRecord(
+        turn=TurnResponse(
+            id=row.id,
+            session_id=row.session_id,
+            owner_id=row.owner_id,
+            status=row.status,
+            created_at=_as_utc(row.created_at),
+            started_at=_as_utc(row.started_at) if row.started_at else None,
+            finished_at=_as_utc(row.finished_at) if row.finished_at else None,
+            input_tokens=row.input_tokens,
+            output_tokens=row.output_tokens,
+            estimated_cost_microusd=row.estimated_cost_microusd,
+            error_code=row.error_code,
+        ),
+        sandbox_id=sandbox_id,
+        funding_mode=row.funding_mode,
+        provider=row.provider,
+        model=row.model,
+        reasoning_effort=row.reasoning_effort,
+    )
+
+
+def _approval_contract(row: ApprovalRow) -> ApprovalResponse:
+    detail = row.detail
+    return ApprovalResponse(
+        id=row.id,
+        sandbox_id=row.sandbox_id,
+        session_id=row.session_id,
+        turn_id=row.turn_id,
+        owner_id=row.owner_id,
+        kind=str(detail.get("kind", row.kind)),
+        title=str(detail.get("title", "Approval required")),
+        summary=str(detail.get("summary", "Review this action.")),
+        details=str(detail.get("details", "Review the bounded action details.")),
+        risk=str(detail.get("risk", "medium")),
+        status=row.status,
+        expires_at=_as_utc(row.expires_at),
     )
 
 
@@ -303,6 +353,200 @@ class PostgresSessionRepository:
                     retention_expires_at=now + timedelta(days=RETAINED_METADATA_DAYS),
                 )
             )
+
+
+class PostgresTurnRepository:
+    def __init__(self, factory: SessionFactory) -> None:
+        self._factory = factory
+
+    async def create(
+        self,
+        turn: TurnResponse,
+        *,
+        sandbox_id: str,
+        prompt: str,
+        settings: SessionSettings,
+    ) -> TurnRecord:
+        async with self._factory() as session, session.begin():
+            session_row = await session.scalar(
+                select(SessionRow)
+                .where(SessionRow.id == turn.session_id)
+                .with_for_update()
+            )
+            if session_row is None or session_row.sandbox_id != sandbox_id:
+                raise RepositoryStateError("Session was not found.")
+            active = await session.scalar(
+                select(TurnRow.id).where(
+                    TurnRow.session_id == turn.session_id,
+                    TurnRow.status.in_(
+                        [
+                            TurnStatus.QUEUED.value,
+                            TurnStatus.RUNNING.value,
+                            TurnStatus.WAITING_FOR_APPROVAL.value,
+                        ]
+                    ),
+                )
+            )
+            if active is not None:
+                raise RepositoryConflictError("A turn is already active for this session.")
+            row = TurnRow(
+                id=turn.id,
+                session_id=turn.session_id,
+                owner_id=turn.owner_id,
+                status=turn.status,
+                prompt=prompt,
+                funding_mode=str(settings.funding_mode),
+                provider=settings.provider,
+                model=settings.model,
+                reasoning_effort=str(settings.reasoning_effort),
+                created_at=turn.created_at,
+            )
+            session.add(row)
+            await session.flush()
+            return _turn_record(row, sandbox_id)
+
+    async def get(self, turn_id: str) -> TurnRecord | None:
+        async with self._factory() as session:
+            row = await session.get(TurnRow, turn_id)
+            if row is None:
+                return None
+            sandbox_id = await session.scalar(
+                select(SessionRow.sandbox_id).where(SessionRow.id == row.session_id)
+            )
+            if sandbox_id is None:
+                return None
+            return _turn_record(row, sandbox_id)
+
+    async def active_for_session(self, session_id: str) -> TurnRecord | None:
+        async with self._factory() as session:
+            row = await session.scalar(
+                select(TurnRow)
+                .where(
+                    TurnRow.session_id == session_id,
+                    TurnRow.status.in_(
+                        [
+                            TurnStatus.QUEUED.value,
+                            TurnStatus.RUNNING.value,
+                            TurnStatus.WAITING_FOR_APPROVAL.value,
+                        ]
+                    ),
+                )
+                .order_by(TurnRow.created_at.desc())
+                .limit(1)
+            )
+            if row is None:
+                return None
+            sandbox_id = await session.scalar(
+                select(SessionRow.sandbox_id).where(SessionRow.id == session_id)
+            )
+            return _turn_record(row, str(sandbox_id)) if sandbox_id else None
+
+    async def mark_running(self, turn_id: str, started_at: datetime) -> TurnRecord:
+        async with self._factory() as session, session.begin():
+            row = await session.scalar(
+                select(TurnRow).where(TurnRow.id == turn_id).with_for_update()
+            )
+            if row is None:
+                raise RepositoryStateError("Turn was not found.")
+            if row.status not in {TurnStatus.QUEUED.value, TurnStatus.RUNNING.value}:
+                raise RepositoryStateError("Turn is not runnable.")
+            row.status = TurnStatus.RUNNING.value
+            row.started_at = started_at
+            sandbox_id = await session.scalar(
+                select(SessionRow.sandbox_id).where(SessionRow.id == row.session_id)
+            )
+            return _turn_record(row, str(sandbox_id))
+
+    async def finish(
+        self,
+        turn_id: str,
+        *,
+        status: TurnStatus,
+        finished_at: datetime,
+        input_tokens: int,
+        output_tokens: int,
+        estimated_cost_microusd: int,
+        error_code: str | None,
+    ) -> TurnRecord:
+        if status not in {TurnStatus.COMPLETED, TurnStatus.CANCELLED, TurnStatus.FAILED}:
+            raise ValueError("A terminal turn status is required.")
+        async with self._factory() as session, session.begin():
+            row = await session.scalar(
+                select(TurnRow).where(TurnRow.id == turn_id).with_for_update()
+            )
+            if row is None:
+                raise RepositoryStateError("Turn was not found.")
+            row.status = status.value
+            row.finished_at = finished_at
+            row.input_tokens = input_tokens
+            row.output_tokens = output_tokens
+            row.estimated_cost_microusd = estimated_cost_microusd
+            row.error_code = error_code
+            row.prompt = None
+            row.retention_expires_at = finished_at + timedelta(days=RETAINED_METADATA_DAYS)
+            sandbox_id = await session.scalar(
+                select(SessionRow.sandbox_id).where(SessionRow.id == row.session_id)
+            )
+            return _turn_record(row, str(sandbox_id))
+
+
+class PostgresApprovalRepository:
+    def __init__(self, factory: SessionFactory) -> None:
+        self._factory = factory
+
+    async def get(self, approval_id: str) -> ApprovalResponse | None:
+        async with self._factory() as session:
+            row = await session.get(ApprovalRow, approval_id)
+            return _approval_contract(row) if row is not None else None
+
+    async def put(self, approval: ApprovalResponse) -> None:
+        async with self._factory() as session, session.begin():
+            if await session.get(ApprovalRow, approval.id) is not None:
+                return
+            session.add(
+                ApprovalRow(
+                    id=approval.id,
+                    sandbox_id=approval.sandbox_id,
+                    session_id=approval.session_id,
+                    turn_id=approval.turn_id,
+                    owner_id=approval.owner_id,
+                    kind=approval.kind,
+                    status=approval.status,
+                    detail={
+                        "kind": approval.kind,
+                        "title": approval.title,
+                        "summary": approval.summary,
+                        "details": approval.details,
+                        "risk": approval.risk,
+                    },
+                    expires_at=approval.expires_at,
+                    created_at=datetime.now(timezone.utc),
+                )
+            )
+
+    async def resolve(
+        self, approval_id: str, owner_id: str, approved: bool
+    ) -> ApprovalResponse:
+        now = datetime.now(timezone.utc)
+        async with self._factory() as session, session.begin():
+            row = await session.scalar(
+                select(ApprovalRow)
+                .where(ApprovalRow.id == approval_id, ApprovalRow.owner_id == owner_id)
+                .with_for_update()
+            )
+            if row is None:
+                raise RepositoryStateError("Approval was not found.")
+            if row.status != ApprovalStatus.PENDING.value:
+                raise RepositoryConflictError("Approval was already resolved.")
+            if _as_utc(row.expires_at) <= now:
+                row.status = ApprovalStatus.EXPIRED.value
+                raise RepositoryStateError("Approval has expired.")
+            row.status = (
+                ApprovalStatus.APPROVED.value if approved else ApprovalStatus.DENIED.value
+            )
+            row.resolved_at = now
+            row.retention_expires_at = now + timedelta(days=RETAINED_METADATA_DAYS)
+            return _approval_contract(row)
 
 
 class PostgresPreviewRepository:

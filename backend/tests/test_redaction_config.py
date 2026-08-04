@@ -8,6 +8,7 @@ from lunar_forge_web.config import (
     DeploymentEnvironment,
     InfrastructureBackend,
     Settings,
+    TurnExecutionBackend,
 )
 from lunar_forge_web.security.redaction import REDACTED, RedactingJsonFormatter, redact
 
@@ -56,7 +57,12 @@ def test_production_settings_reject_insecure_defaults():
         redis_url=SecretStr("rediss://default:secret@redis.example.com:6379"),
         redis_key_prefix="lfw:production",
         e2b_api_key=SecretStr("e2b_test_production_key"),
-        owner_funded_model="gpt-production",
+        owner_funded_model="openai/gpt-production",
+        owner_funded_input_cost_microusd_per_million=1_000_000,
+        owner_funded_output_cost_microusd_per_million=2_000_000,
         worker_shared_secret=SecretStr("x" * 40),
+        worker_url="https://worker.example.run.app",
+        worker_audience="https://worker.example.run.app",
+        turn_execution_backend=TurnExecutionBackend.PRIVATE_WORKER,
     )
     assert settings.environment.value == "production"

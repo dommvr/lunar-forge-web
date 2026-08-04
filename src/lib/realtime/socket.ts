@@ -129,6 +129,26 @@ export class RealtimeClient {
       this.options.onConnectionState("connected", 0);
       return;
     }
+    if (
+      payload &&
+      typeof payload === "object" &&
+      (payload as { type?: unknown }).type === "stream.heartbeat"
+    ) {
+      return;
+    }
+    if (
+      payload &&
+      typeof payload === "object" &&
+      (payload as { type?: unknown }).type === "stream.error"
+    ) {
+      const error = payload as { reconnectable?: unknown };
+      if (error.reconnectable === false) {
+        this.running = false;
+        this.options.onConnectionState("fatal", this.reconnectAttempt);
+      }
+      this.socket?.close(4001, "Stream transport error.");
+      return;
+    }
     if (!isAgentEvent(payload) || payload.session_id !== this.options.sessionId) {
       return;
     }

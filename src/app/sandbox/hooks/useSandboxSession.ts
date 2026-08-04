@@ -40,9 +40,7 @@ function sessionSettings(selection: FundingSelection) {
     funding_mode: selection.fundingMode,
     provider: selection.provider,
     model:
-      selection.fundingMode === "owner_funded"
-        ? "server-default"
-        : `${selection.provider}-byok-fixture`,
+      "server-default",
     reasoning_effort: "medium" as const,
     plan_mode: false,
     show_usage: true,
@@ -188,7 +186,11 @@ export function useSandboxSession(options: UseSandboxSessionOptions = {}) {
   }, [api, reportError, state.phase, state.sessionId]);
 
   const submit = useCallback(
-    async (message: string, selection: FundingSelection) => {
+    async (
+      message: string,
+      selection: FundingSelection,
+      providerApiKey?: string,
+    ) => {
       if (!state.sessionId) return;
       const id = `user-${Date.now()}-${state.lastSequence}`;
       dispatch({ type: "user.message", id, text: message });
@@ -196,6 +198,9 @@ export function useSandboxSession(options: UseSandboxSessionOptions = {}) {
         await api.createTurn(state.sessionId, {
           message,
           settings: sessionSettings(selection),
+          ...(selection.fundingMode === "byok"
+            ? { provider_api_key: providerApiKey }
+            : {}),
         });
       } catch (error) {
         reportError(error);

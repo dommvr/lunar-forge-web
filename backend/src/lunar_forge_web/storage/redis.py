@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import re
@@ -105,6 +106,64 @@ class ControlMessage:
     action_id: str
     payload: dict[str, Any]
     created_at: datetime
+
+
+class InMemoryControlStore:
+    """Deterministic process-local substitute for the Redis control stream."""
+
+    def __init__(self) -> None:
+        self._messages: dict[str, list[ControlMessage]] = {}
+        self._lock = asyncio.Lock()
+        self._next_id = 0
+
+    async def publish_control(
+        self,
+        *,
+        session_id: str,
+        kind: str,
+        action_id: str,
+        payload: dict[str, Any],
+        now: datetime | None = None,
+    ) -> str:
+        if kind not in {"approval", "cancel"}:
+            raise ValueError("Control kind must be approval or cancel.")
+        safe_payload = redact(payload)
+        serialized = json.dumps(
+            safe_payload, ensure_ascii=False, allow_nan=False, separators=(",", ":")
+        )
+        if len(serialized) > MAX_CONTROL_PAYLOAD_CHARACTERS:
+            raise ValueError("Control payload is too large.")
+        async with self._lock:
+            self._next_id += 1
+            message_id = f"{self._next_id}-0"
+            messages = self._messages.setdefault(session_id, [])
+            messages.append(
+                ControlMessage(
+                    id=message_id,
+                    kind=kind,
+                    action_id=action_id,
+                    payload=dict(safe_payload),
+                    created_at=now or datetime.now(timezone.utc),
+                )
+            )
+            del messages[:-MAX_CONTROL_STREAM_ITEMS]
+            return message_id
+
+    async def replay_controls(
+        self, session_id: str, after_id: str = "0-0", limit: int = 100
+    ) -> tuple[ControlMessage, ...]:
+        if not 1 <= limit <= MAX_CONTROL_STREAM_ITEMS:
+            raise ValueError("Control replay limit is out of bounds.")
+        try:
+            after = int(after_id.partition("-")[0])
+        except ValueError as exc:
+            raise ValueError("Control cursor is invalid.") from exc
+        async with self._lock:
+            return tuple(
+                message
+                for message in self._messages.get(session_id, ())
+                if int(message.id.partition("-")[0]) > after
+            )[:limit]
 
 
 @dataclass(frozen=True, slots=True)

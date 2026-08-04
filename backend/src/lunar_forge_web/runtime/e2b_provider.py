@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import hashlib
 import mimetypes
 import re
 import shlex
+import time
+from difflib import unified_diff
 from collections.abc import AsyncIterator, Iterable
 from contextlib import asynccontextmanager
 from pathlib import PurePosixPath
@@ -19,6 +22,18 @@ from e2b import (
     FileNotFoundException as E2BFileNotFoundException,
     FileType,
     SandboxNotFoundException,
+)
+
+from lunar_forge import (
+    RuntimeCheckpoint as CoreRuntimeCheckpoint,
+    RuntimeCommandResult as CoreRuntimeCommandResult,
+    RuntimeFileInfo as CoreRuntimeFileInfo,
+    RuntimeOperationResult as CoreRuntimeOperationResult,
+    RuntimePathType,
+    RuntimeRollbackResult,
+    RuntimeRollbackStatus,
+    RuntimeTextResult,
+    RuntimeWriteResult,
 )
 
 from lunar_forge_web.domain.enums import Availability
@@ -124,6 +139,8 @@ class E2BRuntimeProvider:
         self._request_timeout_seconds = request_timeout_seconds
         self._operation_locks: dict[str, asyncio.Lock] = {}
         self._active_commands: dict[str, Any] = {}
+        self._cancelled_commands: set[str] = set()
+        self._checkpoints: dict[tuple[str, str], str] = {}
 
     def capability(self) -> RuntimeCapability:
         available = self._client is not None
@@ -329,7 +346,286 @@ class E2BRuntimeProvider:
         handle = self._active_commands.get(sandbox.reference)
         if handle is None:
             return False
+        self._cancelled_commands.add(sandbox.reference)
         return bool(await handle.kill())
+
+    async def core_list_directory(
+        self, sandbox: RuntimeSandbox, path: str
+    ) -> tuple[CoreRuntimeFileInfo, ...]:
+        absolute = self._core_absolute(path, allow_root=True)
+        async with self._lock(sandbox.reference):
+            remote = await self._connect_verified(sandbox)
+            entries = await remote.files.list(
+                absolute, depth=1, request_timeout=self._request_timeout_seconds
+            )
+        visible: list[CoreRuntimeFileInfo] = []
+        for entry in entries:
+            relative = self._relative_visible_path(entry.path)
+            if relative is None:
+                continue
+            parent = PurePosixPath(relative).parent.as_posix()
+            expected_parent = "." if path == "." else path
+            if parent != expected_parent or entry.type == FileType.SYMLINK:
+                continue
+            path_type = (
+                RuntimePathType.DIRECTORY
+                if entry.type == FileType.DIR
+                else RuntimePathType.FILE
+            )
+            visible.append(
+                CoreRuntimeFileInfo(
+                    relative,
+                    path_type,
+                    size_bytes=entry.size if path_type is RuntimePathType.FILE else None,
+                )
+            )
+        return tuple(sorted(visible, key=lambda item: item.path))
+
+    async def core_stat(
+        self, sandbox: RuntimeSandbox, path: str
+    ) -> CoreRuntimeFileInfo | None:
+        absolute = self._core_absolute(path, allow_root=True)
+        async with self._lock(sandbox.reference):
+            remote = await self._connect_verified(sandbox)
+            try:
+                info = await remote.files.get_info(absolute)
+            except E2BFileNotFoundException:
+                return None
+        if path == ".":
+            return CoreRuntimeFileInfo(path, RuntimePathType.DIRECTORY)
+        if info.type == FileType.SYMLINK:
+            return CoreRuntimeFileInfo(path, RuntimePathType.SYMLINK)
+        path_type = (
+            RuntimePathType.DIRECTORY
+            if info.type == FileType.DIR
+            else RuntimePathType.FILE
+        )
+        return CoreRuntimeFileInfo(
+            path,
+            path_type,
+            size_bytes=info.size if path_type is RuntimePathType.FILE else None,
+        )
+
+    async def core_read_text(
+        self,
+        sandbox: RuntimeSandbox,
+        path: str,
+        *,
+        start_line: int,
+        end_line: int | None,
+        max_characters: int,
+    ) -> RuntimeTextResult:
+        absolute = self._core_absolute(path)
+        async with self._lock(sandbox.reference):
+            remote = await self._connect_verified(sandbox)
+            raw, provider_truncated = await self._read_bounded(
+                remote, absolute, MAX_FILE_RESPONSE_CHARACTERS
+            )
+        text = raw.decode("utf-8", errors="replace")
+        selected = "".join(text.splitlines(keepends=True)[start_line - 1 : end_line])
+        return RuntimeTextResult(
+            path,
+            selected[:max_characters],
+            truncated=provider_truncated or len(selected) > max_characters,
+            start_line=start_line,
+            end_line=end_line,
+        )
+
+    async def core_write_text(
+        self,
+        sandbox: RuntimeSandbox,
+        path: str,
+        content: str,
+        *,
+        overwrite: bool,
+    ) -> RuntimeWriteResult:
+        absolute = self._core_absolute(path)
+        async with self._lock(sandbox.reference):
+            remote = await self._connect_verified(sandbox)
+            existed = await remote.files.exists(absolute)
+            if existed and not overwrite:
+                return RuntimeWriteResult(False, path, error="File already exists.")
+            before = ""
+            if existed:
+                raw, _ = await self._read_bounded(
+                    remote, absolute, MAX_FILE_RESPONSE_CHARACTERS
+                )
+                before = raw.decode("utf-8", errors="replace")
+            await remote.files.write(
+                absolute, content, request_timeout=self._request_timeout_seconds
+            )
+        diff = "".join(
+            unified_diff(
+                before.splitlines(keepends=True),
+                content.splitlines(keepends=True),
+                fromfile=f"a/{path}",
+                tofile=f"b/{path}",
+            )
+        )
+        return RuntimeWriteResult(
+            True,
+            path,
+            created=not existed,
+            overwritten=existed,
+            diff=diff,
+        )
+
+    async def core_create_directory(
+        self, sandbox: RuntimeSandbox, path: str
+    ) -> CoreRuntimeOperationResult:
+        absolute = self._core_absolute(path)
+        async with self._lock(sandbox.reference):
+            remote = await self._connect_verified(sandbox)
+            await remote.files.make_dir(
+                absolute, request_timeout=self._request_timeout_seconds
+            )
+        return CoreRuntimeOperationResult(True, path)
+
+    async def core_delete_path(
+        self, sandbox: RuntimeSandbox, path: str, *, recursive: bool
+    ) -> CoreRuntimeOperationResult:
+        absolute = self._core_absolute(path)
+        async with self._lock(sandbox.reference):
+            remote = await self._connect_verified(sandbox)
+            try:
+                info = await remote.files.get_info(absolute)
+            except E2BFileNotFoundException:
+                return CoreRuntimeOperationResult(False, path, error="Path not found.")
+            if info.type == FileType.DIR and not recursive:
+                entries = await remote.files.list(
+                    absolute, depth=1, request_timeout=self._request_timeout_seconds
+                )
+                if entries:
+                    return CoreRuntimeOperationResult(
+                        False, path, error="Directory is not empty."
+                    )
+            await remote.files.remove(
+                absolute, request_timeout=self._request_timeout_seconds
+            )
+        return CoreRuntimeOperationResult(True, path)
+
+    async def core_move_path(
+        self,
+        sandbox: RuntimeSandbox,
+        source: str,
+        destination: str,
+        *,
+        overwrite: bool,
+    ) -> CoreRuntimeOperationResult:
+        source_absolute = self._core_absolute(source)
+        destination_absolute = self._core_absolute(destination)
+        async with self._lock(sandbox.reference):
+            remote = await self._connect_verified(sandbox)
+            if not await remote.files.exists(source_absolute):
+                return CoreRuntimeOperationResult(
+                    False, source, destination=destination, error="Path not found."
+                )
+            if await remote.files.exists(destination_absolute):
+                if not overwrite:
+                    return CoreRuntimeOperationResult(
+                        False,
+                        source,
+                        destination=destination,
+                        error="Destination exists.",
+                    )
+                await remote.files.remove(
+                    destination_absolute, request_timeout=self._request_timeout_seconds
+                )
+            await remote.files.rename(
+                source_absolute,
+                destination_absolute,
+                request_timeout=self._request_timeout_seconds,
+            )
+        return CoreRuntimeOperationResult(True, source, destination=destination)
+
+    async def core_execute(
+        self,
+        sandbox: RuntimeSandbox,
+        command: str,
+        *,
+        timeout_ms: int,
+        max_output_characters: int,
+    ) -> CoreRuntimeCommandResult:
+        timeout_seconds = max(1, min(900, (timeout_ms + 999) // 1_000))
+        result = await self.run_command(
+            sandbox, command, timeout_seconds=timeout_seconds
+        )
+        return CoreRuntimeCommandResult(
+            ok=result.exit_code == 0 and not result.timed_out and not result.cancelled,
+            command=command,
+            exit_code=result.exit_code,
+            stdout=result.stdout[:max_output_characters],
+            stderr=result.stderr[:max_output_characters],
+            duration_ms=result.duration_ms,
+            timed_out=result.timed_out,
+            cancelled=result.cancelled,
+            stdout_truncated=result.output_truncated or len(result.stdout) > max_output_characters,
+            stderr_truncated=result.output_truncated or len(result.stderr) > max_output_characters,
+            error=(
+                "Command was cancelled."
+                if result.cancelled
+                else "Command timed out."
+                if result.timed_out
+                else None
+            ),
+        )
+
+    async def core_checkpoint_turn(
+        self, sandbox: RuntimeSandbox, turn_id: str
+    ) -> CoreRuntimeCheckpoint:
+        del turn_id
+        checkpoint_id = f"checkpoint_{uuid4().hex}"
+        target = f"/tmp/{checkpoint_id}"
+        script = _checkpoint_script(target)
+        async with self._lock(sandbox.reference):
+            remote = await self._connect_verified(sandbox)
+            result = await remote.commands.run(
+                f"python3 -c {shlex.quote(script)}",
+                timeout=120,
+                request_timeout=self._request_timeout_seconds,
+            )
+        if result.exit_code != 0:
+            return CoreRuntimeCheckpoint(False, error="Runtime checkpoint failed.")
+        self._checkpoints[(sandbox.reference, checkpoint_id)] = target
+        return CoreRuntimeCheckpoint(True, checkpoint_id=checkpoint_id)
+
+    async def core_rollback_turn(
+        self, sandbox: RuntimeSandbox, checkpoint_id: str
+    ) -> RuntimeRollbackResult:
+        target = self._checkpoints.pop((sandbox.reference, checkpoint_id), None)
+        if target is None:
+            return RuntimeRollbackResult(
+                RuntimeRollbackStatus.FAILED,
+                errors=("Runtime checkpoint was not found.",),
+            )
+        script = _rollback_script(target)
+        async with self._lock(sandbox.reference):
+            remote = await self._connect_verified(sandbox)
+            try:
+                result = await remote.commands.run(
+                    f"python3 -c {shlex.quote(script)}",
+                    timeout=120,
+                    request_timeout=self._request_timeout_seconds,
+                )
+                if result.exit_code != 0:
+                    return RuntimeRollbackResult(
+                        RuntimeRollbackStatus.FAILED,
+                        errors=("Runtime rollback failed.",),
+                    )
+                payload = json.loads(result.stdout)
+                return RuntimeRollbackResult(
+                    payload["status"],
+                    restored_files=tuple(payload["restored_files"]),
+                    removed_files=tuple(payload["removed_files"]),
+                    skipped_files=tuple(payload["skipped_files"]),
+                    errors=tuple(payload["errors"]),
+                )
+            finally:
+                await remote.commands.run(
+                    f"rm -rf -- {shlex.quote(target)}",
+                    timeout=10,
+                    request_timeout=self._request_timeout_seconds,
+                )
 
     async def list_files(self, sandbox: RuntimeSandbox) -> tuple[RuntimeFile, ...]:
         async with self._lock(sandbox.reference):
@@ -526,6 +822,7 @@ class E2BRuntimeProvider:
         timeout_seconds: int,
     ) -> RuntimeCommandResult:
         command_id = f"cmd_{uuid4().hex}"
+        started = time.monotonic()
         output_path = f"/tmp/{command_id}.out"
         error_path = f"/tmp/{command_id}.err"
         wrapper = (
@@ -563,12 +860,17 @@ class E2BRuntimeProvider:
                     await remote.files.remove(path)
                 except E2BFileNotFoundException:
                     pass
+        cancelled = sandbox.reference in self._cancelled_commands
+        self._cancelled_commands.discard(sandbox.reference)
         return RuntimeCommandResult(
             command_id=command_id,
             exit_code=exit_code,
             stdout=redact_text(stdout.decode("utf-8", errors="replace")),
             stderr=redact_text(stderr.decode("utf-8", errors="replace")),
             output_truncated=stdout_truncated or stderr_truncated,
+            duration_ms=max(0, round((time.monotonic() - started) * 1_000)),
+            timed_out=exit_code == 124,
+            cancelled=cancelled,
         )
 
     async def _read_bounded(
@@ -629,6 +931,12 @@ class E2BRuntimeProvider:
             raise ValueError("Sensitive workspace paths are not browser-readable.")
         return normalized
 
+    @staticmethod
+    def _core_absolute(path: str, *, allow_root: bool = False) -> str:
+        if path == "." and allow_root:
+            return WORKSPACE_ROOT
+        return f"{WORKSPACE_ROOT}/{E2BRuntimeProvider._visible_path(path)}"
+
 
 def _archive_script(archive_path: str) -> str:
     return f"""
@@ -654,6 +962,73 @@ with zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED) as output:
             if total > {MAX_RUNTIME_ARCHIVE_BYTES}:
                 raise SystemExit('archive limit exceeded')
             output.write(source, os.path.relpath(source, root))
+""".strip()
+
+
+def _checkpoint_script(target: str) -> str:
+    return f"""
+import os
+import shutil
+
+root = {WORKSPACE_ROOT!r}
+target = {target!r}
+if os.path.exists(target):
+    shutil.rmtree(target)
+shutil.copytree(root, target, symlinks=True)
+""".strip()
+
+
+def _rollback_script(target: str) -> str:
+    return f"""
+import filecmp
+import json
+import os
+import shutil
+
+root = {WORKSPACE_ROOT!r}
+target = {target!r}
+limit = 100
+
+def files(base):
+    found = {{}}
+    for current, directories, names in os.walk(base, followlinks=False):
+        directories[:] = sorted(directories)
+        for name in sorted(names):
+            absolute = os.path.join(current, name)
+            relative = os.path.relpath(absolute, base).replace(os.sep, '/')
+            found[relative] = absolute
+    return found
+
+before = files(target)
+current = files(root)
+restored = [
+    path for path in sorted(before)
+    if path not in current or not filecmp.cmp(before[path], current[path], shallow=False)
+]
+removed = [path for path in sorted(current) if path not in before]
+overflow = len(restored) + len(removed) > limit
+
+for name in os.listdir(root):
+    path = os.path.join(root, name)
+    if os.path.isdir(path) and not os.path.islink(path):
+        shutil.rmtree(path)
+    else:
+        os.unlink(path)
+for name in os.listdir(target):
+    source = os.path.join(target, name)
+    destination = os.path.join(root, name)
+    if os.path.isdir(source) and not os.path.islink(source):
+        shutil.copytree(source, destination, symlinks=True)
+    else:
+        shutil.copy2(source, destination, follow_symlinks=False)
+
+print(json.dumps({{
+    'status': 'partial' if overflow else 'completed',
+    'restored_files': restored[:limit],
+    'removed_files': removed[:max(0, limit - len(restored[:limit]))],
+    'skipped_files': [],
+    'errors': ['Rollback completed but its path report exceeded the bound.'] if overflow else [],
+}}, separators=(',', ':')))
 """.strip()
 
 

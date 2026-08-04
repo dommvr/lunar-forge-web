@@ -95,4 +95,49 @@ describe("RealtimeClient", () => {
     expect(urls[1]).toContain(`ticket=${"b".repeat(32)}`);
     client.stop();
   });
+
+  it("treats heartbeats as transport-only and stops on a fatal stream error", async () => {
+    const states = vi.fn();
+    const sockets: FakeSocket[] = [];
+    const client = new RealtimeClient({
+      api: {
+        createRealtimeTicket: vi.fn().mockResolvedValue({
+          ticket: "a".repeat(32),
+          session_id: "session-a",
+          expires_at: "2026-01-01T00:01:00Z",
+          websocket_path: "/api/v1/sessions/session-a/stream",
+        }),
+      },
+      apiBaseUrl: "http://localhost:8000",
+      sessionId: "session-a",
+      onEvent: vi.fn(),
+      onConnectionState: states,
+      retryDelaysMs: [10],
+      websocketFactory: () => {
+        const socket = new FakeSocket();
+        sockets.push(socket);
+        return socket;
+      },
+    });
+
+    client.start();
+    await vi.waitFor(() => expect(sockets).toHaveLength(1));
+    sockets[0].message({
+      type: "stream.heartbeat",
+      session_id: "session-a",
+      last_sequence: 99,
+    });
+    expect(client.currentSequence()).toBe(0);
+    sockets[0].message({
+      type: "stream.error",
+      code: "stream_replay_gap",
+      message: "The requested event offset is no longer available.",
+      reconnectable: false,
+      last_sequence: 0,
+    });
+
+    expect(states).toHaveBeenCalledWith("fatal", 0);
+    await vi.advanceTimersByTimeAsync(20);
+    expect(sockets).toHaveLength(1);
+  });
 });

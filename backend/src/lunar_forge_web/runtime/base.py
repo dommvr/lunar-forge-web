@@ -9,6 +9,15 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal, Protocol
 
+from lunar_forge import (
+    RuntimeCheckpoint as CoreRuntimeCheckpoint,
+    RuntimeCommandResult as CoreRuntimeCommandResult,
+    RuntimeFileInfo as CoreRuntimeFileInfo,
+    RuntimeOperationResult as CoreRuntimeOperationResult,
+    RuntimeRollbackResult as CoreRuntimeRollbackResult,
+    RuntimeTextResult as CoreRuntimeTextResult,
+    RuntimeWriteResult as CoreRuntimeWriteResult,
+)
 from pydantic import Field
 
 from lunar_forge_web.domain.base import ContractModel, Identifier
@@ -42,6 +51,9 @@ class RuntimeCommandResult(ContractModel):
     stdout: str = Field(max_length=100_000)
     stderr: str = Field(max_length=100_000)
     output_truncated: bool = False
+    duration_ms: int = Field(default=0, ge=0)
+    timed_out: bool = False
+    cancelled: bool = False
 
 
 class RuntimeFile(ContractModel):
@@ -115,3 +127,64 @@ class RuntimeProvider(Protocol):
     async def clone_public_git(
         self, sandbox: RuntimeSandbox, repository_url: str
     ) -> RuntimeCommandResult: ...
+
+    async def core_list_directory(
+        self, sandbox: RuntimeSandbox, path: str
+    ) -> tuple[CoreRuntimeFileInfo, ...]: ...
+
+    async def core_stat(
+        self, sandbox: RuntimeSandbox, path: str
+    ) -> CoreRuntimeFileInfo | None: ...
+
+    async def core_read_text(
+        self,
+        sandbox: RuntimeSandbox,
+        path: str,
+        *,
+        start_line: int,
+        end_line: int | None,
+        max_characters: int,
+    ) -> CoreRuntimeTextResult: ...
+
+    async def core_write_text(
+        self,
+        sandbox: RuntimeSandbox,
+        path: str,
+        content: str,
+        *,
+        overwrite: bool,
+    ) -> CoreRuntimeWriteResult: ...
+
+    async def core_create_directory(
+        self, sandbox: RuntimeSandbox, path: str
+    ) -> CoreRuntimeOperationResult: ...
+
+    async def core_delete_path(
+        self, sandbox: RuntimeSandbox, path: str, *, recursive: bool
+    ) -> CoreRuntimeOperationResult: ...
+
+    async def core_move_path(
+        self,
+        sandbox: RuntimeSandbox,
+        source: str,
+        destination: str,
+        *,
+        overwrite: bool,
+    ) -> CoreRuntimeOperationResult: ...
+
+    async def core_execute(
+        self,
+        sandbox: RuntimeSandbox,
+        command: str,
+        *,
+        timeout_ms: int,
+        max_output_characters: int,
+    ) -> CoreRuntimeCommandResult: ...
+
+    async def core_checkpoint_turn(
+        self, sandbox: RuntimeSandbox, turn_id: str
+    ) -> CoreRuntimeCheckpoint: ...
+
+    async def core_rollback_turn(
+        self, sandbox: RuntimeSandbox, checkpoint_id: str
+    ) -> CoreRuntimeRollbackResult: ...

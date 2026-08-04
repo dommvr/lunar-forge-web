@@ -12,7 +12,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from lunar_forge_web import __version__
 from lunar_forge_web.api.errors import ERROR_RESPONSES, ApiError, install_error_handlers
 from lunar_forge_web.api.middleware import install_request_middleware
-from lunar_forge_web.config import Settings, get_settings
+from lunar_forge_web.config import DeploymentEnvironment, ServiceRole, Settings, get_settings
 from lunar_forge_web.container import ApplicationContainer, build_container
 from lunar_forge_web.domain.models import (
     HealthResponse,
@@ -20,7 +20,7 @@ from lunar_forge_web.domain.models import (
     WorkerTurnResponse,
 )
 from lunar_forge_web.security.redaction import configure_logging
-from lunar_forge_web.worker.turn_runner import TurnRunner
+from lunar_forge_web.worker.turn_runner import TurnRunner, TurnRunnerError
 
 
 worker_bearer = HTTPBearer(auto_error=False)
@@ -31,6 +31,17 @@ def create_worker_app(
     container: ApplicationContainer | None = None,
 ) -> FastAPI:
     selected = settings or get_settings()
+    if (
+        selected.environment is not DeploymentEnvironment.PRODUCTION
+        and selected.service_role is not ServiceRole.WORKER
+        and container is None
+    ):
+        selected = selected.model_copy(
+            update={
+                "service_role": ServiceRole.WORKER,
+                "service_name": "lunar-forge-web-worker",
+            }
+        )
     dependencies = container or build_container(selected)
 
     @asynccontextmanager
@@ -86,7 +97,21 @@ def create_worker_app(
         tags=["turns"],
     )
     async def run_turn(body: WorkerTurnRequest) -> WorkerTurnResponse:
-        return await TurnRunner(dependencies.agent).run(body)
+        try:
+            return await TurnRunner(
+                dependencies.agent,
+                settings=selected,
+                turns=dependencies.turns,
+                approvals=dependencies.approvals,
+                events=dependencies.events,
+                sessions=dependencies.sessions,
+                sandboxes=dependencies.sandboxes,
+                runtime=dependencies.runtime,
+                quotas=dependencies.quotas,
+                controls=dependencies.controls,
+            ).run(body)
+        except TurnRunnerError as exc:
+            raise ApiError(409, exc.code, exc.message) from exc
 
     return app
 
@@ -97,4 +122,10 @@ app = create_worker_app()
 def run() -> None:
     import uvicorn
 
-    uvicorn.run("lunar_forge_web.worker.main:app", host="0.0.0.0", port=8080)
+    uvicorn.run(
+        "lunar_forge_web.worker.main:app",
+        host="0.0.0.0",
+        port=8080,
+        access_log=False,
+        log_level="warning",
+    )

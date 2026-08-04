@@ -19,6 +19,9 @@ from lunar_forge import (
     AgentRequest,
     ApprovalDecision,
     ApprovalRequest,
+    CancellationToken,
+    ModelClient,
+    WorkspaceRuntime,
     run_agent_events,
 )
 from pydantic import ValidationError
@@ -36,6 +39,10 @@ from lunar_forge_web.storage.repositories import EventRepository
 
 ProjectRootResult = Path | str | Awaitable[Path | str]
 ProjectRootResolver = Callable[[WorkerTurnRequest], ProjectRootResult]
+RuntimeResult = WorkspaceRuntime | Awaitable[WorkspaceRuntime]
+RuntimeResolver = Callable[[WorkerTurnRequest], RuntimeResult]
+ModelClientResult = ModelClient | Awaitable[ModelClient]
+ModelClientResolver = Callable[[WorkerTurnRequest], ModelClientResult]
 EventRunner = Callable[..., Iterator[AgentEvent]]
 
 _END = object()
@@ -76,12 +83,14 @@ class _SessionEventPublisher:
             maxsize=200
         )
         self._bridged_approvals: set[str] = set()
+        self._approval_events: dict[tuple[str, str], AgentEventContract] = {}
+        self._seen_event_ids: set[str] = set()
 
     async def initialize(self) -> None:
         self._sequence = await self._events.last_sequence(self._request.session_id)
 
     async def publish_core(
-        self, event: AgentEvent
+        self, event: AgentEvent, *, enqueue: bool = False
     ) -> AgentEventContract | None:
         if not isinstance(event, AgentEvent):
             raise TypeError("The public event runner returned a non-AgentEvent value.")
@@ -90,14 +99,25 @@ class _SessionEventPublisher:
         payload = record.get("payload")
         if not isinstance(event_type, str) or not isinstance(payload, Mapping):
             raise ValueError("The public AgentEvent envelope is invalid.")
+        if event.event_id in self._seen_event_ids:
+            return None
+        self._seen_event_ids.add(event.event_id)
         request_id = payload.get("request_id") or payload.get("id")
+        approval_key = (
+            (event_type, request_id)
+            if event_type in {"permission.requested", "permission.resolved"}
+            and isinstance(request_id, str)
+            else None
+        )
+        if approval_key is not None and approval_key in self._approval_events:
+            return None
         if (
             event_type in {"permission.requested", "permission.resolved"}
             and isinstance(request_id, str)
             and request_id in self._bridged_approvals
         ):
             return None
-        return await self._publish(
+        published = await self._publish(
             schema_version=record.get("schema_version"),
             event_id=_safe_identifier(record.get("event_id"), "core-event"),
             timestamp=record.get("timestamp"),
@@ -108,30 +128,43 @@ class _SessionEventPublisher:
                 if record.get("parent_event_id") is not None
                 else None
             ),
-            enqueue=False,
+            enqueue=enqueue,
         )
+        if approval_key is not None:
+            self._approval_events[approval_key] = published
+        return published
 
     async def publish_approval_request(
         self, request: ApprovalRequest
     ) -> AgentEventContract:
         self._bridged_approvals.add(request.id)
-        return await self.publish_generated(
+        existing = self._approval_events.get(("permission.requested", request.id))
+        if existing is not None:
+            return existing
+        published = await self.publish_generated(
             "permission.requested",
             request.to_dict(),
             enqueue=True,
         )
+        self._approval_events[("permission.requested", request.id)] = published
+        return published
 
     async def publish_approval_decision(
         self,
         decision: ApprovalDecision,
         parent_event_id: str,
     ) -> AgentEventContract:
-        return await self.publish_generated(
+        existing = self._approval_events.get(("permission.resolved", decision.request_id))
+        if existing is not None:
+            return existing
+        published = await self.publish_generated(
             "permission.resolved",
             decision.to_dict(),
             parent_event_id=parent_event_id,
             enqueue=True,
         )
+        self._approval_events[("permission.resolved", decision.request_id)] = published
+        return published
 
     async def publish_generated(
         self,
@@ -266,8 +299,10 @@ class CoreAgentAdapter:
     def __init__(
         self,
         events: EventRepository,
-        project_root_resolver: ProjectRootResolver,
+        project_root_resolver: ProjectRootResolver | None = None,
         *,
+        runtime_resolver: RuntimeResolver | None = None,
+        model_client_resolver: ModelClientResolver | None = None,
         approval_broker: ApprovalBroker | None = None,
         event_runner: EventRunner = run_agent_events,
         runtime_mode: str = "local",
@@ -277,23 +312,28 @@ class CoreAgentAdapter:
             raise ValueError("Approval wait timeout must be between 1 and 910 seconds.")
         self._events = events
         self._project_root_resolver = project_root_resolver
+        self._runtime_resolver = runtime_resolver
+        self._model_client_resolver = model_client_resolver
         self._approval_broker = approval_broker or DenyApprovalBroker()
         self._event_runner = event_runner
         self._runtime_mode = runtime_mode
         self._approval_wait_timeout_seconds = approval_wait_timeout_seconds
-        self._active: dict[tuple[str, str], Event] = {}
+        if project_root_resolver is None and runtime_resolver is None:
+            raise ValueError("A project root or workspace runtime resolver is required.")
+        self._active: dict[tuple[str, str], tuple[CancellationToken, Event]] = {}
         self._active_lock = asyncio.Lock()
 
     async def construct_request(self, request: WorkerTurnRequest) -> AgentRequest:
         try:
-            resolved = self._project_root_resolver(request)
-            if inspect.isawaitable(resolved):
-                resolved = await resolved
+            resolved: Path | str | None = None
+            if self._project_root_resolver is not None:
+                pending = self._project_root_resolver(request)
+                resolved = await pending if inspect.isawaitable(pending) else pending
             model = request.settings.model
             return AgentRequest(
-                project_root=Path(resolved),
+                project_root=Path(resolved) if resolved is not None else None,
                 message=request.message,
-                runtime_mode=self._runtime_mode,
+                runtime_mode=self._runtime_mode if resolved is not None else None,
                 permission_mode=(
                     "plan" if request.settings.plan_mode else "default"
                 ),
@@ -323,12 +363,32 @@ class CoreAgentAdapter:
         self, request: WorkerTurnRequest
     ) -> AsyncIterator[AgentEventContract]:
         public_request = await self.construct_request(request)
+        runtime: WorkspaceRuntime | None = None
+        model_client: ModelClient | None = None
+        try:
+            if self._runtime_resolver is not None:
+                pending_runtime = self._runtime_resolver(request)
+                runtime = (
+                    await pending_runtime
+                    if inspect.isawaitable(pending_runtime)
+                    else pending_runtime
+                )
+            if self._model_client_resolver is not None:
+                pending_model = self._model_client_resolver(request)
+                model_client = (
+                    await pending_model
+                    if inspect.isawaitable(pending_model)
+                    else pending_model
+                )
+        except Exception as exc:
+            raise self.map_public_error(exc) from exc
         publisher = _SessionEventPublisher(self._events, request)
         try:
             await publisher.initialize()
         except Exception as exc:
             raise self.map_public_error(exc) from exc
         cancellation_requested = Event()
+        cancellation_token = CancellationToken()
         key = (request.session_id, request.turn_id)
         async with self._active_lock:
             if key in self._active:
@@ -336,7 +396,7 @@ class CoreAgentAdapter:
                     "core_turn_already_active",
                     "This core turn is already active.",
                 )
-            self._active[key] = cancellation_requested
+            self._active[key] = (cancellation_token, cancellation_requested)
 
         loop = asyncio.get_running_loop()
         approval_provider = _WebApprovalProvider(
@@ -352,14 +412,32 @@ class CoreAgentAdapter:
             wait_timeout_seconds=self._approval_wait_timeout_seconds,
         )
         iterator: Iterator[AgentEvent] | None = None
-        cancelled = False
+        legacy_cancellation = False
         try:
-            iterator = iter(
-                self._event_runner(
-                    public_request,
-                    approval_provider=approval_provider,
-                )
+            def publish_live(event: AgentEvent) -> None:
+                asyncio.run_coroutine_threadsafe(
+                    publisher.publish_core(event, enqueue=True), loop
+                ).result(timeout=10)
+
+            available_kwargs = {
+                "approval_provider": approval_provider,
+                "runtime": runtime,
+                "model_client": model_client,
+                "cancellation_token": cancellation_token,
+                "live_event_callback": publish_live,
+            }
+            signature = inspect.signature(self._event_runner)
+            accepts_kwargs = any(
+                parameter.kind is inspect.Parameter.VAR_KEYWORD
+                for parameter in signature.parameters.values()
             )
+            runner_kwargs = {
+                name: value
+                for name, value in available_kwargs.items()
+                if accepts_kwargs or name in signature.parameters
+            }
+            legacy_cancellation = "cancellation_token" not in runner_kwargs
+            iterator = iter(self._event_runner(public_request, **runner_kwargs))
             while True:
                 next_task = asyncio.create_task(
                     asyncio.to_thread(_next_event, iterator)
@@ -373,24 +451,23 @@ class CoreAgentAdapter:
                     yield generated
                 if item is _END:
                     break
-                if cancellation_requested.is_set():
-                    cancelled = True
+                if legacy_cancellation and cancellation_requested.is_set():
+                    cancelled_event = await publisher.publish_generated(
+                        "turn.cancelled",
+                        {
+                            "status": "cancelled",
+                            "reason": "Cancellation was requested through the web adapter.",
+                            "rollback_status": "unavailable",
+                        },
+                    )
+                    yield cancelled_event
                     break
                 mapped = await publisher.publish_core(item)
                 if mapped is not None:
                     yield mapped
-            if cancelled:
-                cancelled_event = await publisher.publish_generated(
-                    "turn.cancelled",
-                    {
-                        "status": "cancelled",
-                        "reason": "Cancellation was requested through the web adapter.",
-                        "rollback_status": "unavailable",
-                    },
-                )
-                yield cancelled_event
         except asyncio.CancelledError:
             cancellation_requested.set()
+            cancellation_token.request_cancel(rollback=True)
             raise
         except CoreAdapterError:
             raise
@@ -411,20 +488,19 @@ class CoreAgentAdapter:
             yield error_event
             raise mapped_error from exc
         finally:
-            if iterator is not None and cancelled:
-                close = getattr(iterator, "close", None)
-                if callable(close):
-                    await asyncio.to_thread(close)
             async with self._active_lock:
                 self._active.pop(key, None)
+            model_client = None
+            runtime = None
 
     async def cancel_turn(self, session_id: str, turn_id: str) -> bool:
         async with self._active_lock:
-            cancellation = self._active.get((session_id, turn_id))
-            if cancellation is None:
+            active = self._active.get((session_id, turn_id))
+            if active is None:
                 return False
-            cancellation.set()
-            return True
+            cancellation_token, cancellation_requested = active
+            cancellation_requested.set()
+            return cancellation_token.request_cancel(rollback=True)
 
     async def compact_session(self, session_id: str) -> bool:
         # The pinned public package has no manual compaction operation. Automatic

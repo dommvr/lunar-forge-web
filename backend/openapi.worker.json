@@ -1,85 +1,6 @@
 {
   "components": {
     "schemas": {
-      "AgentEventContract": {
-        "additionalProperties": false,
-        "properties": {
-          "event_id": {
-            "maxLength": 200,
-            "minLength": 1,
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
-            "title": "Event Id",
-            "type": "string"
-          },
-          "parent_event_id": {
-            "anyOf": [
-              {
-                "maxLength": 200,
-                "minLength": 1,
-                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Parent Event Id"
-          },
-          "payload": {
-            "additionalProperties": true,
-            "title": "Payload",
-            "type": "object"
-          },
-          "schema_version": {
-            "const": 1,
-            "default": 1,
-            "title": "Schema Version",
-            "type": "integer"
-          },
-          "sequence": {
-            "minimum": 0.0,
-            "title": "Sequence",
-            "type": "integer"
-          },
-          "session_id": {
-            "maxLength": 200,
-            "minLength": 1,
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
-            "title": "Session Id",
-            "type": "string"
-          },
-          "timestamp": {
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Timestamp",
-            "type": "string"
-          },
-          "turn_id": {
-            "maxLength": 200,
-            "minLength": 1,
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
-            "title": "Turn Id",
-            "type": "string"
-          },
-          "type": {
-            "maxLength": 200,
-            "minLength": 1,
-            "title": "Type",
-            "type": "string"
-          }
-        },
-        "required": [
-          "event_id",
-          "session_id",
-          "turn_id",
-          "sequence",
-          "timestamp",
-          "type",
-          "payload"
-        ],
-        "title": "AgentEventContract",
-        "type": "object"
-      },
       "ErrorDetail": {
         "additionalProperties": false,
         "properties": {
@@ -187,7 +108,7 @@
             "default": "server-default",
             "maxLength": 200,
             "minLength": 1,
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]*$",
             "title": "Model",
             "type": "string"
           },
@@ -256,6 +177,19 @@
             "title": "Owner Id",
             "type": "string"
           },
+          "provider_credential": {
+            "anyOf": [
+              {
+                "format": "password",
+                "type": "string",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider Credential"
+          },
           "sandbox_id": {
             "maxLength": 200,
             "minLength": 1,
@@ -294,13 +228,42 @@
       "WorkerTurnResponse": {
         "additionalProperties": false,
         "properties": {
-          "events": {
-            "items": {
-              "$ref": "#/components/schemas/AgentEventContract"
-            },
-            "maxItems": 2000,
-            "title": "Events",
-            "type": "array"
+          "error_code": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "estimated_cost_microusd": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Estimated Cost Microusd",
+            "type": "integer"
+          },
+          "input_tokens": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "last_sequence": {
+            "minimum": 0.0,
+            "title": "Last Sequence",
+            "type": "integer"
+          },
+          "output_tokens": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Output Tokens",
+            "type": "integer"
           },
           "status": {
             "$ref": "#/components/schemas/TurnStatus"
@@ -316,7 +279,7 @@
         "required": [
           "turn_id",
           "status",
-          "events"
+          "last_sequence"
         ],
         "title": "WorkerTurnResponse",
         "type": "object"

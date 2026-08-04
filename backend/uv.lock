@@ -1252,7 +1252,7 @@ wheels = [
 [[package]]
 name = "lunar-forge"
 version = "0.1.0"
-source = { directory = "../../lunar-forge" }
+source = { editable = "../../lunar-forge" }
 dependencies = [
     { name = "litellm" },
     { name = "pyyaml" },
@@ -1312,7 +1312,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.116,<1" },
     { name = "httpx", specifier = ">=0.28,<1" },
     { name = "httpx2", marker = "extra == 'dev'", specifier = ">=2,<3" },
-    { name = "lunar-forge", marker = "extra == 'dev'", directory = "../../lunar-forge" },
+    { name = "lunar-forge", marker = "extra == 'dev'", editable = "../../lunar-forge" },
     { name = "pydantic", specifier = ">=2.11,<3" },
     { name = "pydantic-settings", specifier = ">=2.10,<3" },
     { name = "pyjwt", extras = ["crypto"], specifier = ">=2.10,<3" },

@@ -5,8 +5,20 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from lunar_forge_web.domain.enums import SandboxStatus, SessionStatus
-from lunar_forge_web.domain.models import SandboxResponse, SessionResponse, UserRecord
+from lunar_forge_web.domain.enums import (
+    ApprovalStatus,
+    SandboxStatus,
+    SessionStatus,
+    TurnStatus,
+)
+from lunar_forge_web.domain.models import (
+    ApprovalResponse,
+    SandboxResponse,
+    SessionResponse,
+    SessionSettings,
+    TurnResponse,
+    UserRecord,
+)
 from lunar_forge_web.security.limits import (
     OWNER_FUNDED_GLOBAL_DAILY_COST_MICROUSD,
     OWNER_FUNDED_TURNS_PER_USER_PER_DAY,
@@ -26,15 +38,18 @@ from lunar_forge_web.storage.orm import (
 )
 from lunar_forge_web.storage.postgres import (
     PostgresAdminSettingsRepository,
+    PostgresApprovalRepository,
     PostgresCleanupRepository,
     PostgresQuotaRepository,
     PostgresSandboxRepository,
     PostgresSessionRepository,
+    PostgresTurnRepository,
     PostgresUserRepository,
 )
 from lunar_forge_web.storage.repositories import (
     QuotaLimitError,
     RepositoryConflictError,
+    RepositoryStateError,
 )
 
 
@@ -109,6 +124,93 @@ async def test_postgres_identity_sandbox_and_session_contract(database):
             update={"id": "sandbox-b", "runtime_reference": "runtime-b"}
         )
     )
+
+
+async def test_postgres_worker_turn_and_approval_contract(database):
+    await _put_users(database, "user-a")
+    sandboxes = PostgresSandboxRepository(database)
+    sessions = PostgresSessionRepository(database)
+    turns = PostgresTurnRepository(database)
+    approvals = PostgresApprovalRepository(database)
+    now = datetime.now(timezone.utc)
+    await sandboxes.put(
+        SandboxResponse(
+            id="sandbox-worker",
+            owner_id="user-a",
+            template_id="python-cli",
+            runtime_provider="e2b",
+            runtime_reference="runtime-worker",
+            status=SandboxStatus.READY,
+            created_at=now,
+            last_activity_at=now,
+            expires_at=now + timedelta(minutes=30),
+        )
+    )
+    await sessions.put(
+        SessionResponse(
+            id="session-worker",
+            sandbox_id="sandbox-worker",
+            owner_id="user-a",
+            status=SessionStatus.ACTIVE,
+            created_at=now,
+        )
+    )
+    created = await turns.create(
+        TurnResponse(
+            id="turn-worker",
+            session_id="session-worker",
+            owner_id="user-a",
+            status=TurnStatus.QUEUED,
+            created_at=now,
+        ),
+        sandbox_id="sandbox-worker",
+        prompt="Private prompt retained only while active.",
+        settings=SessionSettings(
+            funding_mode="byok",
+            provider="openai",
+            model="openai/test-model",
+        ),
+    )
+    assert created.turn.status == TurnStatus.QUEUED
+    running = await turns.mark_running("turn-worker", now)
+    assert running.turn.status == TurnStatus.RUNNING
+
+    approval = ApprovalResponse(
+        id="approval-worker",
+        sandbox_id="sandbox-worker",
+        session_id="session-worker",
+        turn_id="turn-worker",
+        owner_id="user-a",
+        kind="file.write",
+        title="Write a file",
+        summary="Write one bounded file.",
+        details="marker.txt",
+        risk="medium",
+        status=ApprovalStatus.PENDING,
+        expires_at=now + timedelta(minutes=5),
+    )
+    await approvals.put(approval)
+    resolved = await approvals.resolve(approval.id, "user-a", True)
+    assert resolved.status == ApprovalStatus.APPROVED
+    with pytest.raises(RepositoryConflictError, match="already resolved"):
+        await approvals.resolve(approval.id, "user-a", False)
+    with pytest.raises(RepositoryStateError, match="not found"):
+        await approvals.resolve(approval.id, "user-b", False)
+
+    finished = await turns.finish(
+        "turn-worker",
+        status=TurnStatus.COMPLETED,
+        finished_at=now + timedelta(seconds=1),
+        input_tokens=12,
+        output_tokens=4,
+        estimated_cost_microusd=25,
+        error_code=None,
+    )
+    assert finished.turn.status == TurnStatus.COMPLETED
+    assert finished.turn.input_tokens == 12
+    async with database() as session:
+        row = await session.get(TurnRow, "turn-worker")
+        assert row is not None and row.prompt is None
 
 
 async def test_postgres_owner_funded_quota_is_atomic_and_exact(database):

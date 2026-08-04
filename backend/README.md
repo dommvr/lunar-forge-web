@@ -29,6 +29,14 @@ The production runtime additionally requires
 three built template aliases. See `docs/e2b-runtime.md`. The E2B key is a
 runtime-control credential; model provider keys are never placed in E2B.
 
+Production runs the two entrypoints as separate Cloud Run services. The public
+API sets `SERVICE_ROLE=api`, `TURN_EXECUTION_BACKEND=private_worker`, and the
+private worker URL/audience. The worker sets `SERVICE_ROLE=worker`, has
+concurrency one and a 960-second request timeout, and is the only service that
+receives the owner-funded model secret. A BYOK value is forwarded in one
+authenticated private request and retained only by that turn's model client.
+See `docs/cloud-run-worker.md` and `infra/cloud-run/README.md`.
+
 From the repository root, `python scripts/export_openapi.py` writes reviewable
 API and worker OpenAPI documents. `npm run api:generate` then regenerates the
 typed frontend client.

@@ -216,7 +216,7 @@ describe("SandboxApp", () => {
     ).toBeInTheDocument();
   });
 
-  it("keeps BYOK credentials in component memory and out of API payloads", async () => {
+  it("sends BYOK only with a turn and keeps it out of browser storage", async () => {
     const user = userEvent.setup();
     const storage = vi.spyOn(Storage.prototype, "setItem");
     const harness = sandboxHarness();
@@ -232,9 +232,6 @@ describe("SandboxApp", () => {
     );
 
     expect(storage).not.toHaveBeenCalled();
-    expect(JSON.stringify(harness.apiMock.createTurn.mock.calls)).not.toContain(
-      "sk-memory-only-secret",
-    );
     expect(harness.apiMock.createTurn).toHaveBeenCalledWith(
       "session-a",
       expect.objectContaining({
@@ -242,6 +239,7 @@ describe("SandboxApp", () => {
           funding_mode: "byok",
           provider: "anthropic",
         }),
+        provider_api_key: "sk-memory-only-secret",
       }),
     );
 

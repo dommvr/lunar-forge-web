@@ -8,6 +8,7 @@ from typing import Annotated, Any, Literal
 from pydantic import (
     EmailStr,
     Field,
+    SecretStr,
     StringConstraints,
     field_validator,
 )
@@ -155,6 +156,17 @@ class SessionResponse(ContractModel):
 class TurnCreateRequest(ContractModel):
     message: LongText
     settings: "SessionSettings | None" = None
+    provider_api_key: SecretStr | None = None
+
+    @field_validator("provider_api_key")
+    @classmethod
+    def _bound_provider_api_key(cls, value: SecretStr | None) -> SecretStr | None:
+        if value is None:
+            return None
+        length = len(value.get_secret_value())
+        if not 8 <= length <= 512:
+            raise ValueError("Provider credentials must be between 8 and 512 characters.")
+        return value
 
 
 class TurnResponse(ContractModel):
@@ -165,6 +177,10 @@ class TurnResponse(ContractModel):
     created_at: datetime = Field(default_factory=utc_now)
     started_at: datetime | None = None
     finished_at: datetime | None = None
+    input_tokens: int = Field(default=0, ge=0)
+    output_tokens: int = Field(default=0, ge=0)
+    estimated_cost_microusd: int = Field(default=0, ge=0)
+    error_code: Identifier | None = None
 
 
 class CancelResponse(ContractModel):
@@ -270,7 +286,15 @@ class SessionSettings(ContractModel):
     parallel_subagents_enabled: bool = False
     funding_mode: FundingMode = FundingMode.OWNER_FUNDED
     provider: Literal["openai", "anthropic"] = "openai"
-    model: Identifier = "server-default"
+    model: Annotated[
+        str,
+        StringConstraints(
+            strip_whitespace=True,
+            min_length=1,
+            max_length=200,
+            pattern=r"^[A-Za-z0-9][A-Za-z0-9_.:/-]*$",
+        ),
+    ] = "server-default"
 
 
 class SessionSettingsPatch(ContractModel):
@@ -281,7 +305,15 @@ class SessionSettingsPatch(ContractModel):
     parallel_subagents_enabled: bool | None = None
     funding_mode: FundingMode | None = None
     provider: Literal["openai", "anthropic"] | None = None
-    model: Identifier | None = None
+    model: Annotated[
+        str,
+        StringConstraints(
+            strip_whitespace=True,
+            min_length=1,
+            max_length=200,
+            pattern=r"^[A-Za-z0-9][A-Za-z0-9_.:/-]*$",
+        ),
+    ] | None = None
 
 
 class UsageSummary(ContractModel):
@@ -333,6 +365,21 @@ class StreamReadyMessage(ContractModel):
     after_sequence: int = Field(ge=0)
 
 
+class StreamHeartbeatMessage(ContractModel):
+    type: Literal["stream.heartbeat"] = "stream.heartbeat"
+    session_id: Identifier
+    last_sequence: int = Field(ge=0)
+    sent_at: datetime = Field(default_factory=utc_now)
+
+
+class StreamErrorMessage(ContractModel):
+    type: Literal["stream.error"] = "stream.error"
+    code: Identifier
+    message: ShortText
+    reconnectable: bool
+    last_sequence: int = Field(ge=0)
+
+
 class WorkerTurnRequest(ContractModel):
     sandbox_id: Identifier
     session_id: Identifier
@@ -340,12 +387,27 @@ class WorkerTurnRequest(ContractModel):
     owner_id: Identifier
     message: LongText
     settings: SessionSettings = Field(default_factory=SessionSettings)
+    provider_credential: SecretStr | None = None
+
+    @field_validator("provider_credential")
+    @classmethod
+    def _bound_worker_credential(cls, value: SecretStr | None) -> SecretStr | None:
+        if value is None:
+            return None
+        length = len(value.get_secret_value())
+        if not 8 <= length <= 512:
+            raise ValueError("Provider credentials must be between 8 and 512 characters.")
+        return value
 
 
 class WorkerTurnResponse(ContractModel):
     turn_id: Identifier
     status: TurnStatus
-    events: list["AgentEventContract"] = Field(max_length=2_000)
+    last_sequence: int = Field(ge=0)
+    input_tokens: int = Field(default=0, ge=0)
+    output_tokens: int = Field(default=0, ge=0)
+    estimated_cost_microusd: int = Field(default=0, ge=0)
+    error_code: Identifier | None = None
 
 
 class ErrorDetail(ContractModel):
@@ -363,4 +425,3 @@ from lunar_forge_web.domain.events import AgentEventContract  # noqa: E402
 SessionCreateRequest.model_rebuild()
 TurnCreateRequest.model_rebuild()
 EventReplayResponse.model_rebuild()
-WorkerTurnResponse.model_rebuild()

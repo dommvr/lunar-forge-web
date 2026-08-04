@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 from typing import Any
 
-from lunar_forge_web.domain.models import SandboxResponse
+from lunar_forge_web.domain.models import SandboxResponse, TurnResponse
 
 
 @dataclass(frozen=True, slots=True)
@@ -79,3 +79,12 @@ class AuditRecord:
     created_at: datetime | None = None
     retention_expires_at: datetime | None = None
 
+
+@dataclass(frozen=True, slots=True)
+class TurnRecord:
+    turn: TurnResponse
+    sandbox_id: str
+    funding_mode: str
+    provider: str
+    model: str
+    reasoning_effort: str

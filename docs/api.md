@@ -1,6 +1,6 @@
 # Backend API contract
 
-Status: deterministic vertical-slice phase; connected to the browser sandbox.
+Status: private-worker execution phase; connected to the browser sandbox.
 
 LunarForge Web now contains one Python 3.11+ project in `backend/` with two
 independently deployable ASGI applications:
@@ -50,9 +50,11 @@ Private worker endpoint:
 
 - `POST /internal/v1/turns:run`
 
-The worker endpoint accepts a bounded turn request and returns deterministic
-schema-v1 LunarForge event envelopes. It uses a server-only bearer secret and
-must not be exposed as a public browser API.
+The worker endpoint accepts one bounded turn request and returns only a bounded
+terminal summary. During execution the worker appends schema-v1 LunarForge
+events to the session's Upstash Redis Stream. It is protected first by Cloud
+Run IAM and an exact-audience Google ID token, then by a separate server-only
+bearer secret; it must never be exposed as a browser API.
 
 ## Authentication and authorization
 
@@ -65,18 +67,20 @@ principal. Admin access additionally requires a server role and `aal2`.
 
 Realtime tickets are random one-time credentials. Only a SHA-256 digest is kept,
 and consumption is atomic, ownership-bound, session-bound, and time-limited.
-This implementation is intentionally process-local until Redis coordination is
-added in a later architecture phase.
+Production tickets are stored as hashes in Upstash Redis and atomically
+consumed once. Test substitutes preserve the same contract in process.
 
 The browser reconnects with a newly issued ticket and the last processed
-sequence. Replayed duplicates are ignored, sequence gaps trigger reconnect, and
-the reducer restores the held UI phase after the stream resumes.
+sequence. Replayed duplicates are ignored, sequence gaps return an explicit
+replay error, and the reducer restores the held UI phase after the stream
+resumes. Heartbeats are transport-only and do not extend sandbox inactivity.
 
-The current fake vertical slice emits ordered core-compatible events through an
-approval gate, then validation and completion. Cancellation reports rollback
-only after `rollback.finished`; manual compaction emits the core compaction
-event pair. BYOK credentials are deliberately nonfunctional in this phase and
-remain only in browser component memory—they are not sent to the fake API.
+The private worker runs the stable LunarForge public event API against the
+owned hosted runtime. It listens to bounded Redis control messages while a turn
+is active, bridges approval decisions, and requests public cancellation with
+rollback. BYOK credentials remain in browser component memory, are included
+only in the current turn request, traverse only the authenticated API-to-worker
+request, and are discarded with the ephemeral model client.
 
 ## Contracts and storage seam
 
@@ -87,11 +91,10 @@ event model mirrors core schema version 1 and preserves per-session sequence
 semantics without importing terminal UI code.
 
 Async repository protocols and SQLAlchemy metadata define the persistence seam.
-The initial Alembic revision creates the accepted application tables, while the
-running services currently use deterministic in-memory repositories. The
-`RuntimeProvider` and `CoreAgentAdapter` protocols isolate hosted execution and
-the core public API. Current fake implementations are offline and make no E2B,
-Neon, Upstash, Supabase management API, or model calls.
+Production uses migrated Neon tables plus bounded Upstash streams, controls,
+tickets, and locks. `RuntimeProvider` and `CoreAgentAdapter` isolate hosted
+execution and the core public API. Deterministic offline substitutes remain the
+default under tests.
 
 ## OpenAPI and generated TypeScript
 

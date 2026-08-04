@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect, status
 
 from lunar_forge_web.api.dependencies import ContainerDep, CurrentPrincipal
@@ -6,6 +8,8 @@ from lunar_forge_web.auth.authorization import can_access_owned_resource
 from lunar_forge_web.domain.models import (
     RealtimeTicketRequest,
     RealtimeTicketResponse,
+    StreamErrorMessage,
+    StreamHeartbeatMessage,
     StreamReadyMessage,
 )
 from lunar_forge_web.security.tickets import TicketValidationError
@@ -66,20 +70,49 @@ async def stream(
                 container.settings.max_event_replay_items,
             )
             for event in events:
+                if event.sequence != cursor + 1:
+                    await websocket.send_json(
+                        StreamErrorMessage(
+                            code="stream_replay_gap",
+                            message=(
+                                "The requested event offset is no longer available."
+                            ),
+                            reconnectable=False,
+                            last_sequence=cursor,
+                        ).model_dump(mode="json")
+                    )
+                    await websocket.close(
+                        code=4409, reason="Event replay offset is unavailable."
+                    )
+                    return
                 await websocket.send_json(event.model_dump(mode="json"))
                 cursor = event.sequence
             available = await container.events.wait_for_events(
                 session_id,
                 cursor,
-                timeout=10.0,
+                timeout=container.settings.websocket_heartbeat_seconds,
             )
             if not available:
                 await websocket.send_json(
-                    {
-                        "type": "stream.heartbeat",
-                        "session_id": session_id,
-                        "after_sequence": cursor,
-                    }
+                    StreamHeartbeatMessage(
+                        session_id=session_id,
+                        last_sequence=cursor,
+                    ).model_dump(mode="json")
                 )
     except WebSocketDisconnect:
         return
+    except asyncio.CancelledError:
+        raise
+    except Exception:
+        try:
+            await websocket.send_json(
+                StreamErrorMessage(
+                    code="stream_transport_error",
+                    message="The event stream transport failed; reconnect with the last sequence.",
+                    reconnectable=True,
+                    last_sequence=cursor,
+                ).model_dump(mode="json")
+            )
+            await websocket.close(code=1011, reason="Event stream transport failed.")
+        except Exception:
+            pass

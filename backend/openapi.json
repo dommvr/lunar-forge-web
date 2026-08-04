@@ -1264,7 +1264,7 @@
             "default": "server-default",
             "maxLength": 200,
             "minLength": 1,
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]*$",
             "title": "Model",
             "type": "string"
           },
@@ -1385,6 +1385,19 @@
             "title": "Message",
             "type": "string"
           },
+          "provider_api_key": {
+            "anyOf": [
+              {
+                "format": "password",
+                "type": "string",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider Api Key"
+          },
           "settings": {
             "anyOf": [
               {
@@ -1410,6 +1423,26 @@
             "title": "Created At",
             "type": "string"
           },
+          "error_code": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "estimated_cost_microusd": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Estimated Cost Microusd",
+            "type": "integer"
+          },
           "finished_at": {
             "anyOf": [
               {
@@ -1428,6 +1461,18 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
             "title": "Id",
             "type": "string"
+          },
+          "input_tokens": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "output_tokens": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Output Tokens",
+            "type": "integer"
           },
           "owner_id": {
             "maxLength": 200,
