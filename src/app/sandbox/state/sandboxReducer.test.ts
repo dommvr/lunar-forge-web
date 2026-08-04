@@ -28,6 +28,8 @@ describe("sandboxReducer", () => {
       type: "ready",
       sandboxId: "sandbox-a",
       sessionId: "session-a",
+      runtimeProvider: "fake",
+      expiresAt: "2099-01-01T00:00:00Z",
     });
     state = sandboxReducer(state, { type: "event", event: event(1, "turn.started") });
     expect(state.phase).toBe("running");
@@ -96,6 +98,32 @@ describe("sandboxReducer", () => {
     expect(state.rollbackReport).toContain("Pricing.tsx removed");
     expect(state.rollbackReport).toContain("app/page.tsx, package.json restored");
     expect(state.changed).toBe(false);
+
+    state = sandboxReducer(state, {
+      type: "event",
+      event: event(3, "turn.finished", { status: "cancelled" }),
+    });
+    expect(state.phase).toBe("cancelled");
+    expect(state.rollbackReport).toContain("Rollback confirmed");
+  });
+
+  it("assembles streamed assistant deltas and replaces them with final content", () => {
+    let state = sandboxReducer(initialSandboxState, {
+      type: "event",
+      event: event(1, "assistant.message.delta", { delta: "Hello " }),
+    });
+    state = sandboxReducer(state, {
+      type: "event",
+      event: event(2, "assistant.message.delta", { delta: "world" }),
+    });
+    expect(state.messages.at(-1)).toMatchObject({ text: "Hello world", streaming: true });
+
+    state = sandboxReducer(state, {
+      type: "event",
+      event: event(3, "assistant.message.completed", { text: "Final answer." }),
+    });
+    expect(state.messages).toHaveLength(1);
+    expect(state.messages[0]).toMatchObject({ text: "Final answer.", streaming: false });
   });
 
   it("maps compaction and reconnect without losing the prior phase", () => {
@@ -131,6 +159,27 @@ describe("sandboxReducer", () => {
         limited: true,
       }).phase,
     ).toBe("limited");
+    expect(
+      sandboxReducer(initialSandboxState, {
+        type: "api.error",
+        code: "daily_global_cost_limit",
+        message: "Limit reached",
+      }).phase,
+    ).toBe("limited");
+    expect(
+      sandboxReducer(initialSandboxState, {
+        type: "api.error",
+        code: "provider_authentication_failed",
+        message: "unsafe provider detail",
+      }).errorMessage,
+    ).toContain("rejected this BYOK credential");
+    expect(
+      sandboxReducer(initialSandboxState, {
+        type: "api.error",
+        code: "sandbox_cleanup_failed",
+        message: "cleanup",
+      }).errorMessage,
+    ).toContain("cleanup failed");
     expect(
       sandboxReducer(initialSandboxState, {
         type: "api.error",

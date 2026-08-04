@@ -16,6 +16,7 @@ from lunar_forge_web.domain.models import (
     SandboxResponse,
     SessionResponse,
     SessionSettings,
+    TurnCreateRequest,
     TurnResponse,
     UserRecord,
 )
@@ -155,6 +156,16 @@ async def test_postgres_worker_turn_and_approval_contract(database):
             created_at=now,
         )
     )
+    secret = "sk-byok-ephemeral-proof-123456789"
+    request = TurnCreateRequest(
+        message="Private prompt retained only while active.",
+        settings=SessionSettings(
+            funding_mode="byok",
+            provider="openai",
+            model="openai/test-model",
+        ),
+        provider_api_key=secret,
+    )
     created = await turns.create(
         TurnResponse(
             id="turn-worker",
@@ -164,16 +175,21 @@ async def test_postgres_worker_turn_and_approval_contract(database):
             created_at=now,
         ),
         sandbox_id="sandbox-worker",
-        prompt="Private prompt retained only while active.",
-        settings=SessionSettings(
-            funding_mode="byok",
-            provider="openai",
-            model="openai/test-model",
-        ),
+        prompt=request.message,
+        settings=request.settings,
     )
     assert created.turn.status == TurnStatus.QUEUED
     running = await turns.mark_running("turn-worker", now)
     assert running.turn.status == TurnStatus.RUNNING
+    async with database() as session:
+        active_row = await session.get(TurnRow, "turn-worker")
+        assert active_row is not None
+        assert secret not in repr(active_row.__dict__)
+        assert not {
+            "provider_api_key",
+            "provider_credential",
+            "byok_key",
+        }.intersection(TurnRow.__table__.columns.keys())
 
     approval = ApprovalResponse(
         id="approval-worker",

@@ -9,11 +9,6 @@ import {
   APPROVAL_COMMAND,
   examplePrompts,
   panelTabs,
-  PRICING_PREVIEW,
-  projectTree,
-  toolRows,
-  usageRows,
-  validationSteps,
   type PanelTab,
 } from "@/lib/sandbox";
 
@@ -36,23 +31,11 @@ const STATUS: Record<SandboxPhase, { label: string; tone: string }> = {
   done: { label: "Task completed", tone: styles.toneSuccess },
   cancelled: { label: "Task stopped", tone: styles.toneMuted },
   expired: { label: "Sandbox expired", tone: styles.toneMuted },
-  limited: { label: "Rate limited", tone: styles.toneWarning },
+  limited: { label: "Usage limit reached", tone: styles.toneWarning },
   offline: { label: "Reconnecting", tone: styles.toneWarning },
   error: { label: "Recoverable error", tone: styles.toneError },
   fatal: { label: "Sandbox error", tone: styles.toneError },
 };
-
-const KIND_CLASS = {
-  read: styles.kindRead,
-  edit: styles.kindEdit,
-  run: styles.kindRun,
-} as const;
-
-const CHECK_CLASS = {
-  success: styles.iconSuccess,
-  warning: styles.iconWarning,
-  faint: styles.iconFaint,
-} as const;
 
 const clock = (seconds: number) =>
   `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
@@ -67,7 +50,11 @@ export function SandboxApp(props: SandboxAppProps = {}) {
   const visibleTools = state.visibleTools;
   const progress = state.progress;
   const checksDone = state.checksDone;
+  const validationComplete = checksDone > 0;
   const events = state.activities;
+  const displayedTools = events
+    .filter((event) => event.name === "tool.started")
+    .slice(-4);
   const changed = state.changed;
   const [elapsed, setElapsed] = useState(0);
   const [draft, setDraft] = useState("");
@@ -81,14 +68,34 @@ export function SandboxApp(props: SandboxAppProps = {}) {
   const [byokKey, setByokKey] = useState("");
   const transcriptRef = useRef<HTMLDivElement>(null);
   const denyRef = useRef<HTMLButtonElement>(null);
+  const mobileDenyRef = useRef<HTMLButtonElement>(null);
+  const [now, setNow] = useState(() => Date.now());
 
   const started = messages.length > 0;
   const busy = phase === "running" || phase === "validating";
-  const tree = useMemo(() => projectTree(changed), [changed]);
+  const tree = useMemo(
+    () =>
+      (state.files?.items ?? []).map((file) => {
+        const parts = file.path.split("/");
+        return {
+          ...file,
+          name: parts.at(-1) ?? file.path,
+          level: Math.max(0, parts.length - 1),
+          icon: file.kind === "directory" ? "▸" : "·",
+          tag: state.changedPaths.includes(file.path) ? "M" : null,
+        };
+      }),
+    [state.changedPaths, state.files],
+  );
+  const remainingSeconds = state.expiresAt
+    ? Math.max(0, Math.ceil((new Date(state.expiresAt).getTime() - now) / 1000))
+    : 30 * 60;
+  const byokInvalid = funding.fundingMode === "byok" && byokKey.length < 8;
 
   /* This clock reports elapsed real time; it never drives a state transition. */
   useEffect(() => {
     if (phase === "running") setElapsed(0);
+    if (phase === "expired" || phase === "idle") setByokKey("");
   }, [phase]);
 
   useEffect(() => {
@@ -96,6 +103,11 @@ export function SandboxApp(props: SandboxAppProps = {}) {
     const id = setInterval(() => setElapsed((seconds) => seconds + 1), 1000);
     return () => clearInterval(id);
   }, [busy, phase]);
+
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
 
   /* Streaming text appends without layout shift; keep the tail in view. */
   useEffect(() => {
@@ -105,11 +117,13 @@ export function SandboxApp(props: SandboxAppProps = {}) {
 
   /* Focus moves to Deny — the safe default — when the gate opens. */
   useEffect(() => {
-    if (phase === "gated") denyRef.current?.focus();
+    if (phase !== "gated") return;
+    const mobile = window.matchMedia?.("(max-width: 767px)").matches ?? false;
+    (mobile ? mobileDenyRef.current : denyRef.current)?.focus();
   }, [phase]);
 
   const run = (prompt: string) => {
-    if (!state.sessionId || busy || phase === "gated") return;
+    if (!state.sessionId || busy || phase === "gated" || byokInvalid) return;
     void controller.submit(
       prompt,
       funding,
@@ -133,9 +147,14 @@ export function SandboxApp(props: SandboxAppProps = {}) {
     void controller.reset();
   };
 
+  const remove = () => {
+    setByokKey("");
+    void controller.deleteSandbox();
+  };
+
   const submit = () => {
     const text = draft.trim();
-    if (!text || phase === "gated" || busy) return;
+    if (!text || phase === "gated" || busy || byokInvalid) return;
     setDraft("");
     run(text);
   };
@@ -143,25 +162,25 @@ export function SandboxApp(props: SandboxAppProps = {}) {
   const status = STATUS[phase];
   const meta = [
     { k: "session", v: state.sessionId?.slice(0, 12) ?? "starting" },
-    { k: "runtime", v: "fake · offline" },
+    { k: "runtime", v: state.runtimeProvider ?? "starting" },
     {
       k: "model",
       v:
         funding.fundingMode === "byok"
           ? `${funding.provider} · BYOK`
-          : "server-default",
+          : "OpenAI · server-approved",
     },
     { k: "effort", v: "medium" },
     { k: "network", v: "denied" },
-    { k: "time left", v: "30:00", hot: phase !== "ready" },
+    { k: "time left", v: clock(remainingSeconds), hot: remainingSeconds < 300 },
   ];
   const gated = phase === "gated";
   const currentApproval = state.approval;
   const currentApprovalMeta = [
-    { k: "runtime", v: "fake · offline · no network" },
-    { k: "cwd", v: "/workspace/sample-app" },
-    { k: "writes", v: ".agent/ (session artifacts)" },
-    { k: "requested by", v: "fake core adapter" },
+    { k: "runtime", v: `${state.runtimeProvider ?? "sandbox"} · network denied` },
+    { k: "cwd", v: "sandbox workspace" },
+    { k: "scope", v: "owned sandbox project" },
+    { k: "requested by", v: "LunarForge agent" },
   ];
 
   /* ---------- Fragments shared between desktop and mobile ---------- */
@@ -171,7 +190,9 @@ export function SandboxApp(props: SandboxAppProps = {}) {
       <div className={styles.panelHead}>
         <span className={styles.panelLabel}>Project</span>
         {changed ? (
-          <span className={styles.changedCount}>3 changed</span>
+          <span className={styles.changedCount}>
+            {state.changedPaths.length} changed
+          </span>
         ) : (
           <span className={styles.panelActions} aria-hidden="true">
             <span>↻</span>
@@ -180,14 +201,20 @@ export function SandboxApp(props: SandboxAppProps = {}) {
         )}
       </div>
       <div className={styles.tree}>
+        {tree.length === 0 ? (
+          <div className={styles.emptyState}>No project files available.</div>
+        ) : null}
         {tree.map((f) => (
-          <div
-            key={f.name}
+          <button
+            type="button"
+            key={f.path}
+            disabled={f.kind !== "file"}
+            onClick={() => void controller.openFile(f.path)}
             className={[
               styles.treeRow,
               f.level === 0 ? styles.treeRowRoot : "",
               f.tag ? styles.treeRowHot : "",
-              changed && f.name === "Pricing.tsx" ? styles.treeRowSelected : "",
+              state.selectedFile?.path === f.path ? styles.treeRowSelected : "",
             ]
               .filter(Boolean)
               .join(" ")}
@@ -202,20 +229,17 @@ export function SandboxApp(props: SandboxAppProps = {}) {
                 {f.tag}
               </span>
             ) : null}
-          </div>
+          </button>
         ))}
       </div>
 
-      {changed ? (
+      {state.selectedFile ? (
         <div className={styles.previewPane}>
-          <div className={styles.previewHead}>Pricing.tsx · preview</div>
+          <div className={styles.previewHead}>
+            {state.selectedFile.path} · {state.selectedFile.truncated ? "truncated" : "preview"}
+          </div>
           <pre className={styles.previewCode}>
-            {PRICING_PREVIEW.slice(0, 3).map((line) => (
-              <div key={line} className={styles.diffAdd}>
-                {line}
-              </div>
-            ))}
-            <div>    ...</div>
+            {state.selectedFile.content}
           </pre>
         </div>
       ) : (
@@ -286,31 +310,33 @@ export function SandboxApp(props: SandboxAppProps = {}) {
                   <div
                     className={styles.barFill}
                     style={{
-                      width: `${gated ? 62 : (checksDone / validationSteps.length) * 100}%`,
+                      width: `${gated ? 0 : validationComplete ? 100 : 45}%`,
                     }}
                   />
                 </div>
                 <div className={styles.progressCardMeta}>
-                  {gated ? 3 : checksDone} of {validationSteps.length} steps ·{" "}
+                  {validationComplete ? 1 : 0} of 1 checks ·{" "}
                   {clock(elapsed)} elapsed
                 </div>
+                {state.validationMessage ? (
+                  <div className={styles.progressCardMeta}>{state.validationMessage}</div>
+                ) : null}
               </div>
-              {validationSteps.map((v, i) => {
-                const complete = i < checksDone;
-                return (
-                  <div key={v.name} className={styles.checkRow}>
-                    <span
-                      className={`${styles.checkIcon} ${complete ? styles.iconSuccess : CHECK_CLASS[v.tone]}`}
-                    >
-                      {complete ? "✓" : v.icon}
-                    </span>
-                    <span className={styles.checkName}>{v.name}</span>
-                    <span className={styles.checkDetail}>
-                      {complete ? v.detail : gated ? "gated" : "queued"}
-                    </span>
-                  </div>
-                );
-              })}
+              <div className={styles.checkRow}>
+                <span
+                  className={`${styles.checkIcon} ${validationComplete ? styles.iconSuccess : styles.iconFaint}`}
+                >
+                  {validationComplete ? "✓" : "·"}
+                </span>
+                <span className={styles.checkName}>Project validation</span>
+                <span className={styles.checkDetail}>
+                  {validationComplete
+                    ? state.validationMessage ?? "passed"
+                    : gated
+                      ? "gated"
+                      : "queued"}
+                </span>
+              </div>
             </>
           ) : (
             <div className={styles.emptyState}>
@@ -322,19 +348,43 @@ export function SandboxApp(props: SandboxAppProps = {}) {
         ) : null}
 
         {tab === "Artifacts" ? (
-          <div className={styles.emptyState}>
-            {state.artifacts.length > 0
-              ? `${state.artifacts[0].name} · 4.1 KB`
-              : "No artifacts yet."}
-            <br />
-            Artifacts appear here after a task.
-          </div>
+          state.artifacts.length > 0 ? (
+            <div className={styles.artifactList}>
+              {state.artifacts.map((artifact) => (
+                <div className={styles.artifactRow} key={artifact.id}>
+                  <span>
+                    <strong>{artifact.name}</strong>
+                    <small>{(artifact.size_bytes / 1024).toFixed(1)} KB · {artifact.media_type}</small>
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    aria-label={`Download ${artifact.name}`}
+                    onClick={() => void controller.downloadArtifact(artifact.id)}
+                  >
+                    Download
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.emptyState}>
+              No artifacts yet.
+              <br />
+              Artifacts appear here after a task.
+            </div>
+          )
         ) : null}
 
         {tab === "Usage" ? (
           <div className={styles.usageCard}>
             <div className={styles.panelLabel}>Usage</div>
-            {usageRows.map((u) => (
+            {[
+              { k: "input tokens", v: state.usageInputTokens.toLocaleString() },
+              { k: "output tokens", v: state.usageOutputTokens.toLocaleString() },
+              { k: "estimated cost", v: `$${state.usageEstimatedCost.toFixed(4)}` },
+              { k: "replay sequence", v: `#${state.lastSequence}` },
+            ].map((u) => (
               <div key={u.k} className={styles.usageRow}>
                 <span className={styles.usageKey}>{u.k}</span>
                 <span className={styles.usageValue}>{u.v}</span>
@@ -381,7 +431,7 @@ export function SandboxApp(props: SandboxAppProps = {}) {
       </div>
       <div className={styles.approvalActions}>
         <span className={styles.approvalHint}>
-          Denying stops the task and keeps file edits.
+          Denying rejects this action. Stop task requests current-turn rollback.
         </span>
         <div className={styles.approvalButtons}>
           <Button ref={denyRef} variant="secondary" onClick={deny}>
@@ -406,13 +456,12 @@ export function SandboxApp(props: SandboxAppProps = {}) {
           <div className={styles.onboarding}>
             <div>
               <div className={styles.onboardingTitle}>
-                Fake-service sandbox, ready to go
+                Interactive sandbox, ready to go
               </div>
               <p className={styles.onboardingBody}>
-                A small sample project is loaded by the deterministic FastAPI
-                service. Events, approvals, files, and artifacts use the real
-                client contracts; execution stays offline and never touches
-                your machine.
+                A private project runtime is connected through the authenticated
+                control plane. Structured events, approvals, files, artifacts,
+                and downloads stay scoped to this active sandbox.
               </p>
             </div>
             <fieldset className={styles.fundingCard}>
@@ -483,6 +532,9 @@ export function SandboxApp(props: SandboxAppProps = {}) {
                   <p>
                     Kept only in page memory and worker memory for this turn. Reloading clears it.
                   </p>
+                  {byokInvalid ? (
+                    <p role="alert">Enter at least 8 characters before starting a BYOK turn.</p>
+                  ) : null}
                 </div>
               ) : null}
             </fieldset>
@@ -494,7 +546,7 @@ export function SandboxApp(props: SandboxAppProps = {}) {
                     key={p}
                     type="button"
                     className={styles.promptButton}
-                    disabled={!state.sessionId || busy || gated}
+                    disabled={!state.sessionId || busy || gated || byokInvalid}
                     onClick={() => run(p)}
                   >
                     <span className={styles.promptArrow}>→</span>
@@ -510,10 +562,9 @@ export function SandboxApp(props: SandboxAppProps = {}) {
           <div className={styles.message}>
             <div className={styles.speaker}>LunarForge:</div>
             <p className={styles.agentText}>
-              Fake runtime ready. The sample project is shown at{" "}
-              <code className={styles.inlineCode}>/workspace/sample-app</code>.
-              Use the prompts to exercise ordered events, approval, rollback,
-              compaction, files, and artifacts without a real model.
+              The private runtime is ready. Use a prompt to start a real,
+              ordered LunarForge turn. Network
+              access remains denied unless a provider-enforced capability is available.
             </p>
           </div>
         ) : null}
@@ -525,6 +576,7 @@ export function SandboxApp(props: SandboxAppProps = {}) {
             </div>
             <p className={m.role === "user" ? styles.userText : styles.agentText}>
               {m.text}
+              {m.streaming ? <span className={styles.streamingCursor} aria-label="streaming" /> : null}
             </p>
           </div>
         ))}
@@ -538,14 +590,12 @@ export function SandboxApp(props: SandboxAppProps = {}) {
 
         {visibleTools > 0 ? (
           <div className={styles.toolList}>
-            {toolRows.slice(0, visibleTools).map((t) => (
-              <div key={t.name} className={styles.toolRow}>
-                <span className={`${styles.toolKind} ${KIND_CLASS[t.kind]}`}>
-                  {t.kind}
-                </span>
-                <span className={styles.toolName}>{t.name}</span>
-                <span className={styles.toolArg}>{t.arg}</span>
-                <span className={styles.toolTime}>{t.time}</span>
+            {displayedTools.slice(0, visibleTools).map((tool) => (
+              <div key={`${tool.time}-${tool.detail}`} className={styles.toolRow}>
+                <span className={`${styles.toolKind} ${styles.kindRun}`}>tool</span>
+                <span className={styles.toolName}>{tool.detail}</span>
+                <span className={styles.toolArg}>structured event</span>
+                <span className={styles.toolTime}>{tool.time}</span>
               </div>
             ))}
           </div>
@@ -587,7 +637,7 @@ export function SandboxApp(props: SandboxAppProps = {}) {
             {currentApproval?.details ?? APPROVAL_COMMAND}
           </div>
           <div className={styles.sheetActions}>
-            <Button variant="secondary" size="block" onClick={deny}>
+            <Button ref={mobileDenyRef} variant="secondary" size="block" onClick={deny}>
               Deny
             </Button>
             <Button variant="primary" size="block" onClick={approve}>
@@ -617,7 +667,7 @@ export function SandboxApp(props: SandboxAppProps = {}) {
               gated
                 ? "Input paused while an approval is pending…"
                 : phase === "provisioning"
-                  ? "Provisioning the deterministic sandbox…"
+                  ? "Provisioning the private sandbox…"
                   : phase === "offline"
                     ? "Reconnecting to the event stream…"
                 : "Ask LunarForge to do something in this project…"
@@ -660,6 +710,9 @@ export function SandboxApp(props: SandboxAppProps = {}) {
                   !state.sessionId ||
                   phase === "offline" ||
                   phase === "fatal" ||
+                  phase === "expired" ||
+                  phase === "limited" ||
+                  byokInvalid ||
                   draft.trim().length === 0
                 }
               >
@@ -711,6 +764,20 @@ export function SandboxApp(props: SandboxAppProps = {}) {
           <Button variant="outline" onClick={reset}>
             Reset sandbox
           </Button>
+          <Button
+            variant="outline"
+            onClick={() => void controller.downloadProject()}
+            disabled={!state.sandboxId || phase === "expired"}
+          >
+            Download project
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={remove}
+            disabled={!state.sandboxId}
+          >
+            Delete
+          </Button>
           <LogoutButton />
         </div>
       </header>
@@ -731,6 +798,22 @@ export function SandboxApp(props: SandboxAppProps = {}) {
           <div className={styles.mobileHeaderActions}>
             <Button variant="outline" size="sm" onClick={reset}>
               Reset
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={remove}
+              disabled={!state.sandboxId}
+            >
+              Delete
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void controller.downloadProject()}
+              disabled={!state.sandboxId || phase === "expired"}
+            >
+              Download
             </Button>
             <LogoutButton />
           </div>
@@ -754,7 +837,7 @@ export function SandboxApp(props: SandboxAppProps = {}) {
             >
               {s}
               {s === "Files" && changed ? (
-                <span className={styles.segmentCount}> 3</span>
+                <span className={styles.segmentCount}> {state.changedPaths.length}</span>
               ) : null}
             </button>
           ))}

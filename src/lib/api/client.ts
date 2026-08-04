@@ -8,8 +8,10 @@ export type SandboxApi = Pick<
   LunarForgeApiClient,
   | "createSandbox"
   | "listSandboxes"
+  | "getSandbox"
   | "resetSandbox"
   | "deleteSandbox"
+  | "downloadSandbox"
   | "createSession"
   | "createTurn"
   | "resolveApproval"
@@ -17,7 +19,9 @@ export type SandboxApi = Pick<
   | "compactSession"
   | "replayEvents"
   | "listFiles"
+  | "getFile"
   | "listArtifacts"
+  | "downloadArtifact"
   | "createRealtimeTicket"
 >;
 

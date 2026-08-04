@@ -33,12 +33,19 @@ def test_redaction_removes_nested_credentials_and_bearer_values():
 
 
 def test_structured_formatter_redacts_log_events():
+    secret = "sk-byok-ephemeral-proof-123456789"
     record = logging.LogRecord("test", logging.INFO, __file__, 1, "ignored", (), None)
-    record.event = {"event": "test", "password": "do-not-log"}
+    record.event = {
+        "event": "test",
+        "password": "do-not-log",
+        "provider_api_key": secret,
+    }
     output = RedactingJsonFormatter().format(record)
 
     assert json.loads(output)["password"] == REDACTED
+    assert json.loads(output)["provider_api_key"] == REDACTED
     assert "do-not-log" not in output
+    assert secret not in output
 
 
 def test_production_settings_reject_insecure_defaults():

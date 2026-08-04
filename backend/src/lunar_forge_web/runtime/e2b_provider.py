@@ -41,6 +41,7 @@ from lunar_forge_web.domain.models import RuntimeCapability
 from lunar_forge_web.runtime.base import (
     RuntimeArchive,
     RuntimeArtifact,
+    RuntimeArtifactContent,
     RuntimeCommandResult,
     RuntimeFile,
     RuntimeFileContent,
@@ -738,6 +739,38 @@ class E2BRuntimeProvider:
             if len(artifacts) >= 1_000:
                 break
         return tuple(artifacts)
+
+    async def read_artifact(
+        self, sandbox: RuntimeSandbox, artifact_id: str
+    ) -> RuntimeArtifactContent:
+        artifact = next(
+            (
+                item
+                for item in await self.list_artifacts(sandbox)
+                if item.id == artifact_id
+            ),
+            None,
+        )
+        if artifact is None:
+            raise FileNotFoundError(artifact_id)
+        relative = artifact.path.removeprefix(".lunar-forge/artifacts/")
+        safe = normalize_workspace_path(relative)
+        absolute = f"{ARTIFACT_ROOT}/{safe}"
+        async with self._lock(sandbox.reference):
+            remote = await self._connect_verified(sandbox)
+            try:
+                content, truncated = await self._read_bounded(
+                    remote, absolute, MAX_RUNTIME_ARTIFACT_BYTES
+                )
+            except E2BFileNotFoundException as exc:
+                raise FileNotFoundError(artifact_id) from exc
+        if truncated:
+            raise RuntimeLimitError("Artifact exceeds the download limit.")
+        return RuntimeArtifactContent(
+            name=artifact.name,
+            media_type=artifact.media_type,
+            content=content,
+        )
 
     def _require_client(self) -> E2BClient:
         if self._client is None:

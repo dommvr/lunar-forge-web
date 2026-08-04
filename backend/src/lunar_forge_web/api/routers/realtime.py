@@ -13,6 +13,7 @@ from lunar_forge_web.domain.models import (
     StreamReadyMessage,
 )
 from lunar_forge_web.security.tickets import TicketValidationError
+from lunar_forge_web.services.sandbox_service import sandbox_is_expired
 
 
 router = APIRouter(tags=["realtime"])
@@ -32,6 +33,9 @@ async def create_ticket(
     session = await container.sessions.get(body.session_id)
     if session is None or not can_access_owned_resource(principal, session.owner_id):
         raise ApiError(404, "session_not_found", "Session was not found.")
+    sandbox = await container.sandboxes.get(session.sandbox_id)
+    if sandbox is None or sandbox_is_expired(sandbox):
+        raise ApiError(410, "sandbox_expired", "The sandbox has expired.")
     issued = await container.tickets.issue(session.owner_id, session.id)
     return RealtimeTicketResponse(
         ticket=issued.token,

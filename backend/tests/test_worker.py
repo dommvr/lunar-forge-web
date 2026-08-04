@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 from fastapi.testclient import TestClient
 
@@ -18,7 +19,7 @@ TURN = {
         "provider": "openai",
         "model": "server-default",
     },
-    "provider_credential": "sk-test-current-request-only",
+    "provider_credential": "sk-byok-ephemeral-proof-123456789",
 }
 
 
@@ -71,4 +72,7 @@ def test_private_worker_returns_deterministic_core_event_contract(settings, cont
         "turn.finished",
     ]
     assert "Inspect the project" not in response.text
-    assert "sk-test-current-request-only" not in response.text
+    assert TURN["provider_credential"] not in response.text
+    assert TURN["provider_credential"] not in json.dumps(
+        [event.model_dump(mode="json") for event in replay]
+    )

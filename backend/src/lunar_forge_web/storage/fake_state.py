@@ -18,7 +18,9 @@ class InMemoryFakeFlowStore:
     active_turns: dict[str, str] = field(default_factory=dict)
     approvals: dict[str, ApprovalResponse] = field(default_factory=dict)
     artifacts: dict[str, list[ArtifactResponse]] = field(default_factory=dict)
+    artifact_content: dict[str, bytes] = field(default_factory=dict)
     changed_sandboxes: set[str] = field(default_factory=set)
+    turn_had_existing_changes: dict[str, bool] = field(default_factory=dict)
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
     def clear_sandbox(self, sandbox_id: str, session_ids: tuple[str, ...]) -> None:
@@ -27,8 +29,12 @@ class InMemoryFakeFlowStore:
             turn_id = self.active_turns.pop(session_id, None)
             if turn_id is not None:
                 self.turns.pop(turn_id, None)
-            self.artifacts.pop(session_id, None)
+            for artifact in self.artifacts.pop(session_id, ()):
+                self.artifact_content.pop(artifact.id, None)
         for approval_id, approval in tuple(self.approvals.items()):
             if approval.sandbox_id == sandbox_id:
                 self.turns.pop(approval.turn_id, None)
                 self.approvals.pop(approval_id, None)
+        for turn_id in tuple(self.turn_had_existing_changes):
+            if turn_id not in self.turns:
+                self.turn_had_existing_changes.pop(turn_id, None)

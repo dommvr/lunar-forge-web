@@ -26,6 +26,7 @@ from lunar_forge_web.domain.models import RuntimeCapability
 from lunar_forge_web.runtime.base import (
     RuntimeArchive,
     RuntimeArtifact,
+    RuntimeArtifactContent,
     RuntimeCommandResult,
     RuntimeFile,
     RuntimeFileContent,
@@ -189,6 +190,22 @@ class FakeRuntimeProvider:
                 sorted(self._files.get(sandbox.reference, {}).items()), start=1
             )
             if path.startswith(prefix)
+        )
+
+    async def read_artifact(
+        self, sandbox: RuntimeSandbox, artifact_id: str
+    ) -> RuntimeArtifactContent:
+        artifacts = await self.list_artifacts(sandbox)
+        artifact = next((item for item in artifacts if item.id == artifact_id), None)
+        if artifact is None:
+            raise FileNotFoundError(artifact_id)
+        content = self._files.get(sandbox.reference, {}).get(artifact.path)
+        if content is None:
+            raise FileNotFoundError(artifact_id)
+        return RuntimeArtifactContent(
+            name=artifact.name,
+            media_type=artifact.media_type,
+            content=content,
         )
 
     async def clone_public_git(

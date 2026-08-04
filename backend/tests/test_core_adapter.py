@@ -399,6 +399,21 @@ async def test_maps_invalid_project_without_invoking_runner(tmp_path: Path):
     assert raised.value.code == "core_project_unavailable"
 
 
+def test_maps_public_provider_failures_to_stable_safe_codes():
+    secret = "sk-byok-ephemeral-proof-123456789"
+    authentication = CoreAgentAdapter.map_public_error(
+        ValueError(f"Unauthorized: invalid API key {secret}")
+    )
+    throttled = CoreAgentAdapter.map_public_error(
+        RuntimeError("provider status code 429 rate limit")
+    )
+
+    assert authentication.code == "provider_authentication_failed"
+    assert secret not in authentication.message
+    assert throttled.code == "provider_rate_limited"
+    assert throttled.retryable is True
+
+
 class MinimalRedisClient:
     def __init__(self) -> None:
         self.sequence = 0

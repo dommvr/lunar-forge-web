@@ -30,7 +30,7 @@ TEST_PRIVATE_KEY = ec.derive_private_key(1, ec.SECP256R1())
 _PUBLIC_JWK = json.loads(ECAlgorithm.to_jwk(TEST_PRIVATE_KEY.public_key()))
 _PUBLIC_JWK.update({"kid": TEST_KID, "alg": "ES256", "use": "sig"})
 TEST_JWKS = {"keys": [_PUBLIC_JWK]}
-NOW = datetime(2026, 1, 1, tzinfo=timezone.utc)
+NOW = datetime.now(timezone.utc)
 
 
 @pytest.fixture

@@ -46,6 +46,11 @@ export type RealtimeTicketRequest = components["schemas"]["RealtimeTicketRequest
 export type RealtimeTicketResponse = components["schemas"]["RealtimeTicketResponse"];
 export type AdminOverviewResponse = components["schemas"]["AdminOverviewResponse"];
 export type ErrorEnvelope = components["schemas"]["ErrorEnvelope"];
+export type DownloadResponse = {
+  blob: Blob;
+  filename: string;
+  mediaType: string;
+};
 
 export type ApiClientOptions = {
   baseUrl: string;
@@ -86,6 +91,44 @@ export class LunarForgeApiClient {
     return body as T;
   }
 
+  private async requestDownload(
+    path: string,
+    fallbackName: string,
+    method: "GET" | "POST" = "GET",
+  ): Promise<DownloadResponse> {
+    if (!this.getAccessToken) throw new Error("No access-token provider configured.");
+    const response = await this.fetchImpl(\`\${this.baseUrl}\${path}\`, {
+      method,
+      headers: {
+        Accept: "application/octet-stream, application/zip",
+        Authorization: \`Bearer \${await this.getAccessToken()}\`,
+      },
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      let body: ErrorEnvelope = {
+        error: {
+          code: "download_failed",
+          message: "The download could not be completed.",
+          request_id: "req_unknown",
+        },
+      };
+      try {
+        body = (await response.json()) as ErrorEnvelope;
+      } catch {
+        // Keep the bounded fallback envelope for non-JSON gateway errors.
+      }
+      throw new ApiClientError(response.status, body);
+    }
+    const disposition = response.headers.get("content-disposition") ?? "";
+    const filename = disposition.match(/filename="([^"]+)"/i)?.[1] ?? fallbackName;
+    return {
+      blob: await response.blob(),
+      filename,
+      mediaType: response.headers.get("content-type") ?? "application/octet-stream",
+    };
+  }
+
   health = () => this.request<HealthResponse>("/api/v1/health");
   version = () => this.request<VersionResponse>("/api/v1/version");
   capabilities = () => this.request<CapabilitiesResponse>("/api/v1/capabilities");
@@ -122,6 +165,12 @@ export class LunarForgeApiClient {
       \`/api/v1/sandboxes/\${encodeURIComponent(sandboxId)}/file?path=\${encodeURIComponent(path)}\`,
       {},
       true,
+    );
+  downloadSandbox = (sandboxId: string) =>
+    this.requestDownload(
+      \`/api/v1/sandboxes/\${encodeURIComponent(sandboxId)}/download\`,
+      \`\${sandboxId}.zip\`,
+      "POST",
     );
   getSession = (sessionId: string) =>
     this.request<SessionResponse>(\`/api/v1/sessions/\${encodeURIComponent(sessionId)}\`, {}, true);
@@ -170,6 +219,11 @@ export class LunarForgeApiClient {
       \`/api/v1/sessions/\${encodeURIComponent(sessionId)}/artifacts\`,
       {},
       true,
+    );
+  downloadArtifact = (artifactId: string) =>
+    this.requestDownload(
+      \`/api/v1/artifacts/\${encodeURIComponent(artifactId)}\`,
+      "artifact.bin",
     );
   createRealtimeTicket = (body: RealtimeTicketRequest) =>
     this.request<RealtimeTicketResponse>("/api/v1/realtime/tickets", {

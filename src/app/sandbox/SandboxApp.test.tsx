@@ -10,6 +10,7 @@ import { SandboxApp } from "./SandboxApp";
 import type { RealtimeFactory } from "./hooks/useSandboxSession";
 
 const now = "2026-01-01T00:00:00Z";
+const expiresAt = "2099-01-01T00:30:00Z";
 
 function event(
   sequence: number,
@@ -43,7 +44,18 @@ function sandboxHarness() {
       status: "ready",
       created_at: now,
       last_activity_at: now,
-      expires_at: now,
+      expires_at: expiresAt,
+    })),
+    getSandbox: vi.fn(async () => ({
+      id: "sandbox-a",
+      owner_id: "user-a",
+      template_id: "vite-react",
+      runtime_provider: "fake",
+      runtime_reference: "runtime-a",
+      status: "ready",
+      created_at: now,
+      last_activity_at: now,
+      expires_at: expiresAt,
     })),
     createSession: vi.fn(async () => ({
       id: "session-a",
@@ -95,7 +107,7 @@ function sandboxHarness() {
         details: "npm run validate",
         risk: "medium",
         status: body.approved ? "approved" : "denied",
-        expires_at: now,
+        expires_at: expiresAt,
       };
     }),
     cancelTurn: vi.fn(async () => {
@@ -147,7 +159,7 @@ function sandboxHarness() {
       status: "ready",
       created_at: now,
       last_activity_at: now,
-      expires_at: now,
+      expires_at: expiresAt,
     })),
     deleteSandbox: vi.fn(),
     replayEvents: vi.fn(),
@@ -172,13 +184,16 @@ function sandboxHarness() {
 }
 
 describe("SandboxApp", () => {
-  afterEach(() => vi.restoreAllMocks());
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
 
   it("moves focus to Deny when a server approval opens", async () => {
     const user = userEvent.setup();
     const harness = sandboxHarness();
     render(<SandboxApp {...harness} />);
-    await screen.findByText("Fake runtime ready.", { exact: false });
+    await screen.findByText("private runtime is ready", { exact: false });
 
     await user.click(
       screen.getByRole("button", { name: /Add a responsive pricing section/ }),
@@ -193,10 +208,27 @@ describe("SandboxApp", () => {
     expect(screen.getByLabelText("Message LunarForge")).toBeDisabled();
   });
 
+  it("moves mobile-sheet focus to Deny when the approval opens", async () => {
+    vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: true })));
+    const user = userEvent.setup();
+    render(<SandboxApp {...sandboxHarness()} />);
+    await screen.findByText("private runtime is ready", { exact: false });
+
+    await user.click(
+      screen.getByRole("button", { name: /Add a responsive pricing section/ }),
+    );
+
+    await waitFor(() => {
+      const denials = screen.getAllByRole("button", { name: "Deny" });
+      expect(denials.at(-1)).toHaveFocus();
+    });
+    vi.unstubAllGlobals();
+  });
+
   it("switches the mobile segmented panels", async () => {
     const user = userEvent.setup();
     render(<SandboxApp {...sandboxHarness()} />);
-    await screen.findByText("Fake runtime ready.", { exact: false });
+    await screen.findByText("private runtime is ready", { exact: false });
 
     const chatTab = screen.getByRole("tab", { name: "Chat" });
     const filesTab = screen.getByRole("tab", { name: "Files" });
@@ -221,7 +253,7 @@ describe("SandboxApp", () => {
     const storage = vi.spyOn(Storage.prototype, "setItem");
     const harness = sandboxHarness();
     const { unmount } = render(<SandboxApp {...harness} />);
-    await screen.findByText("Fake runtime ready.", { exact: false });
+    await screen.findByText("private runtime is ready", { exact: false });
 
     await user.click(screen.getByLabelText(/Bring your own key/));
     const keyInput = screen.getByLabelText("Provider key");
@@ -245,7 +277,7 @@ describe("SandboxApp", () => {
 
     unmount();
     render(<SandboxApp {...sandboxHarness()} />);
-    await screen.findByText("Fake runtime ready.", { exact: false });
+    await screen.findByText("private runtime is ready", { exact: false });
     await user.click(screen.getByLabelText(/Bring your own key/));
     expect(screen.getByLabelText("Provider key")).toHaveValue("");
   });

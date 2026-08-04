@@ -513,6 +513,40 @@ class CoreAgentAdapter:
         if isinstance(exc, CoreAdapterError):
             return exc
         safe_detail = redact_text(str(exc))[:500].strip()
+        normalized = safe_detail.casefold()
+        module = type(exc).__module__.casefold()
+        error_name = type(exc).__name__.casefold()
+        if any(
+            marker in normalized
+            for marker in (
+                "invalid api key",
+                "incorrect api key",
+                "authentication failed",
+                "authenticationerror",
+                "unauthorized",
+                "status code 401",
+            )
+        ) or "authentication" in error_name:
+            return CoreAdapterError(
+                "provider_authentication_failed",
+                "The model provider rejected the credential.",
+            )
+        if (
+            "rate limit" in normalized
+            or "status code 429" in normalized
+            or "ratelimit" in error_name
+        ):
+            return CoreAdapterError(
+                "provider_rate_limited",
+                "The model provider rate limit was reached.",
+                retryable=True,
+            )
+        if module.startswith(("litellm", "openai", "anthropic")):
+            return CoreAdapterError(
+                "provider_error",
+                "The model provider could not complete the request.",
+                retryable=True,
+            )
         if isinstance(exc, NotADirectoryError):
             return CoreAdapterError(
                 "core_project_unavailable",

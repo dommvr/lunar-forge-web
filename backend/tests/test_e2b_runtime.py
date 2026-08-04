@@ -383,6 +383,27 @@ async def test_files_archive_and_artifacts_are_safe_and_bounded():
     assert [(item.name, item.media_type) for item in artifacts] == [
         ("report.json", "application/json")
     ]
+    artifact = await selected.read_artifact(runtime, artifacts[0].id)
+    assert artifact.name == "report.json"
+    assert artifact.media_type == "application/json"
+    assert artifact.content == b"{}"
+
+
+async def test_byok_provider_credentials_never_enter_e2b_metadata_or_environment():
+    byok_secret = "sk-byok-ephemeral-proof-123456789"
+    client = FakeE2BClient()
+    selected, runtime = await create_runtime(client)
+
+    await selected.run_command(runtime, "python -V", timeout_seconds=30)
+
+    assert byok_secret not in json.dumps(client.create_kwargs, sort_keys=True)
+    assert client.create_kwargs is not None
+    assert client.create_kwargs["envs"] == {}
+    for _command, kwargs in client.remote.commands.calls:
+        assert byok_secret not in json.dumps(kwargs, sort_keys=True)
+        envs = kwargs.get("envs", {})
+        assert "OPENAI_API_KEY" not in envs
+        assert "ANTHROPIC_API_KEY" not in envs
 
 
 async def test_public_core_runtime_operations_and_confirmed_rollback():

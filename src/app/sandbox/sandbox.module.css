@@ -333,6 +333,10 @@ button.flag:disabled {
 }
 
 .treeRow {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -343,6 +347,17 @@ button.flag:disabled {
   color: var(--text-muted);
   text-align: left;
   width: 100%;
+}
+
+.treeRow:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.treeRow:not(:disabled):hover,
+.treeRow:not(:disabled):focus-visible {
+  background: var(--surface-2);
+  outline: none;
 }
 
 .treeRowRoot {
@@ -911,6 +926,64 @@ button.flag:disabled {
   font-size: 12.5px;
   color: var(--text-faint);
   line-height: 1.5;
+}
+
+.artifactList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.artifactRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-1);
+}
+
+.artifactRow span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.artifactRow strong,
+.artifactRow small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artifactRow strong {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-bright);
+}
+
+.artifactRow small {
+  font-size: 11px;
+  color: var(--text-soft);
+}
+
+.streamingCursor {
+  display: inline-block;
+  width: 6px;
+  height: 1em;
+  margin-left: 3px;
+  vertical-align: -2px;
+  background: var(--accent);
+  animation: streamBlink 900ms steps(1) infinite;
+}
+
+@keyframes streamBlink {
+  50% {
+    opacity: 0;
+  }
 }
 
 .progressCard {

@@ -116,6 +116,22 @@ class SandboxService:
         await self._repository.delete(sandbox.id)
 
 
+def sandbox_is_expired(
+    sandbox: SandboxResponse, *, now: datetime | None = None
+) -> bool:
+    selected_now = now or datetime.now(timezone.utc)
+    return (
+        sandbox.status
+        in {
+            SandboxStatus.EXPIRED.value,
+            SandboxStatus.DELETING.value,
+            SandboxStatus.DELETED.value,
+        }
+        or sandbox.runtime_reference is None
+        or sandbox.expires_at <= selected_now
+    )
+
+
 def runtime_sandbox(sandbox: SandboxResponse) -> RuntimeSandbox:
     if sandbox.runtime_reference is None:
         raise RuntimeError("Sandbox runtime reference is unavailable.")

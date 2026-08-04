@@ -81,6 +81,12 @@ class RuntimeArtifact(ContractModel):
     size_bytes: int = Field(ge=0, le=10_485_760)
 
 
+class RuntimeArtifactContent(ContractModel):
+    name: str = Field(min_length=1, max_length=500)
+    media_type: str = Field(min_length=1, max_length=200)
+    content: bytes = Field(max_length=10_485_760)
+
+
 class RuntimeProvider(Protocol):
     def capability(self) -> RuntimeCapability: ...
 
@@ -123,6 +129,10 @@ class RuntimeProvider(Protocol):
     async def list_artifacts(
         self, sandbox: RuntimeSandbox
     ) -> tuple[RuntimeArtifact, ...]: ...
+
+    async def read_artifact(
+        self, sandbox: RuntimeSandbox, artifact_id: str
+    ) -> RuntimeArtifactContent: ...
 
     async def clone_public_git(
         self, sandbox: RuntimeSandbox, repository_url: str

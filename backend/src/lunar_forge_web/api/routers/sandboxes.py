@@ -19,6 +19,7 @@ from lunar_forge_web.services.sandbox_service import (
     SandboxCreationDisabledError,
     SandboxService,
     runtime_sandbox,
+    sandbox_is_expired,
 )
 from lunar_forge_web.storage.repositories import RepositoryConflictError
 from lunar_forge_web.services.fake_flow_service import (
@@ -28,6 +29,11 @@ from lunar_forge_web.services.fake_flow_service import (
 
 
 router = APIRouter(tags=["sandboxes"])
+
+
+def _require_active(sandbox: SandboxResponse) -> None:
+    if sandbox_is_expired(sandbox):
+        raise ApiError(410, "sandbox_expired", "The sandbox has expired.")
 
 
 @router.post(
@@ -83,12 +89,20 @@ async def reset_sandbox(
     sandbox: OwnedSandbox,
     container: ContainerDep,
 ) -> SandboxResponse:
+    _require_active(sandbox)
     session_ids = tuple(
         item.id for item in await container.sessions.list_for_sandbox(sandbox.id)
     )
-    reset = await SandboxService(
-        container.sandboxes, container.runtime
-    ).reset(sandbox)
+    try:
+        reset = await SandboxService(
+            container.sandboxes, container.runtime
+        ).reset(sandbox)
+    except Exception as exc:
+        raise ApiError(
+            502,
+            "sandbox_reset_failed",
+            "The sandbox reset could not be completed. Retry or contact an administrator.",
+        ) from exc
     await FakeFlowService(
         container.fake_flows,
         container.events,
@@ -111,16 +125,23 @@ async def delete_sandbox(
     session_ids = tuple(
         item.id for item in await container.sessions.list_for_sandbox(sandbox.id)
     )
-    if sandbox.runtime_reference is not None:
-        await container.runtime.terminate(runtime_sandbox(sandbox))
-    await FakeFlowService(
-        container.fake_flows,
-        container.events,
-        container.sessions,
-    ).clear_sandbox(sandbox.id)
-    if container.coordination is not None:
-        await container.coordination.clear_sandbox(sandbox.id, session_ids)
-    await container.sandboxes.delete(sandbox.id)
+    try:
+        if sandbox.runtime_reference is not None:
+            await container.runtime.terminate(runtime_sandbox(sandbox))
+        await FakeFlowService(
+            container.fake_flows,
+            container.events,
+            container.sessions,
+        ).clear_sandbox(sandbox.id)
+        if container.coordination is not None:
+            await container.coordination.clear_sandbox(sandbox.id, session_ids)
+        await container.sandboxes.delete(sandbox.id)
+    except Exception as exc:
+        raise ApiError(
+            502,
+            "sandbox_cleanup_failed",
+            "Sandbox cleanup did not complete and will need to be retried.",
+        ) from exc
     return SandboxDeleteResponse(sandbox_id=sandbox.id)
 
 
@@ -133,6 +154,7 @@ async def list_files(
     sandbox: OwnedSandbox,
     container: ContainerDep,
 ) -> FilesResponse:
+    _require_active(sandbox)
     if sandbox.runtime_provider == "fake":
         response = FakeFlowService(
             container.fake_flows,
@@ -169,6 +191,7 @@ async def get_file(
     container: ContainerDep,
     path: str = Query(min_length=1, max_length=4_096),
 ) -> FileContentResponse:
+    _require_active(sandbox)
     try:
         if sandbox.runtime_provider == "fake":
             response = FakeFlowService(
@@ -207,7 +230,15 @@ async def download_sandbox(
     sandbox: OwnedSandbox,
     container: ContainerDep,
 ) -> Response:
-    archive = await container.runtime.archive_project(runtime_sandbox(sandbox))
+    _require_active(sandbox)
+    try:
+        archive = await container.runtime.archive_project(runtime_sandbox(sandbox))
+    except Exception as exc:
+        raise ApiError(
+            502,
+            "project_download_failed",
+            "The active project could not be downloaded.",
+        ) from exc
     if len(archive.content) > container.settings.max_response_body_bytes:
         raise ApiError(
             413,

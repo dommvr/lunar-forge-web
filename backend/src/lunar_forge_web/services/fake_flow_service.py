@@ -89,6 +89,9 @@ class FakeFlowService:
             )
             self._store.turns[turn.id] = turn
             self._store.active_turns[session.id] = turn.id
+            self._store.turn_had_existing_changes[turn.id] = (
+                sandbox.id in self._store.changed_sandboxes
+            )
             self._store.changed_sandboxes.add(sandbox.id)
 
             await self._emit(session, turn.id, "turn.started", {"source": "fake"})
@@ -134,6 +137,12 @@ class FakeFlowService:
                         "package.json",
                     ],
                 },
+            )
+            await self._emit(
+                session,
+                turn.id,
+                "assistant.message.delta",
+                {"delta": "I read AGENTS.md and inspected the project. "},
             )
             await self._emit(
                 session,
@@ -234,6 +243,7 @@ class FakeFlowService:
                 )
                 self._store.turns[turn.id] = cancelled
                 self._store.active_turns.pop(session.id, None)
+                self._store.turn_had_existing_changes.pop(turn.id, None)
                 await self._emit(
                     session,
                     turn.id,
@@ -275,6 +285,9 @@ class FakeFlowService:
                     "steps": ["typecheck", "lint", "unit tests", "build", "browser check"],
                 },
             )
+            artifact_content = (
+                b'{"status":"passed","checks":5,"source":"deterministic-fake"}\n'
+            ).ljust(4_198, b" ")
             artifact = ArtifactResponse(
                 id=f"artifact_{uuid4().hex}",
                 sandbox_id=approval.sandbox_id,
@@ -282,15 +295,32 @@ class FakeFlowService:
                 owner_id=session.owner_id,
                 name="validation-report.json",
                 media_type="application/json",
-                size_bytes=4_198,
+                size_bytes=len(artifact_content),
                 expires_at=datetime.now(timezone.utc) + timedelta(minutes=30),
             )
             self._store.artifacts.setdefault(session.id, []).append(artifact)
+            self._store.artifact_content[artifact.id] = artifact_content
+            await self._emit(
+                session,
+                turn.id,
+                "assistant.message.delta",
+                {"delta": "Validation passed. "},
+            )
             await self._emit(
                 session,
                 turn.id,
                 "assistant.message.completed",
                 {"text": "Edited 3 files. Validation passed in 41s.", "final": True},
+            )
+            await self._emit(
+                session,
+                turn.id,
+                "model.usage",
+                {
+                    "input_tokens": 1_240,
+                    "output_tokens": 386,
+                    "estimated_cost_usd": 0.0184,
+                },
             )
             await self._emit(
                 session,
@@ -313,6 +343,7 @@ class FakeFlowService:
             )
             self._store.turns[turn.id] = completed
             self._store.active_turns.pop(session.id, None)
+            self._store.turn_had_existing_changes.pop(turn.id, None)
             return resolved
 
     async def cancel(self, session: SessionResponse) -> CancelResponse:
@@ -358,6 +389,12 @@ class FakeFlowService:
                 },
                 parent_event_id=rollback_started.event_id,
             )
+            await self._emit(
+                session,
+                turn.id,
+                "turn.finished",
+                {"status": "cancelled"},
+            )
             cancelled = turn.model_copy(
                 update={
                     "status": TurnStatus.CANCELLED,
@@ -366,16 +403,16 @@ class FakeFlowService:
             )
             self._store.turns[turn.id] = cancelled
             self._store.active_turns.pop(session.id, None)
-            self._store.changed_sandboxes.discard(
-                next(
-                    (
-                        item.sandbox_id
-                        for item in self._store.approvals.values()
-                        if item.turn_id == turn.id
-                    ),
-                    "",
-                )
+            sandbox_id = next(
+                (
+                    item.sandbox_id
+                    for item in self._store.approvals.values()
+                    if item.turn_id == turn.id
+                ),
+                "",
             )
+            if not self._store.turn_had_existing_changes.pop(turn.id, False):
+                self._store.changed_sandboxes.discard(sandbox_id)
             return CancelResponse(turn=cancelled, rollback_report=report)
 
     async def compact(self, session: SessionResponse) -> CompactionResponse:
@@ -473,6 +510,12 @@ class FakeFlowService:
 
     def artifacts(self, session: SessionResponse) -> ArtifactsResponse:
         return ArtifactsResponse(items=list(self._store.artifacts.get(session.id, [])))
+
+    def artifact_content(self, artifact_id: str) -> bytes:
+        content = self._store.artifact_content.get(artifact_id)
+        if content is None:
+            raise FakeFlowNotFoundError("Artifact was not found.")
+        return content
 
     async def clear_sandbox(self, sandbox_id: str) -> None:
         sessions = await self._sessions.list_for_sandbox(sandbox_id)

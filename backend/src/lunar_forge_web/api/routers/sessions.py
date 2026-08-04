@@ -1,9 +1,15 @@
 import asyncio
-
-from fastapi import APIRouter, Query, status
+import re
 from uuid import uuid4
 
-from lunar_forge_web.api.dependencies import ContainerDep, OwnedSandbox, OwnedSession
+from fastapi import APIRouter, Query, Response, status
+
+from lunar_forge_web.api.dependencies import (
+    ContainerDep,
+    CurrentPrincipal,
+    OwnedSandbox,
+    OwnedSession,
+)
 from lunar_forge_web.api.errors import ERROR_RESPONSES
 from lunar_forge_web.api.errors import ApiError
 from lunar_forge_web.domain.models import (
@@ -16,6 +22,7 @@ from lunar_forge_web.domain.models import (
     SessionCreateRequest,
     SessionResponse,
     SessionSettings,
+    SandboxResponse,
     TurnCreateRequest,
     TurnResponse,
     WorkerTurnRequest,
@@ -31,6 +38,7 @@ from lunar_forge_web.services.sandbox_service import (
     MeaningfulActivity,
     SandboxService,
     runtime_sandbox,
+    sandbox_is_expired,
 )
 from lunar_forge_web.services.usage_service import UsageService
 from lunar_forge_web.storage.repositories import (
@@ -42,6 +50,17 @@ from lunar_forge_web.worker.client import WorkerInvocationError
 
 
 router = APIRouter(tags=["sessions"])
+_DOWNLOAD_NAME = re.compile(r"[^A-Za-z0-9._-]+")
+
+
+def _require_active_sandbox(sandbox: SandboxResponse) -> None:
+    if sandbox_is_expired(sandbox):
+        raise ApiError(410, "sandbox_expired", "The sandbox has expired.")
+
+
+def _content_disposition(name: str) -> str:
+    safe = _DOWNLOAD_NAME.sub("_", name).strip("._")[:180] or "artifact.bin"
+    return f'attachment; filename="{safe}"'
 
 
 @router.post(
@@ -55,6 +74,7 @@ async def create_session(
     sandbox: OwnedSandbox,
     container: ContainerDep,
 ) -> SessionResponse:
+    _require_active_sandbox(sandbox)
     del body
     session = await SessionService(container.sessions).create(
         sandbox.id,
@@ -100,6 +120,7 @@ async def create_turn(
     sandbox = await container.sandboxes.get(session.sandbox_id)
     if sandbox is None:
         raise ApiError(404, "sandbox_not_found", "Sandbox was not found.")
+    _require_active_sandbox(sandbox)
     settings = body.settings or SessionSettings()
     admin_settings = await container.admin_settings.get()
     if admin_settings.sandbox_kill_switch_enabled:
@@ -347,6 +368,22 @@ async def compact_session(
     session: OwnedSession,
     container: ContainerDep,
 ) -> CompactionResponse:
+    if container.worker_client is not None:
+        active = await container.turns.active_for_session(session.id)
+        if active is not None:
+            raise ApiError(
+                409,
+                "compaction_deferred",
+                "Compaction is deferred while a turn is active.",
+            )
+        return CompactionResponse(
+            session=session,
+            compacted=False,
+            summary=(
+                "Manual compaction is unavailable in the pinned LunarForge public "
+                "API. Automatic compaction remains active during turns."
+            ),
+        )
     try:
         return await fake_flow(container).compact(session)
     except FakeFlowStateError as exc:
@@ -413,3 +450,79 @@ async def list_artifacts(
         sandbox.id, MeaningfulActivity.FILE_INTERACTION
     )
     return response
+
+
+@router.get(
+    "/artifacts/{artifact_id}",
+    response_class=Response,
+    responses=ERROR_RESPONSES,
+)
+async def download_artifact(
+    artifact_id: str,
+    principal: CurrentPrincipal,
+    container: ContainerDep,
+) -> Response:
+    for sandbox in await container.sandboxes.list_for_owner(principal.id):
+        if sandbox.runtime_reference is None or sandbox_is_expired(sandbox):
+            continue
+        if sandbox.runtime_provider == "fake":
+            for session in await container.sessions.list_for_sandbox(sandbox.id):
+                artifact = next(
+                    (
+                        item
+                        for item in fake_flow(container).artifacts(session).items
+                        if item.id == artifact_id
+                        and item.owner_id == principal.id
+                    ),
+                    None,
+                )
+                if artifact is None:
+                    continue
+                content = fake_flow(container).artifact_content(artifact.id)
+                if len(content) > container.settings.max_response_body_bytes:
+                    raise ApiError(
+                        413,
+                        "artifact_too_large",
+                        "Artifact exceeds the configured response bound.",
+                    )
+                await SandboxService(
+                    container.sandboxes, container.runtime
+                ).record_activity(sandbox.id, MeaningfulActivity.FILE_INTERACTION)
+                return Response(
+                    content=content,
+                    media_type=artifact.media_type,
+                    headers={
+                        "Content-Disposition": _content_disposition(artifact.name)
+                    },
+                )
+            continue
+        runtime = runtime_sandbox(sandbox)
+        artifact = next(
+            (
+                item
+                for item in await container.runtime.list_artifacts(runtime)
+                if item.id == artifact_id
+            ),
+            None,
+        )
+        if artifact is None:
+            continue
+        try:
+            content = await container.runtime.read_artifact(runtime, artifact.id)
+        except FileNotFoundError:
+            continue
+        if len(content.content) > container.settings.max_response_body_bytes:
+            raise ApiError(
+                413,
+                "artifact_too_large",
+                "Artifact exceeds the configured response bound.",
+            )
+        await SandboxService(container.sandboxes, container.runtime).record_activity(
+            sandbox.id, MeaningfulActivity.FILE_INTERACTION
+        )
+        return Response(
+            content=content.content,
+            media_type=content.media_type,
+            headers={"Content-Disposition": _content_disposition(content.name)},
+        )
+    raise ApiError(404, "artifact_not_found", "Artifact was not found.")

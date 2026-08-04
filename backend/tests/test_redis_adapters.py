@@ -159,9 +159,11 @@ async def test_redis_event_stream_is_monotonic_redacted_replayable_and_trimmed(
     redis_store,
 ):
     client, store = redis_store
-    await store.append(event(1, {"api_key": "sk-super-secret-value"}))
+    secret = "sk-byok-ephemeral-proof-123456789"
+    await store.append(event(1, {"api_key": secret}))
     replay = await store.replay("session-a", 0, 10)
     assert replay[0].payload["api_key"] == REDACTED
+    assert secret not in json.dumps(client.streams, sort_keys=True)
     assert await store.last_sequence("session-a") == 1
     assert await store.wait_for_events("session-a", 0, 0.01) is True
     with pytest.raises(RepositoryConflictError, match="Expected event sequence 2"):
@@ -181,17 +183,19 @@ async def test_redis_event_stream_is_monotonic_redacted_replayable_and_trimmed(
 
 async def test_redis_controls_tickets_rate_limits_and_leases(redis_store):
     client, store = redis_store
+    secret = "sk-byok-ephemeral-proof-123456789"
     now = datetime(2026, 8, 3, 12, tzinfo=timezone.utc)
     message_id = await store.publish_control(
         session_id="session-a",
         kind="approval",
         action_id="approval-a",
-        payload={"approved": True, "provider_api_key": "sk-secret-value"},
+        payload={"approved": True, "provider_api_key": secret},
         now=now,
     )
     controls = await store.replay_controls("session-a")
     assert controls[0].id == message_id
     assert controls[0].payload["provider_api_key"] == REDACTED
+    assert secret not in json.dumps(client.streams, sort_keys=True)
 
     issued = await store.issue_websocket_ticket("user-a", "session-a", 60)
     serialized_storage = json.dumps(
@@ -232,4 +236,3 @@ async def test_redis_controls_tickets_rate_limits_and_leases(redis_store):
 
     await store.close()
     assert client.closed is True
-

@@ -17,6 +17,7 @@ from lunar_forge_web.container import ApplicationContainer
 from lunar_forge_web.domain.base import Identifier
 from lunar_forge_web.domain.enums import AssuranceLevel, UserRole
 from lunar_forge_web.domain.models import Principal, SandboxResponse, SessionResponse
+from lunar_forge_web.services.sandbox_service import sandbox_is_expired
 
 
 bearer = HTTPBearer(auto_error=False)
@@ -91,6 +92,9 @@ async def get_owned_session(
     session = await container.sessions.get(session_id)
     if session is None or not can_access_owned_resource(principal, session.owner_id):
         raise ApiError(404, "session_not_found", "Session was not found.")
+    sandbox = await container.sandboxes.get(session.sandbox_id)
+    if sandbox is None or sandbox_is_expired(sandbox):
+        raise ApiError(410, "sandbox_expired", "The sandbox has expired.")
     return session
 
 
